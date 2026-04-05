@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
 import SalesInvoices from "./pages/SalesInvoices";
 import PurchaseInvoices from "./pages/PurchaseInvoices";
+import VatReturn from "./pages/VatReturn";
 import Placeholder from "./pages/Placeholder";
 import NotFound from "./pages/NotFound";
 
