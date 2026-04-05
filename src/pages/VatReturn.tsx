@@ -235,7 +235,7 @@ export default function VatReturn() {
               <Card className="border-destructive/30">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                    <AlertTriangle className="h-4 w-4 text-destructive" />
                     Waarschuwingen
                   </CardTitle>
                 </CardHeader>
