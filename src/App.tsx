@@ -15,6 +15,7 @@ import SalesInvoices from "./pages/SalesInvoices";
 import PurchaseInvoices from "./pages/PurchaseInvoices";
 import VatReturn from "./pages/VatReturn";
 import Placeholder from "./pages/Placeholder";
+import Documents from "./pages/Documents";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
