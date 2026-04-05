@@ -33,8 +33,8 @@ const App = () => (
             <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route index element={<Dashboard />} />
               <Route path="transacties" element={<Transactions />} />
-              <Route path="facturen/verkoop" element={<Placeholder />} />
-              <Route path="facturen/inkoop" element={<Placeholder />} />
+              <Route path="facturen/verkoop" element={<SalesInvoices />} />
+              <Route path="facturen/inkoop" element={<PurchaseInvoices />} />
               <Route path="reconciliatie" element={<Placeholder />} />
               <Route path="documenten" element={<Placeholder />} />
               <Route path="btw/aangifte" element={<Placeholder />} />
