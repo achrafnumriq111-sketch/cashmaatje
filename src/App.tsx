@@ -38,7 +38,7 @@ const App = () => (
               <Route path="transacties" element={<Transactions />} />
               <Route path="facturen/verkoop" element={<SalesInvoices />} />
               <Route path="facturen/inkoop" element={<PurchaseInvoices />} />
-              <Route path="reconciliatie" element={<Placeholder />} />
+              <Route path="reconciliatie" element={<Reconciliation />} />
               <Route path="documenten" element={<Documents />} />
               <Route path="btw/aangifte" element={<VatReturn />} />
               <Route path="btw/icp" element={<Placeholder />} />
