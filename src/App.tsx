@@ -10,6 +10,7 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
+import Transactions from "./pages/Transactions";
 import Placeholder from "./pages/Placeholder";
 import NotFound from "./pages/NotFound";
 
@@ -29,7 +30,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route index element={<Dashboard />} />
-              <Route path="transacties" element={<Placeholder />} />
+              <Route path="transacties" element={<Transactions />} />
               <Route path="facturen/verkoop" element={<Placeholder />} />
               <Route path="facturen/inkoop" element={<Placeholder />} />
               <Route path="reconciliatie" element={<Placeholder />} />
