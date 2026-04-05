@@ -315,7 +315,7 @@ async function createJournalEntries(
   await supabase.from("invoices").update({ journal_entry_id: entry.id }).eq("id", invoiceId);
 
   // Build journal lines
-  const journalLines: Array<Record<string, unknown>> = [];
+  const journalLines: Database["public"]["Tables"]["journal_lines"]["Insert"][] = [];
   let lineNum = 1;
 
   // Debit: Debiteuren
