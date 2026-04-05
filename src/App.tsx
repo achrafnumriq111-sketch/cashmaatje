@@ -11,6 +11,8 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
+import SalesInvoices from "./pages/SalesInvoices";
+import PurchaseInvoices from "./pages/PurchaseInvoices";
 import Placeholder from "./pages/Placeholder";
 import NotFound from "./pages/NotFound";
 
