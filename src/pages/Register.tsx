@@ -54,7 +54,7 @@ export default function Register() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm text-muted-foreground">Email</Label>
-            <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-card border-border" />
+            <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-secondary border-border text-foreground" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password" className="text-sm text-muted-foreground">Password</Label>
