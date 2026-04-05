@@ -20,7 +20,7 @@ export function useUnreconciledTransactions(filters: ReconciliationFilters) {
         .from("bank_transactions")
         .select("*, contacts(name)")
         .eq("organization_id", orgId!)
-        .in("status", ["new", "categorized"])
+        .in("status", ["new"])
         .gte("transaction_date", filters.dateFrom)
         .lte("transaction_date", filters.dateTo)
         .order("transaction_date", { ascending: false });
