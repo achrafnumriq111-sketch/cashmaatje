@@ -50,7 +50,7 @@ export default function Register() {
         <form onSubmit={handleRegister} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm text-muted-foreground">Full name</Label>
-            <Input id="name" placeholder="Jane Doe" value={fullName} onChange={(e) => setFullName(e.target.value)} required className="bg-card border-border" />
+            <Input id="name" placeholder="Jane Doe" value={fullName} onChange={(e) => setFullName(e.target.value)} required className="bg-secondary border-border text-foreground" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm text-muted-foreground">Email</Label>
