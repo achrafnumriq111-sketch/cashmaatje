@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
 import SalesInvoices from "./pages/SalesInvoices";
 import PurchaseInvoices from "./pages/PurchaseInvoices";
+import VatReturn from "./pages/VatReturn";
 import Placeholder from "./pages/Placeholder";
 import NotFound from "./pages/NotFound";
 
@@ -37,7 +38,7 @@ const App = () => (
               <Route path="facturen/inkoop" element={<PurchaseInvoices />} />
               <Route path="reconciliatie" element={<Placeholder />} />
               <Route path="documenten" element={<Placeholder />} />
-              <Route path="btw/aangifte" element={<Placeholder />} />
+              <Route path="btw/aangifte" element={<VatReturn />} />
               <Route path="btw/icp" element={<Placeholder />} />
               <Route path="rapporten/winst-verlies" element={<Placeholder />} />
               <Route path="rapporten/balans" element={<Placeholder />} />
