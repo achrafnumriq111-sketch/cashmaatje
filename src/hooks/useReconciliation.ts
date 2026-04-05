@@ -242,7 +242,7 @@ export function useExcludeTransaction() {
     mutationFn: async (transactionId: string) => {
       const { error } = await supabase
         .from("bank_transactions")
-        .update({ status: "excluded" as any })
+        .update({ status: "reconciled" })
         .eq("id", transactionId);
       if (error) throw error;
     },
