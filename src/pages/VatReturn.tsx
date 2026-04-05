@@ -232,7 +232,7 @@ export default function VatReturn() {
           <div className="space-y-4">
             {/* Warnings */}
             {warnings.length > 0 && (
-              <Card className="border-yellow-600/30">
+              <Card className="border-destructive/30">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-yellow-500" />
