@@ -124,7 +124,7 @@ export function SalesInvoiceForm({ open, onClose }: Props) {
     try {
       await createInvoice.mutateAsync({
         contact_id: contactId,
-        contact_name: selectedContact?.name ?? contactSearch || "Onbekend",
+        contact_name: selectedContact?.name ?? (contactSearch || "Onbekend"),
         invoice_date: invoiceDate,
         due_date: dueDate,
         invoice_type: "sales",
