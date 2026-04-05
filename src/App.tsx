@@ -4,11 +4,13 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, ProtectedRoute } from "@/lib/auth";
-import Index from "./pages/Index";
+import { AppLayout } from "@/components/layout/AppLayout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Dashboard from "./pages/Dashboard";
+import Placeholder from "./pages/Placeholder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,7 +27,25 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+            <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+              <Route index element={<Dashboard />} />
+              <Route path="transacties" element={<Placeholder />} />
+              <Route path="facturen/verkoop" element={<Placeholder />} />
+              <Route path="facturen/inkoop" element={<Placeholder />} />
+              <Route path="reconciliatie" element={<Placeholder />} />
+              <Route path="documenten" element={<Placeholder />} />
+              <Route path="btw/aangifte" element={<Placeholder />} />
+              <Route path="btw/icp" element={<Placeholder />} />
+              <Route path="rapporten/winst-verlies" element={<Placeholder />} />
+              <Route path="rapporten/balans" element={<Placeholder />} />
+              <Route path="rapporten/proefbalans" element={<Placeholder />} />
+              <Route path="rapporten/cashflow" element={<Placeholder />} />
+              <Route path="relaties" element={<Placeholder />} />
+              <Route path="grootboek" element={<Placeholder />} />
+              <Route path="journaalposten" element={<Placeholder />} />
+              <Route path="instellingen" element={<Placeholder />} />
+              <Route path="audit-log" element={<Placeholder />} />
+            </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
