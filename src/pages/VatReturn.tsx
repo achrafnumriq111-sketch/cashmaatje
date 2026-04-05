@@ -105,7 +105,7 @@ function RubriekSection({
               r.autoCalc || is5f ? (
                 <span className={cn(
                   "text-right text-sm font-mono pr-2",
-                  is5f && (totalVal >= 0 ? "text-destructive font-bold text-base" : "text-emerald-500 font-bold text-base")
+                  is5f && (totalVal >= 0 ? "text-destructive font-bold text-base" : "text-primary font-bold text-base")
                 )}>
                   {is5f ? fmt(totalVal) : fmtPlain(totalVal)}
                 </span>
