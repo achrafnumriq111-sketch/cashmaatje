@@ -243,7 +243,7 @@ export default function VatReturn() {
                   <ul className="space-y-2">
                     {warnings.map((w, i) => (
                       <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-yellow-500 shrink-0" />
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
                         {w}
                       </li>
                     ))}

@@ -191,7 +191,7 @@ export function useVatReturn() {
       .from("bank_transactions")
       .select("id", { count: "exact", head: true })
       .eq("organization_id", orgId)
-      .in("status", ["new", "suggested"])
+      .in("status", ["new", "partial_match"])
       .gte("transaction_date", dates2.start)
       .lte("transaction_date", dates2.end);
     if (unreconCount && unreconCount > 0) w.push(`${unreconCount} niet-afgestemde transacties`);
