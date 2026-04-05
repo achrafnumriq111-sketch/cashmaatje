@@ -119,7 +119,7 @@ export function useReportData() {
       .select("id, invoice_number, contact_name, amount_due, due_date")
       .eq("organization_id", orgId)
       .eq("invoice_type", "purchase")
-      .in("status", ["approved", "partial", "overdue"])
+      .in("status", ["sent", "partial", "overdue"])
       .order("due_date");
 
     const upcoming: UpcomingItem[] = [
