@@ -16,6 +16,7 @@ import PurchaseInvoices from "./pages/PurchaseInvoices";
 import VatReturn from "./pages/VatReturn";
 import Placeholder from "./pages/Placeholder";
 import Documents from "./pages/Documents";
+import Reconciliation from "./pages/Reconciliation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,7 +38,7 @@ const App = () => (
               <Route path="transacties" element={<Transactions />} />
               <Route path="facturen/verkoop" element={<SalesInvoices />} />
               <Route path="facturen/inkoop" element={<PurchaseInvoices />} />
-              <Route path="reconciliatie" element={<Placeholder />} />
+              <Route path="reconciliatie" element={<Reconciliation />} />
               <Route path="documenten" element={<Documents />} />
               <Route path="btw/aangifte" element={<VatReturn />} />
               <Route path="btw/icp" element={<Placeholder />} />
