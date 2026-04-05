@@ -20,7 +20,6 @@ import TrialBalance from "./pages/TrialBalance";
 import Cashflow from "./pages/Cashflow";
 import Placeholder from "./pages/Placeholder";
 import Documents from "./pages/Documents";
-import Documents from "./pages/Documents";
 import Reconciliation from "./pages/Reconciliation";
 import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
