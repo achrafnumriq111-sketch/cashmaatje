@@ -9,7 +9,7 @@ interface Props {
   unreconciledCount: number;
   missingDocsCount: number;
   anomaliesCount: number;
-  vatDeadline: { deadline_date: string; daysRemaining: number; period_number: number; year: number } | null | undefined;
+  vatDeadline: { period_end: string; daysRemaining: number; period_number: number; year: number } | null | undefined;
   role: Role;
 }
 
