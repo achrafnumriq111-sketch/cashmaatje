@@ -55,7 +55,7 @@ export function useDashboardData() {
         .from("bank_transactions")
         .select("id", { count: "exact", head: true })
         .eq("organization_id", orgId!)
-        .in("status", ["new", "suggested"]);
+        .eq("status", "new");
       return count ?? 0;
     },
   });
@@ -80,16 +80,17 @@ export function useDashboardData() {
     queryFn: async () => {
       const { data } = await supabase
         .from("vat_returns")
-        .select("deadline_date, period_type, period_number, year")
+        .select("period_end, period_type, period_number, year")
         .eq("organization_id", orgId!)
         .eq("status", "draft")
-        .order("deadline_date", { ascending: true })
+        .order("period_end", { ascending: true })
         .limit(1);
       if (data && data.length > 0) {
-        const deadline = new Date(data[0].deadline_date);
+        const row = data[0];
+        const deadline = new Date(row.period_end);
         const now = new Date();
         const diffDays = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        return { ...data[0], daysRemaining: diffDays };
+        return { period_end: row.period_end, period_number: row.period_number, year: row.year, daysRemaining: diffDays };
       }
       return null;
     },
@@ -99,7 +100,6 @@ export function useDashboardData() {
     queryKey: ["monthly-revenue", orgId],
     enabled: !!orgId,
     queryFn: async () => {
-      // Get last 12 months of journal data aggregated by month
       const twelveMonthsAgo = new Date();
       twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
       const { data } = await supabase
