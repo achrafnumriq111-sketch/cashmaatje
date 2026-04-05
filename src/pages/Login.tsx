@@ -91,7 +91,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="bg-card border-border"
+                className="bg-secondary border-border text-foreground"
               />
             </div>
           )}

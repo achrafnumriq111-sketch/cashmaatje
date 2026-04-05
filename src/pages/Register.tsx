@@ -58,7 +58,7 @@ export default function Register() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="password" className="text-sm text-muted-foreground">Password</Label>
-            <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="bg-card border-border" />
+            <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="bg-secondary border-border text-foreground" />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Creating account..." : "Create account"}
