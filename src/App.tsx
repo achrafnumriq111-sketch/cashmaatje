@@ -10,6 +10,7 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
+import Transactions from "./pages/Transactions";
 import Placeholder from "./pages/Placeholder";
 import NotFound from "./pages/NotFound";
 
