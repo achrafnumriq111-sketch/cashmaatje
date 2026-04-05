@@ -22,6 +22,7 @@ const roleLabels: Record<UserRole, string> = {
   entrepreneur: "Ondernemer",
   bookkeeper: "Boekhouder",
   accountant: "Accountant",
+  admin: "Admin",
 };
 
 interface TopHeaderProps {
