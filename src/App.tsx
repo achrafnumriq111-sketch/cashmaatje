@@ -48,10 +48,10 @@ const App = () => (
               <Route path="documenten" element={<Documents />} />
               <Route path="btw/aangifte" element={<VatReturn />} />
               <Route path="btw/icp" element={<Placeholder />} />
-              <Route path="rapporten/winst-verlies" element={<Placeholder />} />
-              <Route path="rapporten/balans" element={<Placeholder />} />
-              <Route path="rapporten/proefbalans" element={<Placeholder />} />
-              <Route path="rapporten/cashflow" element={<Placeholder />} />
+              <Route path="rapporten/winst-verlies" element={<ProfitLoss />} />
+              <Route path="rapporten/balans" element={<BalanceSheet />} />
+              <Route path="rapporten/proefbalans" element={<TrialBalance />} />
+              <Route path="rapporten/cashflow" element={<Cashflow />} />
               <Route path="relaties" element={<Placeholder />} />
               <Route path="grootboek" element={<Placeholder />} />
               <Route path="journaalposten" element={<Placeholder />} />
