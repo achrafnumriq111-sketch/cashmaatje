@@ -17,6 +17,7 @@ import VatReturn from "./pages/VatReturn";
 import Placeholder from "./pages/Placeholder";
 import Documents from "./pages/Documents";
 import Reconciliation from "./pages/Reconciliation";
+import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
