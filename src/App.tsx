@@ -20,6 +20,7 @@ import TrialBalance from "./pages/TrialBalance";
 import Cashflow from "./pages/Cashflow";
 import Placeholder from "./pages/Placeholder";
 import JournalEntries from "./pages/JournalEntries";
+import Contacts from "./pages/Contacts";
 import Documents from "./pages/Documents";
 import Reconciliation from "./pages/Reconciliation";
 import Onboarding from "./pages/Onboarding";
@@ -53,7 +54,7 @@ const App = () => (
               <Route path="rapporten/balans" element={<BalanceSheet />} />
               <Route path="rapporten/proefbalans" element={<TrialBalance />} />
               <Route path="rapporten/cashflow" element={<Cashflow />} />
-              <Route path="relaties" element={<Placeholder />} />
+              <Route path="relaties" element={<Contacts />} />
               <Route path="grootboek" element={<Placeholder />} />
               <Route path="journaalposten" element={<JournalEntries />} />
               <Route path="instellingen" element={<Placeholder />} />
