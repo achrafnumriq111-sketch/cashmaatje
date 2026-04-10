@@ -19,7 +19,7 @@ export function useOrganization() {
   useEffect(() => {
     if (!user) return;
 
-    const fetch = async () => {
+    const fetchMembership = async () => {
       const { data } = await supabase
         .from("organization_members")
         .select("organization_id, role, organizations(name)")
@@ -38,12 +38,8 @@ export function useOrganization() {
       setLoading(false);
     };
 
-    fetch();
+    fetchMembership();
   }, [user]);
 
-  const setRole = (role: UserRole) => {
-    if (membership) setMembership({ ...membership, role });
-  };
-
-  return { membership, loading, setRole };
+  return { membership, loading };
 }

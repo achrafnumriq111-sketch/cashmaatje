@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, ChevronDown, LogOut, User } from "lucide-react";
+import { Bell, LogOut, User } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +28,6 @@ const roleLabels: Record<UserRole, string> = {
 interface TopHeaderProps {
   organizationName: string;
   role: UserRole;
-  onRoleChange: (role: UserRole) => void;
   notifications: Notification[];
   unreadCount: number;
   onMarkRead: (id: string) => void;
@@ -38,7 +37,6 @@ interface TopHeaderProps {
 export function TopHeader({
   organizationName,
   role,
-  onRoleChange,
   notifications,
   unreadCount,
   onMarkRead,
@@ -60,27 +58,6 @@ export function TopHeader({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Role switcher */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-muted-foreground">
-                {roleLabels[role]}
-                <ChevronDown className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {(Object.keys(roleLabels) as UserRole[]).map((r) => (
-                <DropdownMenuItem
-                  key={r}
-                  onClick={() => onRoleChange(r)}
-                  className={r === role ? "text-primary" : ""}
-                >
-                  {roleLabels[r]}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
           {/* Notification bell */}
           <Button
             variant="ghost"

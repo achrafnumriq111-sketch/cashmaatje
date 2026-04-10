@@ -6,7 +6,7 @@ import { useOrganization } from "@/hooks/useOrganization";
 import { useNotifications } from "@/hooks/useNotifications";
 
 export function AppLayout() {
-  const { membership, setRole } = useOrganization();
+  const { membership } = useOrganization();
   const { notifications, unreadCount, markAsRead, markAllRead } = useNotifications(
     membership?.organizationId
   );
@@ -21,7 +21,6 @@ export function AppLayout() {
           <TopHeader
             organizationName={membership?.organizationName ?? "Arcory"}
             role={role}
-            onRoleChange={setRole}
             notifications={notifications}
             unreadCount={unreadCount}
             onMarkRead={markAsRead}
