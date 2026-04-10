@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, SkipForward } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 import { toast } from "sonner";
 
 import StepBedrijfsprofiel from "@/components/onboarding/StepBedrijfsprofiel";
@@ -100,6 +101,13 @@ export default function Onboarding() {
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { membership, loading: organizationLoading } = useOrganization();
+
+  useEffect(() => {
+    if (!organizationLoading && membership) {
+      navigate("/", { replace: true });
+    }
+  }, [membership, organizationLoading, navigate]);
 
   const progress = ((step + 1) / STEPS.length) * 100;
 
