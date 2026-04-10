@@ -23,6 +23,7 @@ export default function Documents() {
     orgId,
   } = useDocuments();
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const selectedDoc = documents.find((d) => d.id === selectedDocId) ?? null;
 
   return (
