@@ -2619,6 +2619,7 @@ export type Database = {
         Args: { p_end_date: string; p_org_id: string; p_start_date: string }
         Returns: Json
       }
+      can_manage_org_members: { Args: { p_org_id: string }; Returns: boolean }
       get_user_org_ids: { Args: never; Returns: string[] }
       get_user_role_in_org: {
         Args: { p_org_id: string }
