@@ -777,8 +777,11 @@ export type Database = {
       }
       documents: {
         Row: {
+          ai_category_confidence: number | null
           bank_transaction_id: string | null
+          category: string | null
           contact_id: string | null
+          country_of_origin: string | null
           created_at: string | null
           document_hash: string | null
           document_type: Database["public"]["Enums"]["document_type"]
@@ -797,6 +800,7 @@ export type Database = {
           file_type: string | null
           id: string
           invoice_id: string | null
+          is_business_expense: boolean | null
           is_duplicate: boolean | null
           is_validated: boolean | null
           journal_entry_id: string | null
@@ -806,16 +810,23 @@ export type Database = {
           ocr_status: string | null
           ocr_text: string | null
           organization_id: string
+          processing_status: string | null
           storage_bucket: string | null
+          supplier_pattern_id: string | null
           tags: string[] | null
+          tax_box_mapping: string | null
           updated_at: string | null
           uploaded_by: string | null
           validated_at: string | null
           validated_by: string | null
+          vat_rate_type_detected: string | null
         }
         Insert: {
+          ai_category_confidence?: number | null
           bank_transaction_id?: string | null
+          category?: string | null
           contact_id?: string | null
+          country_of_origin?: string | null
           created_at?: string | null
           document_hash?: string | null
           document_type?: Database["public"]["Enums"]["document_type"]
@@ -834,6 +845,7 @@ export type Database = {
           file_type?: string | null
           id?: string
           invoice_id?: string | null
+          is_business_expense?: boolean | null
           is_duplicate?: boolean | null
           is_validated?: boolean | null
           journal_entry_id?: string | null
@@ -843,16 +855,23 @@ export type Database = {
           ocr_status?: string | null
           ocr_text?: string | null
           organization_id: string
+          processing_status?: string | null
           storage_bucket?: string | null
+          supplier_pattern_id?: string | null
           tags?: string[] | null
+          tax_box_mapping?: string | null
           updated_at?: string | null
           uploaded_by?: string | null
           validated_at?: string | null
           validated_by?: string | null
+          vat_rate_type_detected?: string | null
         }
         Update: {
+          ai_category_confidence?: number | null
           bank_transaction_id?: string | null
+          category?: string | null
           contact_id?: string | null
+          country_of_origin?: string | null
           created_at?: string | null
           document_hash?: string | null
           document_type?: Database["public"]["Enums"]["document_type"]
@@ -871,6 +890,7 @@ export type Database = {
           file_type?: string | null
           id?: string
           invoice_id?: string | null
+          is_business_expense?: boolean | null
           is_duplicate?: boolean | null
           is_validated?: boolean | null
           journal_entry_id?: string | null
@@ -880,12 +900,16 @@ export type Database = {
           ocr_status?: string | null
           ocr_text?: string | null
           organization_id?: string
+          processing_status?: string | null
           storage_bucket?: string | null
+          supplier_pattern_id?: string | null
           tags?: string[] | null
+          tax_box_mapping?: string | null
           updated_at?: string | null
           uploaded_by?: string | null
           validated_at?: string | null
           validated_by?: string | null
+          vat_rate_type_detected?: string | null
         }
         Relationships: [
           {
@@ -928,6 +952,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_supplier_pattern_id_fkey"
+            columns: ["supplier_pattern_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_patterns"
             referencedColumns: ["id"]
           },
           {
@@ -2087,6 +2118,72 @@ export type Database = {
           },
           {
             foreignKeyName: "recurring_patterns_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplier_patterns: {
+        Row: {
+          country: string | null
+          created_at: string | null
+          default_account_id: string | null
+          default_category: string | null
+          default_tax_box: string | null
+          default_vat_rate_type: string | null
+          id: string
+          is_business: boolean | null
+          last_seen_at: string | null
+          normalized_name: string
+          organization_id: string
+          supplier_name: string
+          times_seen: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string | null
+          default_account_id?: string | null
+          default_category?: string | null
+          default_tax_box?: string | null
+          default_vat_rate_type?: string | null
+          id?: string
+          is_business?: boolean | null
+          last_seen_at?: string | null
+          normalized_name: string
+          organization_id: string
+          supplier_name: string
+          times_seen?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string | null
+          default_account_id?: string | null
+          default_category?: string | null
+          default_tax_box?: string | null
+          default_vat_rate_type?: string | null
+          id?: string
+          is_business?: boolean | null
+          last_seen_at?: string | null
+          normalized_name?: string
+          organization_id?: string
+          supplier_name?: string
+          times_seen?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_patterns_default_account_id_fkey"
+            columns: ["default_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_patterns_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
