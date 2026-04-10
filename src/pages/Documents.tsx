@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, List } from "lucide-react";
@@ -8,6 +8,7 @@ import { DocumentGrid } from "@/components/documents/DocumentGrid";
 import { DocumentList } from "@/components/documents/DocumentList";
 import { DocumentDetail } from "@/components/documents/DocumentDetail";
 import { MissingDocuments } from "@/components/documents/MissingDocuments";
+import { ReceiptScanner } from "@/components/documents/ReceiptScanner";
 
 export default function Documents() {
   const {
@@ -22,6 +23,7 @@ export default function Documents() {
     orgId,
   } = useDocuments();
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const selectedDoc = documents.find((d) => d.id === selectedDocId) ?? null;
 
   return (
@@ -39,6 +41,14 @@ export default function Documents() {
 
       <DocumentUploadZone
         onDrop={handleDrop}
+        isUploading={uploadMutation.isPending}
+        onScanClick={() => setScannerOpen(true)}
+      />
+
+      <ReceiptScanner
+        open={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onCapture={handleDrop}
         isUploading={uploadMutation.isPending}
       />
 

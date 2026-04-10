@@ -1,13 +1,14 @@
 import { useCallback, useState, useRef } from "react";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Props {
   onDrop: (files: File[]) => void;
   isUploading: boolean;
+  onScanClick?: () => void;
 }
 
-export function DocumentUploadZone({ onDrop, isUploading }: Props) {
+export function DocumentUploadZone({ onDrop, isUploading, onScanClick }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -61,14 +62,27 @@ export function DocumentUploadZone({ onDrop, isUploading }: Props) {
           JPEG, PNG of PDF — max 20 MB
         </p>
       </div>
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={isUploading}
-        onClick={() => inputRef.current?.click()}
-      >
-        Kies bestanden
-      </Button>
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={isUploading}
+          onClick={() => inputRef.current?.click()}
+        >
+          Kies bestanden
+        </Button>
+        {onScanClick && (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isUploading}
+            onClick={onScanClick}
+          >
+            <Camera className="h-4 w-4 mr-1" />
+            Scan bonnetje
+          </Button>
+        )}
+      </div>
       <input
         ref={inputRef}
         type="file"
