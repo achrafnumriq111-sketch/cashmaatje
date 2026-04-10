@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, List } from "lucide-react";
+import { LayoutGrid, List, CheckCircle2, Inbox, FileText } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { useDocuments } from "@/hooks/useDocuments";
 import { DocumentUploadZone } from "@/components/documents/DocumentUploadZone";
 import { DocumentGrid } from "@/components/documents/DocumentGrid";
@@ -26,6 +27,14 @@ export default function Documents() {
   const [scannerOpen, setScannerOpen] = useState(false);
   const selectedDoc = documents.find((d) => d.id === selectedDocId) ?? null;
 
+  // Split documents by processing status
+  const inboxDocs = documents.filter(
+    (d) => !d.processing_status || d.processing_status === "inbox" || d.processing_status === "processing" || d.ocr_status === "pending" || d.ocr_status === "processing"
+  );
+  const processedDocs = documents.filter(
+    (d) => d.processing_status === "processed"
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -34,7 +43,7 @@ export default function Documents() {
             Documenten
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Upload en beheer facturen, bonnetjes en documenten.
+            Upload en het systeem doet de rest — categorisering, BTW en boeking automatisch.
           </p>
         </div>
       </div>
@@ -52,11 +61,25 @@ export default function Documents() {
         isUploading={uploadMutation.isPending}
       />
 
-      <Tabs defaultValue="all">
+      <Tabs defaultValue="inbox">
         <div className="flex items-center justify-between">
           <TabsList>
-            <TabsTrigger value="all">
-              Alle documenten ({documents.length})
+            <TabsTrigger value="inbox" className="gap-1.5">
+              <Inbox className="h-3.5 w-3.5" />
+              Inbox
+              {inboxDocs.length > 0 && (
+                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                  {inboxDocs.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="processed" className="gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Verwerkt ({processedDocs.length})
+            </TabsTrigger>
+            <TabsTrigger value="all" className="gap-1.5">
+              <FileText className="h-3.5 w-3.5" />
+              Alles ({documents.length})
             </TabsTrigger>
             <TabsTrigger value="missing">
               Ontbrekend ({missingDocs.length})
@@ -80,21 +103,39 @@ export default function Documents() {
           </div>
         </div>
 
-        <TabsContent value="all">
+        <TabsContent value="inbox">
           {isLoading ? (
-            <div className="flex items-center justify-center py-12 text-muted-foreground">
-              Laden...
+            <div className="flex items-center justify-center py-12 text-muted-foreground">Laden...</div>
+          ) : inboxDocs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <CheckCircle2 className="h-12 w-12 text-emerald-400 mb-3" />
+              <p className="text-sm font-medium text-foreground">Inbox is leeg</p>
+              <p className="text-xs text-muted-foreground mt-1">Alle documenten zijn verwerkt</p>
             </div>
           ) : viewMode === "grid" ? (
-            <DocumentGrid
-              documents={documents}
-              onSelect={setSelectedDocId}
-            />
+            <DocumentGrid documents={inboxDocs} onSelect={setSelectedDocId} />
           ) : (
-            <DocumentList
-              documents={documents}
-              onSelect={setSelectedDocId}
-            />
+            <DocumentList documents={inboxDocs} onSelect={setSelectedDocId} />
+          )}
+        </TabsContent>
+
+        <TabsContent value="processed">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12 text-muted-foreground">Laden...</div>
+          ) : viewMode === "grid" ? (
+            <DocumentGrid documents={processedDocs} onSelect={setSelectedDocId} />
+          ) : (
+            <DocumentList documents={processedDocs} onSelect={setSelectedDocId} />
+          )}
+        </TabsContent>
+
+        <TabsContent value="all">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12 text-muted-foreground">Laden...</div>
+          ) : viewMode === "grid" ? (
+            <DocumentGrid documents={documents} onSelect={setSelectedDocId} />
+          ) : (
+            <DocumentList documents={documents} onSelect={setSelectedDocId} />
           )}
         </TabsContent>
 

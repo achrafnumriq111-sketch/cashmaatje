@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingUp, TrendingDown, Minus, Wallet, BarChart3, Users, Receipt } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Wallet, BarChart3, Receipt, AlertTriangle, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { useVatEngine } from "@/hooks/useVatEngine";
 import type { Database } from "@/integrations/supabase/types";
 
 type Snapshot = Database["public"]["Tables"]["financial_health_snapshots"]["Row"];
@@ -32,6 +33,17 @@ function TrendBadge({ pct }: { pct: number | null }) {
   );
 }
 
+const riskColors = {
+  low: "text-emerald-400",
+  medium: "text-yellow-400",
+  high: "text-red-400",
+};
+const riskLabels = {
+  low: "Laag risico",
+  medium: "Let op",
+  high: "Actie vereist",
+};
+
 interface Props {
   latest?: Snapshot | null;
   previous?: Snapshot | null;
@@ -39,32 +51,40 @@ interface Props {
 }
 
 export function KpiCards({ latest, previous, role }: Props) {
-  const isLoading = !latest && !previous;
+  const { data: vat, isLoading: vatLoading } = useVatEngine();
+  const isLoading = (!latest && !previous) || vatLoading;
 
   const cards = [
     {
-      label: "Kassaldo",
-      value: latest?.cash_balance,
-      prev: previous?.cash_balance,
-      icon: Wallet,
-    },
-    {
-      label: role === "entrepreneur" ? "Omzet deze maand" : "Revenue MTD",
-      value: latest?.revenue_mtd,
-      prev: previous?.revenue_mtd,
-      icon: BarChart3,
-    },
-    {
-      label: "Openstaand debiteuren",
-      value: latest?.accounts_receivable,
-      prev: previous?.accounts_receivable,
-      icon: Users,
-    },
-    {
-      label: "BTW reservering",
-      value: latest?.vat_reserve,
+      label: "Te betalen BTW",
+      value: vat?.netVat ?? latest?.vat_reserve,
       prev: previous?.vat_reserve,
       icon: Receipt,
+      subtitle: vat ? `${fmt(vat.vatOwed)} af te dragen · ${fmt(vat.vatReclaimable)} terug` : undefined,
+      liveIndicator: true,
+    },
+    {
+      label: "Te ontvangen BTW",
+      value: vat?.vatReclaimable ?? 0,
+      prev: null,
+      icon: ArrowDownLeft,
+      subtitle: "Voorbelasting dit kwartaal",
+    },
+    {
+      label: "Verwacht einde kwartaal",
+      value: vat?.quarterEstimate ?? 0,
+      prev: null,
+      icon: ArrowUpRight,
+      subtitle: "Gebaseerd op huidig tempo",
+    },
+    {
+      label: "Risico-indicator",
+      value: null,
+      prev: null,
+      icon: AlertTriangle,
+      isRisk: true,
+      riskLevel: vat?.riskLevel ?? "low",
+      riskReasons: vat?.riskReasons ?? [],
     },
   ];
 
@@ -78,16 +98,49 @@ export function KpiCards({ latest, previous, role }: Props) {
                 <Skeleton className="h-4 w-24" />
                 <Skeleton className="h-7 w-32" />
               </div>
-            ) : (
+            ) : c.isRisk ? (
               <>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{c.label}</span>
+                  <c.icon className={`h-4 w-4 ${riskColors[c.riskLevel!]}`} />
+                </div>
+                <div className={`text-2xl font-semibold tracking-tight ${riskColors[c.riskLevel!]}`}>
+                  {riskLabels[c.riskLevel!]}
+                </div>
+                <div className="mt-1 space-y-0.5">
+                  {c.riskReasons!.length === 0 ? (
+                    <span className="text-xs text-muted-foreground">Alles ziet er goed uit</span>
+                  ) : (
+                    c.riskReasons!.slice(0, 2).map((r, i) => (
+                      <p key={i} className="text-xs text-muted-foreground">• {r}</p>
+                    ))
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{c.label}</span>
+                    {c.liveIndicator && (
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      </span>
+                    )}
+                  </div>
                   <c.icon className="h-4 w-4 text-muted-foreground/60" />
                 </div>
                 <div className="text-2xl font-semibold tracking-tight text-foreground">{fmt(c.value)}</div>
                 <div className="mt-1">
-                  <TrendBadge pct={pctChange(c.value, c.prev)} />
-                  <span className="text-xs text-muted-foreground ml-1">vs vorige maand</span>
+                  {c.subtitle ? (
+                    <span className="text-xs text-muted-foreground">{c.subtitle}</span>
+                  ) : (
+                    <>
+                      <TrendBadge pct={pctChange(c.value, c.prev)} />
+                      <span className="text-xs text-muted-foreground ml-1">vs vorige maand</span>
+                    </>
+                  )}
                 </div>
               </>
             )}
