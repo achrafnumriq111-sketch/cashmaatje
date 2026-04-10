@@ -53,7 +53,7 @@ export function useJournalLines(entryId: string | null) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("journal_lines")
-        .select("*, accounts(code, name, name_nl)")
+        .select("*, accounts!journal_lines_account_id_fkey(code, name, name_nl)")
         .eq("journal_entry_id", entryId!)
         .order("line_number");
       if (error) throw error;
