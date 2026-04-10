@@ -110,7 +110,6 @@ export default function Onboarding() {
     if (!user) return;
     setSubmitting(true);
     try {
-      // Create org
       const orgTypeMap: Record<string, string> = {
         eenmanszaak: "eenmanszaak",
         vof: "vof",
@@ -121,43 +120,33 @@ export default function Onboarding() {
         cv: "vof",
       };
 
-      const { data: org, error: orgErr } = await supabase
-        .from("organizations")
-        .insert({
-          name: data.company.name,
-          legal_name: data.company.name,
-          org_type: (orgTypeMap[data.company.legalForm] || "eenmanszaak") as any,
-          kvk_number: data.company.kvkNumber || null,
-          btw_number: data.company.btwNumber || null,
-          address_street: data.company.addressStreet || null,
-          address_postal_code: data.company.addressPostalCode || null,
-          address_city: data.company.addressCity || null,
-          email: data.company.email || null,
-          phone: data.company.phone || null,
-          website: data.company.website || null,
-          vat_scheme: data.tax.vatScheme as any,
-          vat_frequency: data.tax.vatFrequency as any,
-          fiscal_year_start_month: data.tax.fiscalYearStartMonth,
-          kor_eligible: data.tax.vatScheme === "kor",
-          settings: {
-            ai: data.ai,
-          },
-        })
-        .select("id")
-        .single();
-
-      if (orgErr) throw orgErr;
-
-      // Call setup function
-      await supabase.rpc("setup_new_organization", {
-        p_org_id: org.id,
+      // Single RPC call that creates org + member + seeds everything
+      const { data: orgId, error: setupErr } = await supabase.rpc("setup_new_organization", {
         p_user_id: user.id,
+        p_name: data.company.name,
+        p_legal_name: data.company.name,
+        p_org_type: (orgTypeMap[data.company.legalForm] || "eenmanszaak") as any,
+        p_kvk_number: data.company.kvkNumber || null,
+        p_btw_number: data.company.btwNumber || null,
+        p_address_street: data.company.addressStreet || null,
+        p_address_postal_code: data.company.addressPostalCode || null,
+        p_address_city: data.company.addressCity || null,
+        p_email: data.company.email || null,
+        p_phone: data.company.phone || null,
+        p_website: data.company.website || null,
+        p_vat_scheme: data.tax.vatScheme as any,
+        p_vat_frequency: data.tax.vatFrequency as any,
+        p_fiscal_year_start_month: data.tax.fiscalYearStartMonth,
+        p_kor_eligible: data.tax.vatScheme === "kor",
+        p_settings: { ai: data.ai },
       });
+
+      if (setupErr) throw setupErr;
 
       // Create bank accounts
       for (const ba of data.bankAccounts) {
         await supabase.from("bank_accounts").insert({
-          organization_id: org.id,
+          organization_id: orgId,
           name: ba.name,
           iban: ba.iban,
           bic: ba.bic || null,
