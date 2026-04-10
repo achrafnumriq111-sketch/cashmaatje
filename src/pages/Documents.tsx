@@ -42,6 +42,14 @@ export default function Documents() {
       <DocumentUploadZone
         onDrop={handleDrop}
         isUploading={uploadMutation.isPending}
+        onScanClick={() => setScannerOpen(true)}
+      />
+
+      <ReceiptScanner
+        open={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onCapture={handleDrop}
+        isUploading={uploadMutation.isPending}
       />
 
       <Tabs defaultValue="all">
