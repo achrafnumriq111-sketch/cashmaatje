@@ -5,6 +5,7 @@ import {
   GitMerge,
   Upload,
   Receipt,
+  Camera,
   BarChart3,
   Users,
   BookOpen,
@@ -67,6 +68,7 @@ const reportsSub = [
 
 const bottomNav = [
   { title: "Reconciliatie", url: "/reconciliatie", icon: GitMerge },
+  { title: "Bonnen", url: "/bonnen", icon: Camera },
   { title: "Documenten", url: "/documenten", icon: Upload },
 ];
 
