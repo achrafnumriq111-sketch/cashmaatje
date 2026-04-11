@@ -4,8 +4,15 @@ import { TransactionsTable } from "@/components/transactions/TransactionsTable";
 import { TransactionDetail } from "@/components/transactions/TransactionDetail";
 import { CsvImportModal } from "@/components/transactions/CsvImportModal";
 import { BulkActions } from "@/components/transactions/BulkActions";
-import { useTransactions, useBankAccounts, useAccounts, type TransactionFilters as TFilters } from "@/hooks/useTransactions";
+import { BankRulesManager } from "@/components/transactions/BankRulesManager";
+import { RecurringPatterns } from "@/components/transactions/RecurringPatterns";
+import { useTransactions, useBankAccounts, useAccounts, useCategorizeTransactions, type TransactionFilters as TFilters } from "@/hooks/useTransactions";
+import { useApplyBankRules } from "@/hooks/useBankRules";
 import { useOrganization } from "@/hooks/useOrganization";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sparkles, Zap } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Transactions() {
   const { membership } = useOrganization();
@@ -24,11 +31,42 @@ export default function Transactions() {
   const { data: transactions = [], isLoading } = useTransactions(filters);
   const { data: bankAccounts = [] } = useBankAccounts();
   const { data: accounts = [] } = useAccounts();
+  const categorize = useCategorizeTransactions();
+  const applyRules = useApplyBankRules();
 
   const selectedTx = useMemo(
     () => transactions.find((t) => t.id === detailId) ?? null,
     [transactions, detailId]
   );
+
+  const newTxIds = useMemo(
+    () => transactions.filter(t => t.status === "new").map(t => t.id),
+    [transactions]
+  );
+
+  const handleAutoCategories = async () => {
+    if (!newTxIds.length) {
+      toast.info("Geen nieuwe transacties om te categoriseren");
+      return;
+    }
+    try {
+      // First apply bank rules
+      const rulesResult = await applyRules.mutateAsync(newTxIds);
+      const remaining = newTxIds.length - rulesResult.matched;
+
+      if (remaining > 0) {
+        // Then AI for unmatched
+        await categorize.mutateAsync(newTxIds.filter(id => {
+          const tx = transactions.find(t => t.id === id);
+          return tx?.status === "new";
+        }));
+      }
+
+      toast.success(`${rulesResult.matched} via regels, ${remaining} via AI gecategoriseerd`);
+    } catch {
+      toast.error("Fout bij automatisch categoriseren");
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -39,32 +77,64 @@ export default function Transactions() {
             {transactions.length} transacties gevonden
           </p>
         </div>
+        {newTxIds.length > 0 && (
+          <Button
+            onClick={handleAutoCategories}
+            disabled={categorize.isPending || applyRules.isPending}
+            className="gap-2"
+          >
+            <Sparkles className="h-4 w-4" />
+            {categorize.isPending || applyRules.isPending
+              ? "Bezig..."
+              : `Auto-categoriseer (${newTxIds.length})`}
+          </Button>
+        )}
       </div>
 
-      <TransactionFilters
-        filters={filters}
-        onChange={setFilters}
-        bankAccounts={bankAccounts}
-        onImport={() => setImportOpen(true)}
-        selectedCount={selectedIds.size}
-      />
+      <Tabs defaultValue="transactions">
+        <TabsList>
+          <TabsTrigger value="transactions">Transacties</TabsTrigger>
+          <TabsTrigger value="rules" className="gap-1.5">
+            <Zap className="h-3.5 w-3.5" /> Regels
+          </TabsTrigger>
+          <TabsTrigger value="recurring">Terugkerend</TabsTrigger>
+        </TabsList>
 
-      {selectedIds.size > 0 && (
-        <BulkActions
-          selectedIds={Array.from(selectedIds)}
-          accounts={accounts}
-          onClear={() => setSelectedIds(new Set())}
-        />
-      )}
+        <TabsContent value="transactions" className="space-y-4 mt-4">
+          <TransactionFilters
+            filters={filters}
+            onChange={setFilters}
+            bankAccounts={bankAccounts}
+            onImport={() => setImportOpen(true)}
+            selectedCount={selectedIds.size}
+          />
 
-      <TransactionsTable
-        transactions={transactions}
-        isLoading={isLoading}
-        selectedIds={selectedIds}
-        onSelectionChange={setSelectedIds}
-        onRowClick={(id) => setDetailId(id)}
-        role={membership?.role}
-      />
+          {selectedIds.size > 0 && (
+            <BulkActions
+              selectedIds={Array.from(selectedIds)}
+              accounts={accounts}
+              onClear={() => setSelectedIds(new Set())}
+            />
+          )}
+
+          <TransactionsTable
+            transactions={transactions}
+            isLoading={isLoading}
+            selectedIds={selectedIds}
+            onSelectionChange={setSelectedIds}
+            onRowClick={(id) => setDetailId(id)}
+            role={membership?.role}
+          />
+        </TabsContent>
+
+        <TabsContent value="rules" className="mt-4">
+          <BankRulesManager />
+        </TabsContent>
+
+        <TabsContent value="recurring" className="mt-4">
+          <RecurringPatterns />
+        </TabsContent>
+      </Tabs>
 
       <TransactionDetail
         transaction={selectedTx}
