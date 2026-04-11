@@ -81,7 +81,38 @@ Deno.serve(async (req) => {
     const results: any[] = [];
 
     for (const tx of transactions || []) {
-      const prompt = `You are a Dutch bookkeeping AI. Categorize this bank transaction.
+      // First try bank rules
+      let ruleMatched = false;
+      for (const rule of bankRules || []) {
+        const fieldValue = (tx as any)[rule.match_field] as string | null;
+        if (!fieldValue) continue;
+        let isMatch = false;
+        const val = fieldValue.toLowerCase();
+        const pattern = rule.match_value.toLowerCase();
+        switch (rule.match_type) {
+          case "exact": isMatch = val === pattern; break;
+          case "contains": isMatch = val.includes(pattern); break;
+          case "starts_with": isMatch = val.startsWith(pattern); break;
+          case "regex": try { isMatch = new RegExp(rule.match_value, "i").test(fieldValue); } catch {} break;
+        }
+        if (isMatch && rule.account_id) {
+          await supabase.from("bank_transactions").update({
+            account_id: rule.account_id,
+            contact_id: rule.contact_id || null,
+            status: "matched",
+          }).eq("id", tx.id);
+          await supabase.from("bank_rules").update({
+            times_applied: (rule.times_applied || 0) + 1,
+            last_applied_at: new Date().toISOString(),
+          }).eq("id", rule.id);
+          results.push({ transaction_id: tx.id, success: true, method: "rule", rule_name: rule.name });
+          ruleMatched = true;
+          break;
+        }
+      }
+      if (ruleMatched) continue;
+
+      // No rule matched — use AI
 
 Transaction:
 - Date: ${tx.transaction_date}
