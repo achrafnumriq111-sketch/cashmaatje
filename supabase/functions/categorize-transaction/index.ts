@@ -1,10 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+// corsHeaders imported from SDK above
 
 const AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
@@ -40,11 +37,19 @@ Deno.serve(async (req) => {
     // Fetch transactions
     const { data: transactions, error: txError } = await supabase
       .from("bank_transactions")
-      .select("id, amount, description, counterparty_name, counterparty_iban, transaction_date, payment_reference")
+      .select("id, amount, description, counterparty_name, counterparty_iban, transaction_date, payment_reference, status")
       .eq("organization_id", organization_id)
       .in("id", transaction_ids);
 
     if (txError) throw txError;
+
+    // Fetch bank rules for pre-matching
+    const { data: bankRules } = await supabase
+      .from("bank_rules")
+      .select("*")
+      .eq("organization_id", organization_id)
+      .eq("is_active", true)
+      .order("priority", { ascending: true });
 
     // Fetch chart of accounts for this org
     const { data: accounts, error: accError } = await supabase
@@ -76,6 +81,38 @@ Deno.serve(async (req) => {
     const results: any[] = [];
 
     for (const tx of transactions || []) {
+      // First try bank rules
+      let ruleMatched = false;
+      for (const rule of bankRules || []) {
+        const fieldValue = (tx as any)[rule.match_field] as string | null;
+        if (!fieldValue) continue;
+        let isMatch = false;
+        const val = fieldValue.toLowerCase();
+        const pattern = rule.match_value.toLowerCase();
+        switch (rule.match_type) {
+          case "exact": isMatch = val === pattern; break;
+          case "contains": isMatch = val.includes(pattern); break;
+          case "starts_with": isMatch = val.startsWith(pattern); break;
+          case "regex": try { isMatch = new RegExp(rule.match_value, "i").test(fieldValue); } catch {} break;
+        }
+        if (isMatch && rule.account_id) {
+          await supabase.from("bank_transactions").update({
+            account_id: rule.account_id,
+            contact_id: rule.contact_id || null,
+            status: "matched",
+          }).eq("id", tx.id);
+          await supabase.from("bank_rules").update({
+            times_applied: (rule.times_applied || 0) + 1,
+            last_applied_at: new Date().toISOString(),
+          }).eq("id", rule.id);
+          results.push({ transaction_id: tx.id, success: true, method: "rule", rule_name: rule.name });
+          ruleMatched = true;
+          break;
+        }
+      }
+      if (ruleMatched) continue;
+
+      // No rule matched — use AI
       const prompt = `You are a Dutch bookkeeping AI. Categorize this bank transaction.
 
 Transaction:
@@ -111,7 +148,7 @@ Respond with JSON:
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
+            model: "google/gemini-3-flash-preview",
             messages: [
               { role: "system", content: "You are a Dutch bookkeeping assistant. Always respond with valid JSON only." },
               { role: "user", content: prompt },
