@@ -28,7 +28,7 @@ export default function Contacts() {
         <div>
           <div className="flex items-center gap-2">
             <Users className="h-5 w-5 text-primary" />
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Relaties</h1>
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">Relaties</h1>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
             {contacts.length} relaties
