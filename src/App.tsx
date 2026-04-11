@@ -27,6 +27,12 @@ import Receipts from "./pages/Receipts";
 import Reconciliation from "./pages/Reconciliation";
 import Onboarding from "./pages/Onboarding";
 import TaxDeductions from "./pages/TaxDeductions";
+import SalaryOverview from "./pages/SalaryOverview";
+import BusinessExpenses from "./pages/BusinessExpenses";
+import Depreciations from "./pages/Depreciations";
+import DeductiblePremiums from "./pages/DeductiblePremiums";
+import CompanyCarPage from "./pages/CompanyCarPage";
+import MortgagePage from "./pages/MortgagePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,6 +65,12 @@ const App = () => (
               <Route path="rapporten/proefbalans" element={<TrialBalance />} />
               <Route path="rapporten/cashflow" element={<Cashflow />} />
               <Route path="belasting/ondernemersaftrek" element={<TaxDeductions />} />
+              <Route path="salaris" element={<SalaryOverview />} />
+              <Route path="salaris/bedrijfskosten" element={<BusinessExpenses />} />
+              <Route path="salaris/afschrijvingen" element={<Depreciations />} />
+              <Route path="salaris/premies" element={<DeductiblePremiums />} />
+              <Route path="salaris/auto" element={<CompanyCarPage />} />
+              <Route path="salaris/woning" element={<MortgagePage />} />
               <Route path="relaties" element={<Contacts />} />
               <Route path="grootboek" element={<GeneralLedger />} />
               <Route path="journaalposten" element={<JournalEntries />} />
