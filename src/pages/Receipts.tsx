@@ -16,6 +16,7 @@ export default function Receipts() {
     setViewMode,
     uploadMutation,
     updateDocument,
+    deleteDocument,
     handleDrop,
     orgId,
   } = useDocuments();
@@ -103,6 +104,10 @@ export default function Receipts() {
           onUpdate={(updates) =>
             updateDocument.mutate({ id: selectedDoc.id, updates })
           }
+          onDelete={(id) => {
+            deleteDocument.mutate(id);
+            setSelectedDocId(null);
+          }}
           orgId={orgId}
         />
       )}
