@@ -19,12 +19,12 @@ interface Props {
 
 export function TransactionFilters({ filters, onChange, bankAccounts, onImport }: Props) {
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
       <Select
         value={filters.bankAccountId ?? "all"}
         onValueChange={(v) => onChange({ ...filters, bankAccountId: v === "all" ? null : v })}
       >
-        <SelectTrigger className="w-[200px] bg-card border-border/50">
+        <SelectTrigger className="w-full sm:w-[200px] bg-card border-border/50">
           <SelectValue placeholder="Alle rekeningen" />
         </SelectTrigger>
         <SelectContent>
@@ -39,7 +39,7 @@ export function TransactionFilters({ filters, onChange, bankAccounts, onImport }
 
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="w-[220px] justify-start bg-card border-border/50">
+          <Button variant="outline" className="w-full sm:w-[220px] justify-start bg-card border-border/50">
             <CalendarIcon className="mr-2 h-4 w-4" />
             {format(new Date(filters.dateFrom), "d MMM", { locale: nl })} –{" "}
             {format(new Date(filters.dateTo), "d MMM yyyy", { locale: nl })}
@@ -71,7 +71,7 @@ export function TransactionFilters({ filters, onChange, bankAccounts, onImport }
         value={filters.status}
         onValueChange={(v) => onChange({ ...filters, status: v as any })}
       >
-        <SelectTrigger className="w-[150px] bg-card border-border/50">
+        <SelectTrigger className="w-full sm:w-[150px] bg-card border-border/50">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -84,7 +84,7 @@ export function TransactionFilters({ filters, onChange, bankAccounts, onImport }
         </SelectContent>
       </Select>
 
-      <div className="relative flex-1 min-w-[200px]">
+      <div className="relative flex-1 min-w-0">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Zoek op naam of omschrijving..."
@@ -94,7 +94,7 @@ export function TransactionFilters({ filters, onChange, bankAccounts, onImport }
         />
       </div>
 
-      <Button variant="outline" onClick={onImport} className="bg-card border-border/50">
+      <Button variant="outline" onClick={onImport} className="w-full sm:w-auto bg-card border-border/50">
         <Upload className="mr-2 h-4 w-4" />
         Import CSV
       </Button>

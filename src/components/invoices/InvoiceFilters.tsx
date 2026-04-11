@@ -18,12 +18,12 @@ interface Props {
 
 export function InvoiceFilters({ filters, onChange }: Props) {
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
       <Select
         value={filters.status}
         onValueChange={(v) => onChange({ ...filters, status: v as IFilters["status"] })}
       >
-        <SelectTrigger className="w-[160px] bg-secondary border-border">
+        <SelectTrigger className="w-full sm:w-[160px] bg-secondary border-border">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -33,25 +33,27 @@ export function InvoiceFilters({ filters, onChange }: Props) {
         </SelectContent>
       </Select>
 
-      <Input
-        type="date"
-        value={filters.dateFrom}
-        onChange={(e) => onChange({ ...filters, dateFrom: e.target.value })}
-        className="w-[150px] bg-secondary border-border"
-      />
-      <span className="text-muted-foreground">t/m</span>
-      <Input
-        type="date"
-        value={filters.dateTo}
-        onChange={(e) => onChange({ ...filters, dateTo: e.target.value })}
-        className="w-[150px] bg-secondary border-border"
-      />
+      <div className="flex items-center gap-2">
+        <Input
+          type="date"
+          value={filters.dateFrom}
+          onChange={(e) => onChange({ ...filters, dateFrom: e.target.value })}
+          className="flex-1 sm:w-[150px] bg-secondary border-border"
+        />
+        <span className="text-muted-foreground text-sm shrink-0">t/m</span>
+        <Input
+          type="date"
+          value={filters.dateTo}
+          onChange={(e) => onChange({ ...filters, dateTo: e.target.value })}
+          className="flex-1 sm:w-[150px] bg-secondary border-border"
+        />
+      </div>
 
       <Input
         placeholder="Zoeken..."
         value={filters.search}
         onChange={(e) => onChange({ ...filters, search: e.target.value })}
-        className="w-[200px] bg-secondary border-border"
+        className="w-full sm:w-[200px] bg-secondary border-border"
       />
     </div>
   );

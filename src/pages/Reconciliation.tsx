@@ -140,25 +140,25 @@ export default function Reconciliation() {
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] gap-4">
       {/* Progress bar */}
-      <div className="flex items-center gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Reconciliatie</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">Reconciliatie</h1>
         {stats && (
-          <div className="flex items-center gap-3 ml-auto">
-            <span className="text-sm text-muted-foreground">
-              {stats.matched} van {stats.total} transacties gekoppeld ({stats.percentage}%)
+          <div className="flex items-center gap-3 sm:ml-auto">
+            <span className="text-xs sm:text-sm text-muted-foreground">
+              {stats.matched}/{stats.total} gekoppeld ({stats.percentage}%)
             </span>
-            <Progress value={stats.percentage} className="w-40 h-2" />
+            <Progress value={stats.percentage} className="w-24 sm:w-40 h-2" />
           </div>
         )}
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <Select
           value={filters.bankAccountId ?? "all"}
           onValueChange={(v) => setFilters({ ...filters, bankAccountId: v === "all" ? null : v })}
         >
-          <SelectTrigger className="w-56">
+          <SelectTrigger className="w-full sm:w-56">
             <SelectValue placeholder="Alle bankrekeningen" />
           </SelectTrigger>
           <SelectContent>
@@ -168,23 +168,25 @@ export default function Reconciliation() {
             ))}
           </SelectContent>
         </Select>
-        <Input
-          type="date"
-          value={filters.dateFrom}
-          onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-          className="w-40"
-        />
-        <span className="text-muted-foreground text-sm">t/m</span>
-        <Input
-          type="date"
-          value={filters.dateTo}
-          onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-          className="w-40"
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            type="date"
+            value={filters.dateFrom}
+            onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+            className="flex-1 sm:w-40"
+          />
+          <span className="text-muted-foreground text-sm shrink-0">t/m</span>
+          <Input
+            type="date"
+            value={filters.dateTo}
+            onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
+            className="flex-1 sm:w-40"
+          />
+        </div>
       </div>
 
-      {/* Split screen */}
-      <ResizablePanelGroup direction="horizontal" className="flex-1 rounded-lg border border-border">
+      {/* Split screen - stack on mobile */}
+      <ResizablePanelGroup direction="horizontal" className="flex-1 rounded-lg border border-border hidden sm:flex">
         {/* LEFT: Unreconciled transactions */}
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="flex flex-col h-full">

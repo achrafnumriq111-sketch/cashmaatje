@@ -27,7 +27,6 @@ export default function Documents() {
   const [scannerOpen, setScannerOpen] = useState(false);
   const selectedDoc = documents.find((d) => d.id === selectedDocId) ?? null;
 
-  // Split documents by processing status
   const inboxDocs = documents.filter(
     (d) => !d.processing_status || d.processing_status === "inbox" || d.processing_status === "processing" || d.ocr_status === "pending" || d.ocr_status === "processing"
   );
@@ -36,16 +35,14 @@ export default function Documents() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Documenten
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Upload en het systeem doet de rest — categorisering, BTW en boeking automatisch.
-          </p>
-        </div>
+    <div className="space-y-4 sm:space-y-6">
+      <div>
+        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
+          Documenten
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Upload en het systeem doet de rest — categorisering, BTW en boeking automatisch.
+        </p>
       </div>
 
       <DocumentUploadZone
@@ -62,10 +59,10 @@ export default function Documents() {
       />
 
       <Tabs defaultValue="inbox">
-        <div className="flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="inbox" className="gap-1.5">
-              <Inbox className="h-3.5 w-3.5" />
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <TabsList className="w-full sm:w-auto overflow-x-auto">
+            <TabsTrigger value="inbox" className="gap-1 text-xs sm:text-sm">
+              <Inbox className="h-3.5 w-3.5 hidden sm:block" />
               Inbox
               {inboxDocs.length > 0 && (
                 <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
@@ -73,19 +70,19 @@ export default function Documents() {
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="processed" className="gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5" />
+            <TabsTrigger value="processed" className="gap-1 text-xs sm:text-sm">
+              <CheckCircle2 className="h-3.5 w-3.5 hidden sm:block" />
               Verwerkt ({processedDocs.length})
             </TabsTrigger>
-            <TabsTrigger value="all" className="gap-1.5">
-              <FileText className="h-3.5 w-3.5" />
+            <TabsTrigger value="all" className="gap-1 text-xs sm:text-sm">
+              <FileText className="h-3.5 w-3.5 hidden sm:block" />
               Alles ({documents.length})
             </TabsTrigger>
-            <TabsTrigger value="missing">
+            <TabsTrigger value="missing" className="text-xs sm:text-sm">
               Ontbrekend ({missingDocs.length})
             </TabsTrigger>
           </TabsList>
-          <div className="flex gap-1">
+          <div className="flex gap-1 self-end">
             <Button
               variant={viewMode === "grid" ? "secondary" : "ghost"}
               size="icon"
