@@ -192,8 +192,36 @@ export function DocumentDetail({ document: doc, onClose, onUpdate, onDelete, org
             )}
           </div>
 
+          {/* Duplicate warning banner */}
+          {(doc.is_duplicate || doc.duplicate_of) && (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 space-y-2">
+              <div className="flex items-start gap-2">
+                <Copy className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-destructive">
+                    ⚠️ Dit document lijkt een duplicaat te zijn
+                  </p>
+                  {duplicateDoc && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Eerder gescand als: <span className="font-medium text-foreground">{duplicateDoc.file_name}</span>
+                      {duplicateDoc.extracted_supplier_name && (
+                        <> · {duplicateDoc.extracted_supplier_name}</>
+                      )}
+                      {duplicateDoc.extracted_amount != null && (
+                        <> · €{Number(duplicateDoc.extracted_amount).toLocaleString("nl-NL", { minimumFractionDigits: 2 })}</>
+                      )}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Controleer of dit dezelfde bon is. Zo ja, verwijder dit duplicaat.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Status */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {doc.ocr_status === "completed" && (
               <Badge className="bg-primary/10 text-primary border-primary/20">
                 <CheckCircle2 className="h-3 w-3 mr-1" />
@@ -201,7 +229,7 @@ export function DocumentDetail({ document: doc, onClose, onUpdate, onDelete, org
               </Badge>
             )}
             {doc.is_duplicate && (
-              <Badge variant="destructive">Mogelijke duplicaat</Badge>
+              <Badge variant="destructive">Duplicaat</Badge>
             )}
             {doc.is_validated && (
               <Badge variant="outline">Gevalideerd</Badge>
@@ -289,11 +317,54 @@ export function DocumentDetail({ document: doc, onClose, onUpdate, onDelete, org
 
           <Separator />
 
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={onClose}>
-              Annuleren
-            </Button>
-            <Button onClick={handleSave}>Opslaan</Button>
+          <div className="flex gap-2 justify-between">
+            {/* Delete button */}
+            {onDelete && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm" disabled={isDeleting}>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Verwijderen
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Document verwijderen?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Weet je zeker dat je "{doc.file_name}" wilt verwijderen? Dit kan niet ongedaan worden gemaakt.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuleren</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      onClick={async () => {
+                        setIsDeleting(true);
+                        try {
+                          // Delete file from storage
+                          await supabase.storage.from("documents").remove([doc.file_path]);
+                          // Delete record
+                          onDelete(doc.id);
+                          onClose();
+                        } catch {
+                          toast.error("Verwijderen mislukt");
+                        } finally {
+                          setIsDeleting(false);
+                        }
+                      }}
+                    >
+                      Verwijderen
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            <div className="flex gap-2 ml-auto">
+              <Button variant="outline" onClick={onClose}>
+                Annuleren
+              </Button>
+              <Button onClick={handleSave}>Opslaan</Button>
+            </div>
           </div>
         </div>
       </SheetContent>
