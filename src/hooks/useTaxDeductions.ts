@@ -57,8 +57,11 @@ export function useTaxDeductions(year: number) {
 
   const [deduction, setDeduction] = useState<TaxDeduction>(defaults(year));
   const [profit, setProfit] = useState(0);
+  const [monthlyData, setMonthlyData] = useState<MonthlyProfitData[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  
+  const MONTH_LABELS = ["Jan", "Feb", "Mrt", "Apr", "Mei", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec"];
 
   const fetchData = useCallback(async () => {
     if (!orgId) return;
