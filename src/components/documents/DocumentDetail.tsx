@@ -83,6 +83,22 @@ export function DocumentDetail({ document: doc, onClose, onUpdate, onDelete, org
     });
   }, [doc]);
 
+  // Fetch the duplicate document if flagged
+  useEffect(() => {
+    if (doc.duplicate_of) {
+      supabase
+        .from("documents")
+        .select("*")
+        .eq("id", doc.duplicate_of)
+        .single()
+        .then(({ data }) => {
+          if (data) setDuplicateDoc(data as Document);
+        });
+    } else {
+      setDuplicateDoc(null);
+    }
+  }, [doc.duplicate_of]);
+
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [field]: e.target.value }));
 
