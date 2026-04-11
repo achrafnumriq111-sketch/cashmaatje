@@ -48,6 +48,7 @@ function ConfidenceDot({ value }: { value?: number }) {
 }
 
 export function DocumentDetail({ document: doc, onClose, onUpdate, orgId }: Props) {
+  const [isReExtracting, setIsReExtracting] = useState(false);
   const confidence: OcrConfidence =
     (doc.ocr_data as Record<string, unknown>)?.confidence as OcrConfidence ?? {};
 
@@ -214,6 +215,45 @@ export function DocumentDetail({ document: doc, onClose, onUpdate, orgId }: Prop
 
           {/* Actions */}
           <div className="flex flex-col gap-2">
+            <Button
+              variant={doc.ocr_status === "failed" ? "default" : "outline"}
+              size="sm"
+              disabled={isReExtracting}
+              onClick={async () => {
+                setIsReExtracting(true);
+                try {
+                  // Reset OCR status
+                  await supabase
+                    .from("documents")
+                    .update({ ocr_status: "pending", ocr_data: null })
+                    .eq("id", doc.id);
+                  // Re-trigger OCR
+                  await supabase.functions.invoke("process-invoice-ocr", {
+                    body: {
+                      document_id: doc.id,
+                      file_path: doc.file_path,
+                      organization_id: orgId,
+                    },
+                  });
+                  toast.success("Data wordt opnieuw geëxtraheerd…");
+                  // Refresh after short delay
+                  setTimeout(() => window.location.reload(), 2500);
+                } catch {
+                  toast.error("Opnieuw extraheren mislukt");
+                } finally {
+                  setIsReExtracting(false);
+                }
+              }}
+            >
+              {isReExtracting ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : doc.ocr_status === "failed" ? (
+                <AlertTriangle className="h-4 w-4 mr-2" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
+              )}
+              {doc.ocr_status === "failed" ? "Extractie mislukt — opnieuw proberen" : "Data opnieuw extraheren"}
+            </Button>
             <Button variant="outline" size="sm" onClick={handleValidateVat}>
               Valideer BTW-nummer
             </Button>
