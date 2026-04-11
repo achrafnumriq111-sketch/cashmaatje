@@ -57,6 +57,7 @@ const invoicesSub = [
 const vatSub = [
   { title: "Aangifte", url: "/btw/aangifte" },
   { title: "ICP Opgaaf", url: "/btw/icp" },
+  { title: "Ondernemersaftrek", url: "/belasting/ondernemersaftrek" },
 ];
 
 const reportsSub = [

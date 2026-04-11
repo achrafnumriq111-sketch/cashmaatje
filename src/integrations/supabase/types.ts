@@ -2264,6 +2264,80 @@ export type Database = {
           },
         ]
       }
+      tax_deductions: {
+        Row: {
+          created_at: string
+          for_enabled: boolean
+          for_max_amount: number
+          for_percentage: number
+          id: string
+          meewerkaftrek_amount: number
+          meewerkaftrek_enabled: boolean
+          mkb_winstvrijstelling_enabled: boolean
+          mkb_winstvrijstelling_percentage: number
+          notes: string | null
+          organization_id: string
+          stakingsaftrek_amount: number
+          stakingsaftrek_enabled: boolean
+          startersaftrek_amount: number
+          startersaftrek_enabled: boolean
+          updated_at: string
+          year: number
+          zelfstandigenaftrek_amount: number
+          zelfstandigenaftrek_enabled: boolean
+        }
+        Insert: {
+          created_at?: string
+          for_enabled?: boolean
+          for_max_amount?: number
+          for_percentage?: number
+          id?: string
+          meewerkaftrek_amount?: number
+          meewerkaftrek_enabled?: boolean
+          mkb_winstvrijstelling_enabled?: boolean
+          mkb_winstvrijstelling_percentage?: number
+          notes?: string | null
+          organization_id: string
+          stakingsaftrek_amount?: number
+          stakingsaftrek_enabled?: boolean
+          startersaftrek_amount?: number
+          startersaftrek_enabled?: boolean
+          updated_at?: string
+          year: number
+          zelfstandigenaftrek_amount?: number
+          zelfstandigenaftrek_enabled?: boolean
+        }
+        Update: {
+          created_at?: string
+          for_enabled?: boolean
+          for_max_amount?: number
+          for_percentage?: number
+          id?: string
+          meewerkaftrek_amount?: number
+          meewerkaftrek_enabled?: boolean
+          mkb_winstvrijstelling_enabled?: boolean
+          mkb_winstvrijstelling_percentage?: number
+          notes?: string | null
+          organization_id?: string
+          stakingsaftrek_amount?: number
+          stakingsaftrek_enabled?: boolean
+          startersaftrek_amount?: number
+          startersaftrek_enabled?: boolean
+          updated_at?: string
+          year?: number
+          zelfstandigenaftrek_amount?: number
+          zelfstandigenaftrek_enabled?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tax_deductions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tax_reserves: {
         Row: {
           calculated_amount: number
