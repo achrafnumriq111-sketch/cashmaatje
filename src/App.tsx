@@ -26,6 +26,7 @@ import Documents from "./pages/Documents";
 import Receipts from "./pages/Receipts";
 import Reconciliation from "./pages/Reconciliation";
 import Onboarding from "./pages/Onboarding";
+import TaxDeductions from "./pages/TaxDeductions";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -57,6 +58,7 @@ const App = () => (
               <Route path="rapporten/balans" element={<BalanceSheet />} />
               <Route path="rapporten/proefbalans" element={<TrialBalance />} />
               <Route path="rapporten/cashflow" element={<Cashflow />} />
+              <Route path="belasting/ondernemersaftrek" element={<TaxDeductions />} />
               <Route path="relaties" element={<Contacts />} />
               <Route path="grootboek" element={<GeneralLedger />} />
               <Route path="journaalposten" element={<JournalEntries />} />
