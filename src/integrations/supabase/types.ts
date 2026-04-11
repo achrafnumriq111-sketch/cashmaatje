@@ -665,6 +665,56 @@ export type Database = {
           },
         ]
       }
+      business_expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string | null
+          frequency: string
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          organization_id: string
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          amount?: number
+          category?: string
+          created_at?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          organization_id: string
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_expenses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cashflow_entries: {
         Row: {
           amount: number
@@ -721,6 +771,71 @@ export type Database = {
           },
           {
             foreignKeyName: "cashflow_entries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_car: {
+        Row: {
+          addition_percentage: number
+          car_name: string
+          catalog_value: number
+          created_at: string | null
+          fixed_costs: number
+          fuel_costs: number
+          id: string
+          is_active: boolean
+          km_per_year: number | null
+          km_rate: number | null
+          maintenance_costs: number
+          notes: string | null
+          organization_id: string
+          updated_at: string | null
+          use_km_allowance: boolean
+          year: number
+        }
+        Insert: {
+          addition_percentage?: number
+          car_name: string
+          catalog_value?: number
+          created_at?: string | null
+          fixed_costs?: number
+          fuel_costs?: number
+          id?: string
+          is_active?: boolean
+          km_per_year?: number | null
+          km_rate?: number | null
+          maintenance_costs?: number
+          notes?: string | null
+          organization_id: string
+          updated_at?: string | null
+          use_km_allowance?: boolean
+          year: number
+        }
+        Update: {
+          addition_percentage?: number
+          car_name?: string
+          catalog_value?: number
+          created_at?: string | null
+          fixed_costs?: number
+          fuel_costs?: number
+          id?: string
+          is_active?: boolean
+          km_per_year?: number | null
+          km_rate?: number | null
+          maintenance_costs?: number
+          notes?: string | null
+          organization_id?: string
+          updated_at?: string | null
+          use_km_allowance?: boolean
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_car_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -841,6 +956,103 @@ export type Database = {
           },
           {
             foreignKeyName: "contacts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deductible_premiums: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          organization_id: string
+          premium_type: string
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          organization_id: string
+          premium_type?: string
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          premium_type?: string
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deductible_premiums_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      depreciations: {
+        Row: {
+          created_at: string | null
+          depreciation_method: string
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+          purchase_amount: number
+          purchase_date: string
+          residual_value: number
+          updated_at: string | null
+          useful_life_years: number
+        }
+        Insert: {
+          created_at?: string | null
+          depreciation_method?: string
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          purchase_amount: number
+          purchase_date: string
+          residual_value?: number
+          updated_at?: string | null
+          useful_life_years?: number
+        }
+        Update: {
+          created_at?: string | null
+          depreciation_method?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          purchase_amount?: number
+          purchase_date?: string
+          residual_value?: number
+          updated_at?: string | null
+          useful_life_years?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "depreciations_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1730,6 +1942,56 @@ export type Database = {
             columns: ["vat_account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mortgage_deduction: {
+        Row: {
+          created_at: string | null
+          eigenwoningforfait_percentage: number | null
+          financing_costs: number
+          ground_lease_annual: number
+          id: string
+          mortgage_interest_annual: number
+          notes: string | null
+          organization_id: string
+          updated_at: string | null
+          woz_value: number | null
+          year: number
+        }
+        Insert: {
+          created_at?: string | null
+          eigenwoningforfait_percentage?: number | null
+          financing_costs?: number
+          ground_lease_annual?: number
+          id?: string
+          mortgage_interest_annual?: number
+          notes?: string | null
+          organization_id: string
+          updated_at?: string | null
+          woz_value?: number | null
+          year: number
+        }
+        Update: {
+          created_at?: string | null
+          eigenwoningforfait_percentage?: number | null
+          financing_costs?: number
+          ground_lease_annual?: number
+          id?: string
+          mortgage_interest_annual?: number
+          notes?: string | null
+          organization_id?: string
+          updated_at?: string | null
+          woz_value?: number | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mortgage_deduction_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]

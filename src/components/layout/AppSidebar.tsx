@@ -13,6 +13,7 @@ import {
   Settings,
   Shield,
   ChevronDown,
+  Wallet,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -57,7 +58,16 @@ const invoicesSub = [
 const vatSub = [
   { title: "Aangifte", url: "/btw/aangifte" },
   { title: "ICP Opgaaf", url: "/btw/icp" },
+];
+
+const salarySub = [
+  { title: "Overzicht", url: "/salaris" },
+  { title: "Bedrijfskosten", url: "/salaris/bedrijfskosten" },
+  { title: "Afschrijvingen", url: "/salaris/afschrijvingen" },
   { title: "Ondernemersaftrek", url: "/belasting/ondernemersaftrek" },
+  { title: "Premies", url: "/salaris/premies" },
+  { title: "Auto van de zaak", url: "/salaris/auto" },
+  { title: "Koopwoning", url: "/salaris/woning" },
 ];
 
 const reportsSub = [
@@ -89,6 +99,42 @@ export function AppSidebar({ role }: AppSidebarProps) {
     "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent/10 hover:text-foreground";
   const activeClass = "bg-primary/10 text-primary";
 
+  const renderCollapsible = (
+    label: string,
+    icon: React.ReactNode,
+    items: { title: string; url: string }[],
+    isOpen: boolean,
+  ) => (
+    <Collapsible defaultOpen={isOpen}>
+      <SidebarMenuItem>
+        <CollapsibleTrigger asChild>
+          <SidebarMenuButton className={`${linkClass} w-full justify-between cursor-pointer`}>
+            <span className="flex items-center gap-3">
+              {icon}
+              {!collapsed && <span>{label}</span>}
+            </span>
+            {!collapsed && <ChevronDown className="h-3.5 w-3.5 transition-transform [[data-state=open]>&]:rotate-180" />}
+          </SidebarMenuButton>
+        </CollapsibleTrigger>
+        {!collapsed && (
+          <CollapsibleContent>
+            <SidebarMenuSub>
+              {items.map((sub) => (
+                <SidebarMenuSubItem key={sub.url}>
+                  <SidebarMenuSubButton asChild>
+                    <NavLink to={sub.url} className="text-sm text-sidebar-foreground hover:text-foreground" activeClassName="text-primary">
+                      {sub.title}
+                    </NavLink>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+              ))}
+            </SidebarMenuSub>
+          </CollapsibleContent>
+        )}
+      </SidebarMenuItem>
+    </Collapsible>
+  );
+
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <div className="flex h-14 items-center gap-2 border-b border-sidebar-border px-4">
@@ -119,35 +165,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
                 </SidebarMenuItem>
               ))}
 
-              {/* Facturen submenu */}
-              <Collapsible defaultOpen={path.startsWith("/facturen")}>
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton className={`${linkClass} w-full justify-between cursor-pointer`}>
-                      <span className="flex items-center gap-3">
-                        <FileText className="h-4 w-4 shrink-0" />
-                        {!collapsed && <span>Facturen</span>}
-                      </span>
-                      {!collapsed && <ChevronDown className="h-3.5 w-3.5 transition-transform [[data-state=open]>&]:rotate-180" />}
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  {!collapsed && (
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {invoicesSub.map((sub) => (
-                          <SidebarMenuSubItem key={sub.url}>
-                            <SidebarMenuSubButton asChild>
-                              <NavLink to={sub.url} className="text-sm text-sidebar-foreground hover:text-foreground" activeClassName="text-primary">
-                                {sub.title}
-                              </NavLink>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
-                  )}
-                </SidebarMenuItem>
-              </Collapsible>
+              {renderCollapsible("Facturen", <FileText className="h-4 w-4 shrink-0" />, invoicesSub, path.startsWith("/facturen"))}
 
               {bottomNav.map((item) => (
                 <SidebarMenuItem key={item.title}>
@@ -160,65 +178,16 @@ export function AppSidebar({ role }: AppSidebarProps) {
                 </SidebarMenuItem>
               ))}
 
-              {/* BTW submenu */}
-              <Collapsible defaultOpen={path.startsWith("/btw")}>
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton className={`${linkClass} w-full justify-between cursor-pointer`}>
-                      <span className="flex items-center gap-3">
-                        <Receipt className="h-4 w-4 shrink-0" />
-                        {!collapsed && <span>BTW</span>}
-                      </span>
-                      {!collapsed && <ChevronDown className="h-3.5 w-3.5 transition-transform [[data-state=open]>&]:rotate-180" />}
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  {!collapsed && (
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {vatSub.map((sub) => (
-                          <SidebarMenuSubItem key={sub.url}>
-                            <SidebarMenuSubButton asChild>
-                              <NavLink to={sub.url} className="text-sm text-sidebar-foreground hover:text-foreground" activeClassName="text-primary">
-                                {sub.title}
-                              </NavLink>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
-                  )}
-                </SidebarMenuItem>
-              </Collapsible>
+              {renderCollapsible("BTW", <Receipt className="h-4 w-4 shrink-0" />, vatSub, path.startsWith("/btw"))}
 
-              {/* Rapporten submenu */}
-              <Collapsible defaultOpen={path.startsWith("/rapporten")}>
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton className={`${linkClass} w-full justify-between cursor-pointer`}>
-                      <span className="flex items-center gap-3">
-                        <BarChart3 className="h-4 w-4 shrink-0" />
-                        {!collapsed && <span>Rapporten</span>}
-                      </span>
-                      {!collapsed && <ChevronDown className="h-3.5 w-3.5 transition-transform [[data-state=open]>&]:rotate-180" />}
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  {!collapsed && (
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {reportsSub.map((sub) => (
-                          <SidebarMenuSubItem key={sub.url}>
-                            <SidebarMenuSubButton asChild>
-                              <NavLink to={sub.url} className="text-sm text-sidebar-foreground hover:text-foreground" activeClassName="text-primary">
-                                {sub.title}
-                              </NavLink>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
-                  )}
-                </SidebarMenuItem>
-              </Collapsible>
+              {renderCollapsible(
+                "Salaris",
+                <Wallet className="h-4 w-4 shrink-0" />,
+                salarySub,
+                path.startsWith("/salaris") || path.startsWith("/belasting"),
+              )}
+
+              {renderCollapsible("Rapporten", <BarChart3 className="h-4 w-4 shrink-0" />, reportsSub, path.startsWith("/rapporten"))}
 
               {afterReports.map((item) => (
                 <SidebarMenuItem key={item.title}>
