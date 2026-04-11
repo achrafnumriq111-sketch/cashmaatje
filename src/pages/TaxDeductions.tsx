@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Save, TrendingDown, Calculator, Info, Percent } from "lucide-react";
 import { useTaxDeductions } from "@/hooks/useTaxDeductions";
+import { YearlyOverviewChart } from "@/components/tax/YearlyOverviewChart";
 import { toast } from "sonner";
 
 const currentYear = new Date().getFullYear();
@@ -98,6 +99,9 @@ export default function TaxDeductions() {
     profit,
     totalDeductions,
     taxableProfit,
+    taxBurdenPct,
+    monthlyData,
+    avgMonthlyNet,
     loading,
     saving,
     save,
