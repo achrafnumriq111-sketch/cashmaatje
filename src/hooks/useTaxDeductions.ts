@@ -2,7 +2,16 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "./useOrganization";
 import { useReportData } from "./useReportData";
-import { startOfYear, endOfYear, format } from "date-fns";
+import { startOfYear, endOfYear, startOfMonth, endOfMonth, format } from "date-fns";
+
+export interface MonthlyProfitData {
+  month: string; // "Jan", "Feb", etc.
+  monthNum: number;
+  revenue: number;
+  expenses: number;
+  grossProfit: number;
+  netProfit: number; // after deductions pro-rata
+}
 
 interface TaxDeduction {
   id?: string;
