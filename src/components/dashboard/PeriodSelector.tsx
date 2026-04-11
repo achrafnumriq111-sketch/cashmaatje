@@ -42,7 +42,7 @@ export function PeriodSelector({ value, onChange }: Props) {
       {presets.map((p) => (
         <Button
           key={p.key}
-          variant={value.key === p.key ? "secondary" : "ghost"}
+          variant={value.key === p.key ? "default" : "outline"}
           size="sm"
           className="h-8 text-xs"
           onClick={() => onChange({ ...p })}
@@ -54,7 +54,7 @@ export function PeriodSelector({ value, onChange }: Props) {
       <Popover open={customOpen} onOpenChange={setCustomOpen}>
         <PopoverTrigger asChild>
           <Button
-            variant={value.key === "custom" ? "secondary" : "ghost"}
+            variant={value.key === "custom" ? "default" : "outline"}
             size="sm"
             className="h-8 text-xs gap-1.5"
           >
