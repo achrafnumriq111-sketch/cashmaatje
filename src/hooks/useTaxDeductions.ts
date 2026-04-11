@@ -111,6 +111,21 @@ export function useTaxDeductions(year: number) {
       .reduce((s, b) => s + Math.abs(b.balance), 0);
 
     setProfit(revenue - expenses);
+
+    // Fetch monthly breakdown
+    const monthly: MonthlyProfitData[] = [];
+    const monthPromises = MONTH_LABELS.map(async (label, i) => {
+      const mStart = format(startOfMonth(new Date(year, i, 1)), "yyyy-MM-dd");
+      const mEnd = format(endOfMonth(new Date(year, i, 1)), "yyyy-MM-dd");
+      const mBalances = await fetchAccountBalances(mStart, mEnd);
+      const mRev = mBalances.filter((b) => b.accountType === "revenue").reduce((s, b) => s + Math.abs(b.balance), 0);
+      const mExp = mBalances.filter((b) => b.accountType === "expense").reduce((s, b) => s + Math.abs(b.balance), 0);
+      return { month: label, monthNum: i + 1, revenue: mRev, expenses: mExp, grossProfit: mRev - mExp, netProfit: 0 };
+    });
+
+    const monthResults = await Promise.all(monthPromises);
+    setMonthlyData(monthResults.sort((a, b) => a.monthNum - b.monthNum));
+
     setLoading(false);
   }, [orgId, year, fetchAccountBalances]);
 
