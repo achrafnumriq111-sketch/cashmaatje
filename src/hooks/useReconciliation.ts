@@ -253,15 +253,36 @@ export function useBookDirectly() {
       const orgId = membership?.organizationId;
       if (!orgId) throw new Error("No organization");
 
+      // Get transaction details
+      const { data: tx } = await supabase
+        .from("bank_transactions")
+        .select("amount, transaction_date, description, counterparty_name")
+        .eq("id", transactionId)
+        .single();
+
+      // Update status
       const { error } = await supabase
         .from("bank_transactions")
         .update({ status: "matched", account_id: accountId })
         .eq("id", transactionId);
       if (error) throw error;
+
+      // Create journal entry (bank ↔ selected account)
+      if (tx) {
+        await createDirectBookingJournalEntry(
+          orgId,
+          transactionId,
+          accountId,
+          tx.amount,
+          tx.transaction_date,
+          tx.description ?? tx.counterparty_name ?? "Directe boeking"
+        );
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["unreconciled-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["transaction-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["journal-entries"] });
     },
   });
 }
