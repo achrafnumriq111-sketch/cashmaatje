@@ -23,6 +23,7 @@ import JournalEntries from "./pages/JournalEntries";
 import GeneralLedger from "./pages/GeneralLedger";
 import Contacts from "./pages/Contacts";
 import Documents from "./pages/Documents";
+import Receipts from "./pages/Receipts";
 import Reconciliation from "./pages/Reconciliation";
 import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="facturen/verkoop" element={<SalesInvoices />} />
               <Route path="facturen/inkoop" element={<PurchaseInvoices />} />
               <Route path="reconciliatie" element={<Reconciliation />} />
+              <Route path="bonnen" element={<Receipts />} />
               <Route path="documenten" element={<Documents />} />
               <Route path="btw/aangifte" element={<VatReturn />} />
               <Route path="btw/icp" element={<Placeholder />} />
