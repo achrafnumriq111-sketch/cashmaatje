@@ -23,27 +23,24 @@ export default function Receipts() {
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
   const [scannerOpen, setScannerOpen] = useState(false);
 
-  // Filter only receipts
   const receipts = documents.filter((d) => d.document_type === "receipt");
   const selectedDoc = receipts.find((d) => d.id === selectedDocId) ?? null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
             Bonnen
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Scan of upload fysieke bonnetjes — alles wordt automatisch verwerkt.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setScannerOpen(true)} className="gap-2">
-            <Camera className="h-4 w-4" />
-            Scan bonnetje
-          </Button>
-        </div>
+        <Button onClick={() => setScannerOpen(true)} className="gap-2 w-full sm:w-auto">
+          <Camera className="h-4 w-4" />
+          Scan bonnetje
+        </Button>
       </div>
 
       <DocumentUploadZone
