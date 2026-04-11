@@ -33,6 +33,7 @@ import Depreciations from "./pages/Depreciations";
 import DeductiblePremiums from "./pages/DeductiblePremiums";
 import CompanyCarPage from "./pages/CompanyCarPage";
 import MortgagePage from "./pages/MortgagePage";
+import IcpReport from "./pages/IcpReport";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,7 +60,7 @@ const App = () => (
               <Route path="bonnen" element={<Receipts />} />
               <Route path="documenten" element={<Documents />} />
               <Route path="btw/aangifte" element={<VatReturn />} />
-              <Route path="btw/icp" element={<Placeholder />} />
+              <Route path="btw/icp" element={<IcpReport />} />
               <Route path="rapporten/winst-verlies" element={<ProfitLoss />} />
               <Route path="rapporten/balans" element={<BalanceSheet />} />
               <Route path="rapporten/proefbalans" element={<TrialBalance />} />
