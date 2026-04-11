@@ -4,11 +4,15 @@ import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { HealthScore } from "@/components/dashboard/HealthScore";
 import { RecentTransactions } from "@/components/dashboard/RecentTransactions";
 import { ActionItems } from "@/components/dashboard/ActionItems";
+import { CashPosition } from "@/components/dashboard/CashPosition";
+import { OpenItems } from "@/components/dashboard/OpenItems";
 
 export default function Dashboard() {
   const data = useDashboardData();
   const latest = data.healthSnapshot.data?.[0];
   const previous = data.healthSnapshot.data?.[1];
+  const burn = data.burnRate.data;
+  const openInv = data.openInvoices.data;
 
   return (
     <div className="space-y-6">
@@ -19,7 +23,15 @@ export default function Dashboard() {
         </p>
       </div>
 
-      <KpiCards latest={latest} previous={previous} role={data.role} />
+      <KpiCards
+        cashBalance={burn?.cashBalance}
+        monthlyRevenue={burn?.monthlyRevenue}
+        monthlyBurn={burn?.monthlyBurn}
+        netProfit={burn?.netProfit}
+        grossMargin={burn?.grossMargin}
+        cashRunwayMonths={burn?.cashRunwayMonths}
+        isLoading={data.burnRate.isLoading}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-3">
@@ -30,11 +42,17 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RecentTransactions
-          transactions={data.recentTransactions.data ?? []}
-          isLoading={data.recentTransactions.isLoading}
-          role={data.role}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <CashPosition
+          accounts={data.bankBalances.data ?? []}
+          isLoading={data.bankBalances.isLoading}
+        />
+        <OpenItems
+          receivable={openInv?.receivable ?? 0}
+          payable={openInv?.payable ?? 0}
+          overdueReceivable={openInv?.overdueReceivable ?? 0}
+          overduePayable={openInv?.overduePayable ?? 0}
+          isLoading={data.openInvoices.isLoading}
         />
         <ActionItems
           unreconciledCount={data.unreconciledCount.data ?? 0}
@@ -44,6 +62,12 @@ export default function Dashboard() {
           role={data.role}
         />
       </div>
+
+      <RecentTransactions
+        transactions={data.recentTransactions.data ?? []}
+        isLoading={data.recentTransactions.isLoading}
+        role={data.role}
+      />
     </div>
   );
 }
