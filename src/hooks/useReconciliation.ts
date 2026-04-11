@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "./useOrganization";
+import { createPaymentJournalEntry, createDirectBookingJournalEntry } from "./useInvoices";
 
 export interface ReconciliationFilters {
   bankAccountId: string | null;
@@ -179,6 +180,20 @@ export function useMatchTransaction() {
       const orgId = membership?.organizationId;
       if (!orgId) throw new Error("No organization");
 
+      // Get transaction and invoice details for journal entry
+      const [{ data: tx }, { data: invoice }] = await Promise.all([
+        supabase
+          .from("bank_transactions")
+          .select("transaction_date, counterparty_name, contact_id")
+          .eq("id", transactionId)
+          .single(),
+        supabase
+          .from("invoices")
+          .select("invoice_type, contact_name, contact_id")
+          .eq("id", invoiceId)
+          .single(),
+      ]);
+
       // Create payment allocation
       const { error: allocError } = await supabase
         .from("payment_allocations")
@@ -187,7 +202,7 @@ export function useMatchTransaction() {
           bank_transaction_id: transactionId,
           invoice_id: invoiceId,
           amount: Math.abs(amount),
-          allocation_date: new Date().toISOString().split("T")[0],
+          allocation_date: tx?.transaction_date ?? new Date().toISOString().split("T")[0],
         });
       if (allocError) throw allocError;
 
@@ -197,12 +212,28 @@ export function useMatchTransaction() {
         .update({ status: "matched", matched_invoice_id: invoiceId })
         .eq("id", transactionId);
       if (txError) throw txError;
+
+      // Create payment journal entry (bank ↔ debiteuren/crediteuren)
+      if (tx && invoice) {
+        const invoiceType = invoice.invoice_type === "purchase" ? "purchase" : "sales";
+        await createPaymentJournalEntry(
+          orgId,
+          transactionId,
+          invoiceId,
+          amount,
+          tx.transaction_date,
+          invoice.contact_name ?? tx.counterparty_name ?? "Onbekend",
+          invoice.contact_id ?? tx.contact_id,
+          invoiceType
+        );
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["unreconciled-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["open-invoices"] });
       queryClient.invalidateQueries({ queryKey: ["transaction-stats"] });
       queryClient.invalidateQueries({ queryKey: ["suggested-matches"] });
+      queryClient.invalidateQueries({ queryKey: ["journal-entries"] });
     },
   });
 }
@@ -222,15 +253,36 @@ export function useBookDirectly() {
       const orgId = membership?.organizationId;
       if (!orgId) throw new Error("No organization");
 
+      // Get transaction details
+      const { data: tx } = await supabase
+        .from("bank_transactions")
+        .select("amount, transaction_date, description, counterparty_name")
+        .eq("id", transactionId)
+        .single();
+
+      // Update status
       const { error } = await supabase
         .from("bank_transactions")
         .update({ status: "matched", account_id: accountId })
         .eq("id", transactionId);
       if (error) throw error;
+
+      // Create journal entry (bank ↔ selected account)
+      if (tx) {
+        await createDirectBookingJournalEntry(
+          orgId,
+          transactionId,
+          accountId,
+          tx.amount,
+          tx.transaction_date,
+          tx.description ?? tx.counterparty_name ?? "Directe boeking"
+        );
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["unreconciled-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["transaction-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["journal-entries"] });
     },
   });
 }

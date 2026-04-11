@@ -45,6 +45,29 @@ const VAT_PERCENTAGES: Record<string, number> = {
   margin: 0,
 };
 
+// VAT box mapping for sales invoices
+const SALES_VAT_BOX_MAP: Record<string, string> = {
+  high: "1a",
+  low: "1b",
+  zero: "1c",
+  reverse_charge: "1e",
+  icp: "3b",
+  export: "3a",
+  exempt: "",
+  import: "4a",
+};
+
+// VAT box mapping for purchase invoices (voorbelasting = box 5b)
+const PURCHASE_VAT_BOX_MAP: Record<string, string> = {
+  high: "5b",
+  low: "5b",
+  zero: "",
+  reverse_charge: "5b",
+  icp: "5b",
+  import: "5b",
+  exempt: "",
+};
+
 export function useInvoices(type: InvoiceType, filters: InvoiceFilters) {
   const { membership } = useOrganization();
   const orgId = membership?.organizationId;
@@ -161,7 +184,7 @@ export function useCreateInvoice() {
         .from("invoices")
         .insert({
           organization_id: orgId,
-          invoice_number: "", // will be set below
+          invoice_number: "",
           invoice_type: input.invoice_type,
           status: input.status === "sent" ? "sent" : "draft",
           contact_id: input.contact_id,
@@ -216,7 +239,7 @@ export function useCreateInvoice() {
 
       // If status is "sent", create journal entries
       if (input.status === "sent") {
-        await createJournalEntries(orgId, invoice.id, input, processedLines, subtotal, totalVat, totalAmount);
+        await createJournalFromInvoice(orgId, invoice.id, input, processedLines, subtotal, totalVat, totalAmount);
       }
 
       return { ...invoice, invoice_number: invoiceNumber };
@@ -224,11 +247,25 @@ export function useCreateInvoice() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       queryClient.invalidateQueries({ queryKey: ["next-invoice-number"] });
+      queryClient.invalidateQueries({ queryKey: ["journal-entries"] });
     },
   });
 }
 
-async function createJournalEntries(
+/**
+ * Creates a balanced journal entry from an invoice.
+ * 
+ * SALES INVOICE:
+ *   Debit  1300 Debiteuren     (total incl. VAT)
+ *   Credit 4xxx Omzet          (subtotal per revenue account)
+ *   Credit 2310/2320 BTW       (VAT amount per rate)
+ * 
+ * PURCHASE INVOICE:
+ *   Debit  7xxx Kosten         (subtotal per expense account)
+ *   Debit  1510/1520 BTW voorbelasting (VAT amount per rate)
+ *   Credit 2100 Crediteuren    (total incl. VAT)
+ */
+async function createJournalFromInvoice(
   orgId: string,
   invoiceId: string,
   input: CreateInvoiceInput,
@@ -237,21 +274,20 @@ async function createJournalEntries(
   totalVat: number,
   totalAmount: number
 ) {
-  // Get debtors account (1300)
-  const { data: debtorsAccount } = await supabase
+  const isSales = input.invoice_type === "sales";
+
+  // Determine the counterparty account (debiteuren for sales, crediteuren for purchase)
+  const counterpartyCode = isSales ? "1300" : "2100";
+  const { data: counterpartyAccount } = await supabase
     .from("accounts")
     .select("id")
     .eq("organization_id", orgId)
-    .eq("code", "1300")
+    .eq("code", counterpartyCode)
     .single();
 
-  if (!debtorsAccount) return;
+  if (!counterpartyAccount) return;
 
-  // Get revenue accounts per line
-  const revenueAccounts: Record<string, string> = {};
-  const vatAccounts: Record<string, string> = {};
-
-  // Map vat_rate_type to revenue account codes
+  // Map vat_rate_type → revenue/expense account codes
   const revenueCodeMap: Record<string, string> = {
     high: "4200",
     low: "4200",
@@ -262,36 +298,54 @@ async function createJournalEntries(
     export: "4400",
   };
 
-  const vatCodeMap: Record<string, string> = {
+  const expenseCodeMap: Record<string, string> = {
+    high: "7600",
+    low: "7600",
+    zero: "7600",
+    exempt: "7600",
+    reverse_charge: "7600",
+    icp: "7600",
+    import: "7600",
+  };
+
+  // Sales: BTW af te dragen (liability), Purchase: BTW voorbelasting (asset)
+  const salesVatCodeMap: Record<string, string> = {
     high: "2310",
     low: "2320",
     reverse_charge: "2330",
   };
+  const purchaseVatCodeMap: Record<string, string> = {
+    high: "1510",
+    low: "1520",
+    reverse_charge: "1530",
+    import: "1540",
+    icp: "1530",
+  };
+
+  const accountCodeMap = isSales ? revenueCodeMap : expenseCodeMap;
+  const vatCodeMap = isSales ? salesVatCodeMap : purchaseVatCodeMap;
+  const vatBoxMap = isSales ? SALES_VAT_BOX_MAP : PURCHASE_VAT_BOX_MAP;
+
+  // Resolve account IDs
+  const accountIds: Record<string, string> = {};
+  const codesToResolve = new Set<string>([counterpartyCode]);
 
   for (const line of lines) {
-    const revCode = revenueCodeMap[line.vat_rate_type] || "4200";
-    if (!revenueAccounts[revCode]) {
-      const { data } = await supabase
-        .from("accounts")
-        .select("id")
-        .eq("organization_id", orgId)
-        .eq("code", revCode)
-        .single();
-      if (data) revenueAccounts[revCode] = data.id;
-    }
-
+    codesToResolve.add(accountCodeMap[line.vat_rate_type] || (isSales ? "4200" : "7600"));
     if (line.vatAmount > 0) {
-      const vatCode = vatCodeMap[line.vat_rate_type] || "2310";
-      if (!vatAccounts[vatCode]) {
-        const { data } = await supabase
-          .from("accounts")
-          .select("id")
-          .eq("organization_id", orgId)
-          .eq("code", vatCode)
-          .single();
-        if (data) vatAccounts[vatCode] = data.id;
-      }
+      const vc = vatCodeMap[line.vat_rate_type];
+      if (vc) codesToResolve.add(vc);
     }
+  }
+
+  const { data: resolvedAccounts } = await supabase
+    .from("accounts")
+    .select("id, code")
+    .eq("organization_id", orgId)
+    .in("code", Array.from(codesToResolve));
+
+  for (const a of resolvedAccounts ?? []) {
+    accountIds[a.code] = a.id;
   }
 
   // Create journal entry
@@ -300,7 +354,7 @@ async function createJournalEntries(
     .insert({
       organization_id: orgId,
       date: input.invoice_date,
-      description: `Factuur ${input.contact_name}`,
+      description: `${isSales ? "Verkoopfactuur" : "Inkoopfactuur"} ${input.contact_name}`,
       status: "posted",
       source_type: "invoice",
       source_id: invoiceId,
@@ -311,72 +365,335 @@ async function createJournalEntries(
 
   if (entryErr || !entry) return;
 
-  // Update invoice with journal entry
+  // Link journal entry to invoice
   await supabase.from("invoices").update({ journal_entry_id: entry.id }).eq("id", invoiceId);
 
   // Build journal lines
   const journalLines: Database["public"]["Tables"]["journal_lines"]["Insert"][] = [];
   let lineNum = 1;
 
-  // Debit: Debiteuren
-  journalLines.push({
-    journal_entry_id: entry.id,
-    line_number: lineNum++,
-    account_id: debtorsAccount.id,
-    debit_amount: totalAmount,
-    credit_amount: 0,
-    description: `Debiteuren - ${input.contact_name}`,
-    contact_id: input.contact_id,
-    invoice_id: invoiceId,
-  });
-
-  // Credit: Revenue per line group
-  const revenueByCode: Record<string, number> = {};
-  const vatByCode: Record<string, { amount: number; rateType: string; percentage: number }> = {};
+  // Aggregate amounts by account code
+  const amountByCode: Record<string, number> = {};
+  const vatByCode: Record<string, { amount: number; rateType: string; percentage: number; box: string }> = {};
 
   for (const line of lines) {
-    const revCode = revenueCodeMap[line.vat_rate_type] || "4200";
-    revenueByCode[revCode] = (revenueByCode[revCode] || 0) + line.lineTotal;
+    const code = accountCodeMap[line.vat_rate_type] || (isSales ? "4200" : "7600");
+    amountByCode[code] = (amountByCode[code] || 0) + line.lineTotal;
 
     if (line.vatAmount > 0) {
-      const vatCode = vatCodeMap[line.vat_rate_type] || "2310";
-      if (!vatByCode[vatCode]) {
-        vatByCode[vatCode] = { amount: 0, rateType: line.vat_rate_type, percentage: line.vat_percentage };
+      const vatCode = vatCodeMap[line.vat_rate_type];
+      if (vatCode) {
+        if (!vatByCode[vatCode]) {
+          vatByCode[vatCode] = {
+            amount: 0,
+            rateType: line.vat_rate_type,
+            percentage: line.vat_percentage,
+            box: vatBoxMap[line.vat_rate_type] || "",
+          };
+        }
+        vatByCode[vatCode].amount += line.vatAmount;
       }
-      vatByCode[vatCode].amount += line.vatAmount;
     }
   }
 
-  for (const [code, amount] of Object.entries(revenueByCode)) {
-    if (revenueAccounts[code]) {
-      journalLines.push({
-        journal_entry_id: entry.id,
-        line_number: lineNum++,
-        account_id: revenueAccounts[code],
-        debit_amount: 0,
-        credit_amount: amount,
-        description: `Omzet`,
-      });
-    }
-  }
+  if (isSales) {
+    // SALES: Debit debiteuren, Credit omzet + BTW
+    journalLines.push({
+      journal_entry_id: entry.id,
+      line_number: lineNum++,
+      account_id: accountIds[counterpartyCode],
+      debit_amount: totalAmount,
+      credit_amount: 0,
+      description: `Debiteuren - ${input.contact_name}`,
+      contact_id: input.contact_id,
+      invoice_id: invoiceId,
+    });
 
-  for (const [code, info] of Object.entries(vatByCode)) {
-    if (vatAccounts[code]) {
-      journalLines.push({
-        journal_entry_id: entry.id,
-        line_number: lineNum++,
-        account_id: vatAccounts[code],
-        debit_amount: 0,
-        credit_amount: info.amount,
-        description: `BTW ${info.percentage}%`,
-        vat_rate_type: info.rateType as VatRateType,
-        vat_percentage: info.percentage,
-        vat_amount: info.amount,
-      });
+    for (const [code, amount] of Object.entries(amountByCode)) {
+      if (accountIds[code]) {
+        journalLines.push({
+          journal_entry_id: entry.id,
+          line_number: lineNum++,
+          account_id: accountIds[code],
+          debit_amount: 0,
+          credit_amount: amount,
+          description: `Omzet`,
+        });
+      }
     }
+
+    for (const [code, info] of Object.entries(vatByCode)) {
+      if (accountIds[code]) {
+        journalLines.push({
+          journal_entry_id: entry.id,
+          line_number: lineNum++,
+          account_id: accountIds[code],
+          debit_amount: 0,
+          credit_amount: info.amount,
+          description: `BTW ${info.percentage}%`,
+          vat_rate_type: info.rateType as VatRateType,
+          vat_percentage: info.percentage,
+          vat_amount: info.amount,
+          vat_box: info.box || null,
+        });
+      }
+    }
+  } else {
+    // PURCHASE: Debit kosten + BTW voorbelasting, Credit crediteuren
+    for (const [code, amount] of Object.entries(amountByCode)) {
+      if (accountIds[code]) {
+        journalLines.push({
+          journal_entry_id: entry.id,
+          line_number: lineNum++,
+          account_id: accountIds[code],
+          debit_amount: amount,
+          credit_amount: 0,
+          description: `Kosten`,
+          contact_id: input.contact_id,
+          invoice_id: invoiceId,
+        });
+      }
+    }
+
+    for (const [code, info] of Object.entries(vatByCode)) {
+      if (accountIds[code]) {
+        journalLines.push({
+          journal_entry_id: entry.id,
+          line_number: lineNum++,
+          account_id: accountIds[code],
+          debit_amount: info.amount,
+          credit_amount: 0,
+          description: `BTW voorbelasting ${info.percentage}%`,
+          vat_rate_type: info.rateType as VatRateType,
+          vat_percentage: info.percentage,
+          vat_amount: info.amount,
+          vat_box: info.box || null,
+        });
+      }
+    }
+
+    journalLines.push({
+      journal_entry_id: entry.id,
+      line_number: lineNum++,
+      account_id: accountIds[counterpartyCode],
+      debit_amount: 0,
+      credit_amount: totalAmount,
+      description: `Crediteuren - ${input.contact_name}`,
+      contact_id: input.contact_id,
+      invoice_id: invoiceId,
+    });
   }
 
   await supabase.from("journal_lines").insert(journalLines);
+}
+
+/**
+ * Creates a payment journal entry when a bank transaction is matched to an invoice.
+ * 
+ * SALES PAYMENT (inbound):
+ *   Debit  1120 Bank
+ *   Credit 1300 Debiteuren
+ * 
+ * PURCHASE PAYMENT (outbound):
+ *   Debit  2100 Crediteuren
+ *   Credit 1120 Bank
+ */
+export async function createPaymentJournalEntry(
+  orgId: string,
+  transactionId: string,
+  invoiceId: string,
+  amount: number,
+  transactionDate: string,
+  contactName: string,
+  contactId: string | null,
+  invoiceType: "sales" | "purchase"
+) {
+  const bankCode = "1120";
+  const counterpartyCode = invoiceType === "sales" ? "1300" : "2100";
+
+  const { data: accounts } = await supabase
+    .from("accounts")
+    .select("id, code")
+    .eq("organization_id", orgId)
+    .in("code", [bankCode, counterpartyCode]);
+
+  const accountIds: Record<string, string> = {};
+  for (const a of accounts ?? []) {
+    accountIds[a.code] = a.id;
+  }
+
+  if (!accountIds[bankCode] || !accountIds[counterpartyCode]) return;
+
+  const absAmount = Math.abs(amount);
+
+  const { data: entry, error } = await supabase
+    .from("journal_entries")
+    .insert({
+      organization_id: orgId,
+      date: transactionDate,
+      description: `Betaling ${contactName}`,
+      status: "posted",
+      source_type: "bank_transaction",
+      source_id: transactionId,
+      posted_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+
+  if (error || !entry) return;
+
+  // Link journal entry to bank transaction
+  await supabase
+    .from("bank_transactions")
+    .update({ journal_entry_id: entry.id })
+    .eq("id", transactionId);
+
+  const journalLines: Database["public"]["Tables"]["journal_lines"]["Insert"][] = [];
+
+  if (invoiceType === "sales") {
+    // Inbound payment: Debit Bank, Credit Debiteuren
+    journalLines.push({
+      journal_entry_id: entry.id,
+      line_number: 1,
+      account_id: accountIds[bankCode],
+      debit_amount: absAmount,
+      credit_amount: 0,
+      description: `Ontvangst - ${contactName}`,
+      bank_transaction_id: transactionId,
+    });
+    journalLines.push({
+      journal_entry_id: entry.id,
+      line_number: 2,
+      account_id: accountIds[counterpartyCode],
+      debit_amount: 0,
+      credit_amount: absAmount,
+      description: `Afboeking debiteuren - ${contactName}`,
+      contact_id: contactId,
+      invoice_id: invoiceId,
+    });
+  } else {
+    // Outbound payment: Debit Crediteuren, Credit Bank
+    journalLines.push({
+      journal_entry_id: entry.id,
+      line_number: 1,
+      account_id: accountIds[counterpartyCode],
+      debit_amount: absAmount,
+      credit_amount: 0,
+      description: `Afboeking crediteuren - ${contactName}`,
+      contact_id: contactId,
+      invoice_id: invoiceId,
+    });
+    journalLines.push({
+      journal_entry_id: entry.id,
+      line_number: 2,
+      account_id: accountIds[bankCode],
+      debit_amount: 0,
+      credit_amount: absAmount,
+      description: `Betaling - ${contactName}`,
+      bank_transaction_id: transactionId,
+    });
+  }
+
+  await supabase.from("journal_lines").insert(journalLines);
+  return entry.id;
+}
+
+/**
+ * Creates a journal entry for a directly booked bank transaction (no invoice).
+ * 
+ * Positive amount (inbound):
+ *   Debit  1120 Bank
+ *   Credit <selected account>
+ * 
+ * Negative amount (outbound):
+ *   Debit  <selected account>
+ *   Credit 1120 Bank
+ */
+export async function createDirectBookingJournalEntry(
+  orgId: string,
+  transactionId: string,
+  accountId: string,
+  amount: number,
+  transactionDate: string,
+  description: string
+) {
+  const bankCode = "1120";
+
+  const { data: bankAccount } = await supabase
+    .from("accounts")
+    .select("id")
+    .eq("organization_id", orgId)
+    .eq("code", bankCode)
+    .single();
+
+  if (!bankAccount) return;
+
+  const absAmount = Math.abs(amount);
+  const isInbound = amount > 0;
+
+  const { data: entry, error } = await supabase
+    .from("journal_entries")
+    .insert({
+      organization_id: orgId,
+      date: transactionDate,
+      description: description || "Directe boeking",
+      status: "posted",
+      source_type: "bank_transaction",
+      source_id: transactionId,
+      posted_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+
+  if (error || !entry) return;
+
+  await supabase
+    .from("bank_transactions")
+    .update({ journal_entry_id: entry.id })
+    .eq("id", transactionId);
+
+  const journalLines: Database["public"]["Tables"]["journal_lines"]["Insert"][] = [];
+
+  if (isInbound) {
+    journalLines.push({
+      journal_entry_id: entry.id,
+      line_number: 1,
+      account_id: bankAccount.id,
+      debit_amount: absAmount,
+      credit_amount: 0,
+      description: `Bank ontvangst`,
+      bank_transaction_id: transactionId,
+    });
+    journalLines.push({
+      journal_entry_id: entry.id,
+      line_number: 2,
+      account_id: accountId,
+      debit_amount: 0,
+      credit_amount: absAmount,
+      description: description || "Directe boeking",
+    });
+  } else {
+    journalLines.push({
+      journal_entry_id: entry.id,
+      line_number: 1,
+      account_id: accountId,
+      debit_amount: absAmount,
+      credit_amount: 0,
+      description: description || "Directe boeking",
+    });
+    journalLines.push({
+      journal_entry_id: entry.id,
+      line_number: 2,
+      account_id: bankAccount.id,
+      debit_amount: 0,
+      credit_amount: absAmount,
+      description: `Bank betaling`,
+      bank_transaction_id: transactionId,
+    });
+  }
+
+  await supabase.from("journal_lines").insert(journalLines);
+  return entry.id;
 }
 
 export function validateVatSetup(
