@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { FileText, ExternalLink, Link2, ShoppingCart, CheckCircle2, RefreshCw, AlertTriangle } from "lucide-react";
+import { FileText, ExternalLink, Link2, ShoppingCart, CheckCircle2, RefreshCw, AlertTriangle, Trash2, Copy } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
@@ -16,6 +17,7 @@ interface Props {
   document: Document;
   onClose: () => void;
   onUpdate: (updates: Record<string, unknown>) => void;
+  onDelete?: (id: string) => void;
   orgId: string | undefined;
 }
 
@@ -47,8 +49,10 @@ function ConfidenceDot({ value }: { value?: number }) {
   );
 }
 
-export function DocumentDetail({ document: doc, onClose, onUpdate, orgId }: Props) {
+export function DocumentDetail({ document: doc, onClose, onUpdate, onDelete, orgId }: Props) {
   const [isReExtracting, setIsReExtracting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [duplicateDoc, setDuplicateDoc] = useState<Document | null>(null);
   const confidence: OcrConfidence =
     (doc.ocr_data as Record<string, unknown>)?.confidence as OcrConfidence ?? {};
 
