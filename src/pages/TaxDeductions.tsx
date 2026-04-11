@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Save, TrendingDown, Calculator, Info, Percent } from "lucide-react";
 import { useTaxDeductions } from "@/hooks/useTaxDeductions";
+import { YearlyOverviewChart } from "@/components/tax/YearlyOverviewChart";
 import { toast } from "sonner";
 
 const currentYear = new Date().getFullYear();
@@ -98,6 +99,9 @@ export default function TaxDeductions() {
     profit,
     totalDeductions,
     taxableProfit,
+    taxBurdenPct,
+    monthlyData,
+    avgMonthlyNet,
     loading,
     saving,
     save,
@@ -154,36 +158,16 @@ export default function TaxDeductions() {
         <p className="text-sm text-muted-foreground">Laden...</p>
       ) : (
         <>
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Card className="border-border/50">
-              <CardContent className="p-5">
-                <div className="flex items-center gap-2 mb-2">
-                  <Calculator className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Winst {year}</span>
-                </div>
-                <div className="text-2xl font-semibold tabular-nums text-foreground">{fmt(profit)}</div>
-              </CardContent>
-            </Card>
-            <Card className="border-primary/30 bg-primary/5">
-              <CardContent className="p-5">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingDown className="h-4 w-4 text-primary" />
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Totale aftrek</span>
-                </div>
-                <div className="text-2xl font-semibold tabular-nums text-primary">{fmt(totalDeductions)}</div>
-              </CardContent>
-            </Card>
-            <Card className="border-border/50">
-              <CardContent className="p-5">
-                <div className="flex items-center gap-2 mb-2">
-                  <Info className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Belastbare winst</span>
-                </div>
-                <div className="text-2xl font-semibold tabular-nums text-foreground">{fmt(taxableProfit)}</div>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Yearly Overview Chart + KPIs */}
+          <YearlyOverviewChart
+            year={year}
+            monthlyData={monthlyData}
+            totalProfit={profit}
+            taxableProfit={taxableProfit}
+            totalDeductions={totalDeductions}
+            taxBurdenPct={taxBurdenPct}
+            avgMonthlyNet={avgMonthlyNet}
+          />
 
           {/* Deduction Toggles */}
           <Card>

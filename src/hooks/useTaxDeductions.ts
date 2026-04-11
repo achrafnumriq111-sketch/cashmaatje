@@ -2,7 +2,16 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "./useOrganization";
 import { useReportData } from "./useReportData";
-import { startOfYear, endOfYear, format } from "date-fns";
+import { startOfYear, endOfYear, startOfMonth, endOfMonth, format } from "date-fns";
+
+export interface MonthlyProfitData {
+  month: string; // "Jan", "Feb", etc.
+  monthNum: number;
+  revenue: number;
+  expenses: number;
+  grossProfit: number;
+  netProfit: number; // after deductions pro-rata
+}
 
 interface TaxDeduction {
   id?: string;
@@ -48,8 +57,11 @@ export function useTaxDeductions(year: number) {
 
   const [deduction, setDeduction] = useState<TaxDeduction>(defaults(year));
   const [profit, setProfit] = useState(0);
+  const [monthlyData, setMonthlyData] = useState<MonthlyProfitData[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  
+  const MONTH_LABELS = ["Jan", "Feb", "Mrt", "Apr", "Mei", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec"];
 
   const fetchData = useCallback(async () => {
     if (!orgId) return;
@@ -99,6 +111,21 @@ export function useTaxDeductions(year: number) {
       .reduce((s, b) => s + Math.abs(b.balance), 0);
 
     setProfit(revenue - expenses);
+
+    // Fetch monthly breakdown
+    const monthly: MonthlyProfitData[] = [];
+    const monthPromises = MONTH_LABELS.map(async (label, i) => {
+      const mStart = format(startOfMonth(new Date(year, i, 1)), "yyyy-MM-dd");
+      const mEnd = format(endOfMonth(new Date(year, i, 1)), "yyyy-MM-dd");
+      const mBalances = await fetchAccountBalances(mStart, mEnd);
+      const mRev = mBalances.filter((b) => b.accountType === "revenue").reduce((s, b) => s + Math.abs(b.balance), 0);
+      const mExp = mBalances.filter((b) => b.accountType === "expense").reduce((s, b) => s + Math.abs(b.balance), 0);
+      return { month: label, monthNum: i + 1, revenue: mRev, expenses: mExp, grossProfit: mRev - mExp, netProfit: 0 };
+    });
+
+    const monthResults = await Promise.all(monthPromises);
+    setMonthlyData(monthResults.sort((a, b) => a.monthNum - b.monthNum));
+
     setLoading(false);
   }, [orgId, year, fetchAccountBalances]);
 
@@ -180,6 +207,18 @@ export function useTaxDeductions(year: number) {
   })();
 
   const taxableProfit = Math.max(0, profit - totalDeductions);
+  const taxBurdenPct = profit > 0 ? ((profit - taxableProfit) / profit) * 100 : 0;
+
+  // Enrich monthly data with net profit (pro-rata deduction spread)
+  const deductionRate = profit > 0 ? totalDeductions / profit : 0;
+  const enrichedMonthly = monthlyData.map((m) => ({
+    ...m,
+    netProfit: Math.max(0, m.grossProfit - m.grossProfit * deductionRate),
+  }));
+
+  const avgMonthlyNet = enrichedMonthly.length > 0
+    ? enrichedMonthly.reduce((s, m) => s + m.netProfit, 0) / enrichedMonthly.filter(m => m.revenue > 0 || m.expenses > 0).length || 0
+    : 0;
 
   return {
     deduction,
@@ -187,6 +226,9 @@ export function useTaxDeductions(year: number) {
     profit,
     totalDeductions,
     taxableProfit,
+    taxBurdenPct,
+    monthlyData: enrichedMonthly,
+    avgMonthlyNet,
     loading,
     saving,
     save,
