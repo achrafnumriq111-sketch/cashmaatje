@@ -113,6 +113,7 @@ Deno.serve(async (req) => {
       if (ruleMatched) continue;
 
       // No rule matched — use AI
+      const prompt = `You are a Dutch bookkeeping AI. Categorize this bank transaction.
 
 Transaction:
 - Date: ${tx.transaction_date}
@@ -147,7 +148,7 @@ Respond with JSON:
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
+            model: "google/gemini-3-flash-preview",
             messages: [
               { role: "system", content: "You are a Dutch bookkeeping assistant. Always respond with valid JSON only." },
               { role: "user", content: prompt },
