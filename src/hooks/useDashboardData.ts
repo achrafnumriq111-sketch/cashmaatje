@@ -112,6 +112,94 @@ export function useDashboardData() {
     },
   });
 
+  // === NEW: Cash Position (bank balances) ===
+  const bankBalances = useQuery({
+    queryKey: ["bank-balances", orgId],
+    enabled: !!orgId,
+    refetchInterval: 60000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("bank_accounts")
+        .select("id, name, iban, current_balance, bank_name, is_primary, last_sync_at")
+        .eq("organization_id", orgId!)
+        .eq("is_active", true)
+        .order("is_primary", { ascending: false });
+      return data ?? [];
+    },
+  });
+
+  // === NEW: Open Items (debiteuren + crediteuren) ===
+  const openInvoices = useQuery({
+    queryKey: ["open-invoices", orgId],
+    enabled: !!orgId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("invoices")
+        .select("id, invoice_type, total_amount, amount_paid, due_date, contact_name, status")
+        .eq("organization_id", orgId!)
+        .in("status", ["sent", "partial", "overdue"]);
+      const invoices = data ?? [];
+      const receivable = invoices
+        .filter(i => i.invoice_type === "sales")
+        .reduce((sum, i) => sum + (i.total_amount - (i.amount_paid ?? 0)), 0);
+      const payable = invoices
+        .filter(i => i.invoice_type === "purchase")
+        .reduce((sum, i) => sum + (i.total_amount - (i.amount_paid ?? 0)), 0);
+      const overdueReceivable = invoices
+        .filter(i => i.invoice_type === "sales" && i.due_date && new Date(i.due_date) < new Date())
+        .reduce((sum, i) => sum + (i.total_amount - (i.amount_paid ?? 0)), 0);
+      const overduePayable = invoices
+        .filter(i => i.invoice_type === "purchase" && i.due_date && new Date(i.due_date) < new Date())
+        .reduce((sum, i) => sum + (i.total_amount - (i.amount_paid ?? 0)), 0);
+      return { receivable, payable, overdueReceivable, overduePayable, invoices };
+    },
+  });
+
+  // === NEW: Burn Rate (avg monthly expenses last 3 months) ===
+  const burnRate = useQuery({
+    queryKey: ["burn-rate", orgId],
+    enabled: !!orgId,
+    queryFn: async () => {
+      const threeMonthsAgo = new Date();
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+      const { data } = await supabase
+        .from("journal_lines")
+        .select("debit_amount, credit_amount, account_id, accounts!inner(account_type), journal_entries!inner(date, organization_id, status)")
+        .gte("journal_entries.date", threeMonthsAgo.toISOString().split("T")[0])
+        .eq("journal_entries.organization_id", orgId!)
+        .eq("journal_entries.status", "posted")
+        .eq("accounts.account_type", "expense");
+      
+      const totalExpenses = (data ?? []).reduce((sum, line) => sum + ((line.debit_amount ?? 0) - (line.credit_amount ?? 0)), 0);
+      const monthlyBurn = totalExpenses / 3;
+
+      // Revenue for margin calculation
+      const { data: revData } = await supabase
+        .from("journal_lines")
+        .select("debit_amount, credit_amount, accounts!inner(account_type), journal_entries!inner(date, organization_id, status)")
+        .gte("journal_entries.date", threeMonthsAgo.toISOString().split("T")[0])
+        .eq("journal_entries.organization_id", orgId!)
+        .eq("journal_entries.status", "posted")
+        .eq("accounts.account_type", "revenue");
+      
+      const totalRevenue = (revData ?? []).reduce((sum, line) => sum + ((line.credit_amount ?? 0) - (line.debit_amount ?? 0)), 0);
+      const monthlyRevenue = totalRevenue / 3;
+      const netProfit = monthlyRevenue - monthlyBurn;
+      const grossMargin = monthlyRevenue > 0 ? ((monthlyRevenue - monthlyBurn) / monthlyRevenue) * 100 : 0;
+
+      // Cash runway
+      const cashBalance = (await supabase
+        .from("bank_accounts")
+        .select("current_balance")
+        .eq("organization_id", orgId!)
+        .eq("is_active", true)).data?.reduce((sum, b) => sum + (b.current_balance ?? 0), 0) ?? 0;
+
+      const cashRunwayMonths = monthlyBurn > 0 ? cashBalance / monthlyBurn : null;
+
+      return { monthlyBurn, monthlyRevenue, netProfit, grossMargin, cashRunwayMonths, cashBalance };
+    },
+  });
+
   return {
     healthSnapshot,
     recentTransactions,
@@ -120,6 +208,9 @@ export function useDashboardData() {
     missingDocsCount,
     vatDeadline,
     monthlyRevenue,
+    bankBalances,
+    openInvoices,
+    burnRate,
     role: membership?.role,
   };
 }
