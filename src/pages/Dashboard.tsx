@@ -6,11 +6,11 @@ import { RecentTransactions } from "@/components/dashboard/RecentTransactions";
 import { ActionItems } from "@/components/dashboard/ActionItems";
 import { CashPosition } from "@/components/dashboard/CashPosition";
 import { OpenItems } from "@/components/dashboard/OpenItems";
+import { RecentDocuments } from "@/components/dashboard/RecentDocuments";
 
 export default function Dashboard() {
   const data = useDashboardData();
   const latest = data.healthSnapshot.data?.[0];
-  const previous = data.healthSnapshot.data?.[1];
   const burn = data.burnRate.data;
   const openInv = data.openInvoices.data;
 
@@ -57,17 +57,24 @@ export default function Dashboard() {
         <ActionItems
           unreconciledCount={data.unreconciledCount.data ?? 0}
           missingDocsCount={data.missingDocsCount.data ?? 0}
+          pendingDocsCount={data.pendingDocsCount.data ?? 0}
           anomaliesCount={data.anomaliesCount.data ?? 0}
           vatDeadline={data.vatDeadline.data}
           role={data.role}
         />
       </div>
 
-      <RecentTransactions
-        transactions={data.recentTransactions.data ?? []}
-        isLoading={data.recentTransactions.isLoading}
-        role={data.role}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RecentTransactions
+          transactions={data.recentTransactions.data ?? []}
+          isLoading={data.recentTransactions.isLoading}
+          role={data.role}
+        />
+        <RecentDocuments
+          documents={data.recentDocuments.data ?? []}
+          isLoading={data.recentDocuments.isLoading}
+        />
+      </div>
     </div>
   );
 }

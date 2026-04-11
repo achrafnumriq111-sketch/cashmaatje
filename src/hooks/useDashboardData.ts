@@ -74,6 +74,35 @@ export function useDashboardData() {
     },
   });
 
+  // Inbox documents (pending processing)
+  const pendingDocsCount = useQuery({
+    queryKey: ["pending-docs-count", orgId],
+    enabled: !!orgId,
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("documents")
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", orgId!)
+        .or("processing_status.eq.inbox,processing_status.eq.processing,ocr_status.eq.pending,ocr_status.eq.processing");
+      return count ?? 0;
+    },
+  });
+
+  // Recent documents/receipts
+  const recentDocuments = useQuery({
+    queryKey: ["recent-documents", orgId],
+    enabled: !!orgId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("documents")
+        .select("id, file_name, document_type, extracted_supplier_name, extracted_amount, extracted_date, ocr_status, processing_status, created_at")
+        .eq("organization_id", orgId!)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      return data ?? [];
+    },
+  });
+
   const vatDeadline = useQuery({
     queryKey: ["vat-deadline", orgId],
     enabled: !!orgId,
@@ -206,6 +235,8 @@ export function useDashboardData() {
     anomaliesCount,
     unreconciledCount,
     missingDocsCount,
+    pendingDocsCount,
+    recentDocuments,
     vatDeadline,
     monthlyRevenue,
     bankBalances,

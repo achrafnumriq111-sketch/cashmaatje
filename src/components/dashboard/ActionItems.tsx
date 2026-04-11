@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { AlertTriangle, FileWarning, Calendar, GitMerge } from "lucide-react";
+import { AlertTriangle, FileWarning, Calendar, GitMerge, ScanLine } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Role = Database["public"]["Enums"]["user_role"] | undefined;
@@ -8,12 +8,13 @@ type Role = Database["public"]["Enums"]["user_role"] | undefined;
 interface Props {
   unreconciledCount: number;
   missingDocsCount: number;
+  pendingDocsCount: number;
   anomaliesCount: number;
   vatDeadline: { period_end: string; daysRemaining: number; period_number: number; year: number } | null | undefined;
   role: Role;
 }
 
-export function ActionItems({ unreconciledCount, missingDocsCount, anomaliesCount, vatDeadline, role }: Props) {
+export function ActionItems({ unreconciledCount, missingDocsCount, pendingDocsCount, anomaliesCount, vatDeadline, role }: Props) {
   const navigate = useNavigate();
 
   const items = [
@@ -27,6 +28,14 @@ export function ActionItems({ unreconciledCount, missingDocsCount, anomaliesCoun
           onClick: () => navigate("/reconciliatie"),
         }]
       : []),
+    {
+      icon: ScanLine,
+      label: "Bonnen in verwerking",
+      count: pendingDocsCount,
+      color: "text-cyan-400",
+      bg: "bg-cyan-400/10",
+      onClick: () => navigate("/bonnen"),
+    },
     {
       icon: FileWarning,
       label: role === "entrepreneur" ? "Ontbrekende bonnetjes" : "Ontbrekende documenten",
