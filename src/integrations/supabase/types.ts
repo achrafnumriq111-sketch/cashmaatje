@@ -2700,30 +2700,28 @@ export type Database = {
       }
       seed_chart_of_accounts: { Args: { p_org_id: string }; Returns: undefined }
       seed_vat_rates: { Args: { p_org_id: string }; Returns: undefined }
-      setup_new_organization:
-        | { Args: { p_org_id: string; p_user_id: string }; Returns: undefined }
-        | {
-            Args: {
-              p_address_city?: string
-              p_address_postal_code?: string
-              p_address_street?: string
-              p_btw_number?: string
-              p_email?: string
-              p_fiscal_year_start_month?: number
-              p_kor_eligible?: boolean
-              p_kvk_number?: string
-              p_legal_name?: string
-              p_name: string
-              p_org_type?: Database["public"]["Enums"]["org_type"]
-              p_phone?: string
-              p_settings?: Json
-              p_user_id: string
-              p_vat_frequency?: Database["public"]["Enums"]["vat_frequency"]
-              p_vat_scheme?: Database["public"]["Enums"]["vat_scheme"]
-              p_website?: string
-            }
-            Returns: string
-          }
+      setup_new_organization: {
+        Args: {
+          p_address_city?: string
+          p_address_postal_code?: string
+          p_address_street?: string
+          p_btw_number?: string
+          p_email?: string
+          p_fiscal_year_start_month?: number
+          p_kor_eligible?: boolean
+          p_kvk_number?: string
+          p_legal_name?: string
+          p_name: string
+          p_org_type?: Database["public"]["Enums"]["org_type"]
+          p_phone?: string
+          p_settings?: Json
+          p_user_id: string
+          p_vat_frequency?: Database["public"]["Enums"]["vat_frequency"]
+          p_vat_scheme?: Database["public"]["Enums"]["vat_scheme"]
+          p_website?: string
+        }
+        Returns: string
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
