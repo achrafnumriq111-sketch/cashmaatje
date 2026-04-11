@@ -439,6 +439,79 @@ export type Database = {
           },
         ]
       }
+      bank_rules: {
+        Row: {
+          account_id: string | null
+          contact_id: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          last_applied_at: string | null
+          match_field: string
+          match_type: string
+          match_value: string
+          name: string
+          organization_id: string
+          priority: number
+          times_applied: number
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_applied_at?: string | null
+          match_field: string
+          match_type: string
+          match_value: string
+          name: string
+          organization_id: string
+          priority?: number
+          times_applied?: number
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_applied_at?: string | null
+          match_field?: string
+          match_type?: string
+          match_value?: string
+          name?: string
+          organization_id?: string
+          priority?: number
+          times_applied?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_rules_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_rules_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_rules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bank_transactions: {
         Row: {
           account_id: string | null
