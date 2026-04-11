@@ -239,13 +239,16 @@ Be precise with amounts. Use dot as decimal separator. Parse Dutch date formats 
       0
     ) ?? 0;
 
-    // Check for duplicates by invoice number + supplier
+    // === SMART DUPLICATE DETECTION ===
     let isDuplicate = false;
     let duplicateOf = null;
+    let duplicateReason = "";
+
+    // Method 1: Exact match on invoice number + supplier
     if (extracted.invoice_number && extracted.supplier_name) {
       const { data: existing } = await supabase
         .from("documents")
-        .select("id")
+        .select("id, file_name")
         .eq("organization_id", organization_id)
         .eq("extracted_invoice_number", extracted.invoice_number)
         .eq("extracted_supplier_name", extracted.supplier_name)
@@ -254,7 +257,72 @@ Be precise with amounts. Use dot as decimal separator. Parse Dutch date formats 
       if (existing && existing.length > 0) {
         isDuplicate = true;
         duplicateOf = existing[0].id;
+        duplicateReason = `Factuurnummer "${extracted.invoice_number}" van "${extracted.supplier_name}" bestaat al (${existing[0].file_name})`;
       }
+    }
+
+    // Method 2: Same supplier + same amount + same date (fuzzy match)
+    if (!isDuplicate && extracted.supplier_name && extracted.total_amount && extracted.invoice_date) {
+      const { data: similar } = await supabase
+        .from("documents")
+        .select("id, file_name, extracted_supplier_name")
+        .eq("organization_id", organization_id)
+        .eq("extracted_date", extracted.invoice_date)
+        .neq("id", document_id)
+        .gte("extracted_amount", extracted.total_amount * 0.99)
+        .lte("extracted_amount", extracted.total_amount * 1.01);
+
+      if (similar && similar.length > 0) {
+        // Fuzzy name match
+        const normalizedNew = extracted.supplier_name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const match = similar.find((s: any) => {
+          const normalizedExisting = (s.extracted_supplier_name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          return normalizedExisting === normalizedNew || 
+                 normalizedNew.includes(normalizedExisting) || 
+                 normalizedExisting.includes(normalizedNew);
+        });
+        if (match) {
+          isDuplicate = true;
+          duplicateOf = match.id;
+          duplicateReason = `Zelfde leverancier, bedrag (€${extracted.total_amount}) en datum (${extracted.invoice_date}) als "${match.file_name}"`;
+        }
+      }
+    }
+
+    // Method 3: Same amount + same date (no supplier match but suspicious)
+    if (!isDuplicate && extracted.total_amount && extracted.invoice_date) {
+      const { data: amountMatches } = await supabase
+        .from("documents")
+        .select("id, file_name")
+        .eq("organization_id", organization_id)
+        .eq("extracted_date", extracted.invoice_date)
+        .eq("extracted_amount", extracted.total_amount)
+        .neq("id", document_id)
+        .limit(1);
+
+      if (amountMatches && amountMatches.length > 0) {
+        // Not marked as duplicate but add a risk flag
+        if (!extracted.risk_flags) extracted.risk_flags = [];
+        extracted.risk_flags.push("possible_duplicate");
+        duplicateOf = amountMatches[0].id;
+        duplicateReason = `Zelfde bedrag (€${extracted.total_amount}) en datum als "${amountMatches[0].file_name}" — controleer of dit een duplicaat is`;
+      }
+    }
+
+    // Create notification for duplicate detection
+    if (isDuplicate || duplicateReason) {
+      await supabase.from("notifications").insert({
+        organization_id,
+        title: isDuplicate ? "⚠️ Duplicaat gedetecteerd" : "🔍 Mogelijk duplicaat",
+        message: duplicateReason,
+        message_nl: duplicateReason,
+        severity: isDuplicate ? "warning" : "info",
+        category: "document",
+        entity_type: "document",
+        entity_id: document_id,
+        action_label: "Bekijk origineel",
+        action_url: `/documenten?doc=${duplicateOf}`,
+      });
     }
 
     // Calculate average confidence
