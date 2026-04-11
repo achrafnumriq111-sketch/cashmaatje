@@ -37,11 +37,19 @@ Deno.serve(async (req) => {
     // Fetch transactions
     const { data: transactions, error: txError } = await supabase
       .from("bank_transactions")
-      .select("id, amount, description, counterparty_name, counterparty_iban, transaction_date, payment_reference")
+      .select("id, amount, description, counterparty_name, counterparty_iban, transaction_date, payment_reference, status")
       .eq("organization_id", organization_id)
       .in("id", transaction_ids);
 
     if (txError) throw txError;
+
+    // Fetch bank rules for pre-matching
+    const { data: bankRules } = await supabase
+      .from("bank_rules")
+      .select("*")
+      .eq("organization_id", organization_id)
+      .eq("is_active", true)
+      .order("priority", { ascending: true });
 
     // Fetch chart of accounts for this org
     const { data: accounts, error: accError } = await supabase
