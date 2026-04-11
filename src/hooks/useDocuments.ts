@@ -132,6 +132,23 @@ export function useDocuments() {
     },
   });
 
+  const deleteDocument = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("documents")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents", orgId] });
+      toast.success("Document verwijderd");
+    },
+    onError: (err: Error) => {
+      toast.error(`Verwijderen mislukt: ${err.message}`);
+    },
+  });
+
   const handleDrop = useCallback(
     (files: File[]) => {
       const allowed = ["image/jpeg", "image/png", "application/pdf"];
@@ -154,6 +171,7 @@ export function useDocuments() {
     setViewMode,
     uploadMutation,
     updateDocument,
+    deleteDocument,
     handleDrop,
     orgId,
   };
