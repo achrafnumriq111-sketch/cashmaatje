@@ -2,9 +2,18 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "./useOrganization";
 
-export function useDashboardData() {
+interface PeriodRange {
+  from: Date;
+  to: Date;
+}
+
+export function useDashboardData(period?: PeriodRange) {
   const { membership } = useOrganization();
   const orgId = membership?.organizationId;
+
+  const fromStr = period ? period.from.toISOString().split("T")[0] : undefined;
+  const toStr = period ? period.to.toISOString().split("T")[0] : undefined;
+  const periodKey = fromStr && toStr ? `${fromStr}_${toStr}` : "all";
 
   const healthSnapshot = useQuery({
     queryKey: ["health-snapshot", orgId],
@@ -21,15 +30,18 @@ export function useDashboardData() {
   });
 
   const recentTransactions = useQuery({
-    queryKey: ["recent-transactions", orgId],
+    queryKey: ["recent-transactions", orgId, periodKey],
     enabled: !!orgId,
     queryFn: async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("bank_transactions")
         .select("id, transaction_date, counterparty_name, amount, status, ai_category_suggestion, ai_confidence, description")
         .eq("organization_id", orgId!)
         .order("transaction_date", { ascending: false })
         .limit(10);
+      if (fromStr) q = q.gte("transaction_date", fromStr);
+      if (toStr) q = q.lte("transaction_date", toStr);
+      const { data } = await q;
       return data ?? [];
     },
   });
@@ -48,33 +60,38 @@ export function useDashboardData() {
   });
 
   const unreconciledCount = useQuery({
-    queryKey: ["unreconciled-count", orgId],
+    queryKey: ["unreconciled-count", orgId, periodKey],
     enabled: !!orgId,
     queryFn: async () => {
-      const { count } = await supabase
+      let q = supabase
         .from("bank_transactions")
         .select("id", { count: "exact", head: true })
         .eq("organization_id", orgId!)
         .eq("status", "new");
+      if (fromStr) q = q.gte("transaction_date", fromStr);
+      if (toStr) q = q.lte("transaction_date", toStr);
+      const { count } = await q;
       return count ?? 0;
     },
   });
 
   const missingDocsCount = useQuery({
-    queryKey: ["missing-docs-count", orgId],
+    queryKey: ["missing-docs-count", orgId, periodKey],
     enabled: !!orgId,
     queryFn: async () => {
-      const { count } = await supabase
+      let q = supabase
         .from("invoices")
         .select("id", { count: "exact", head: true })
         .eq("organization_id", orgId!)
         .is("document_id", null)
         .neq("status", "draft");
+      if (fromStr) q = q.gte("invoice_date", fromStr);
+      if (toStr) q = q.lte("invoice_date", toStr);
+      const { count } = await q;
       return count ?? 0;
     },
   });
 
-  // Inbox documents (pending processing)
   const pendingDocsCount = useQuery({
     queryKey: ["pending-docs-count", orgId],
     enabled: !!orgId,
@@ -88,17 +105,19 @@ export function useDashboardData() {
     },
   });
 
-  // Recent documents/receipts
   const recentDocuments = useQuery({
-    queryKey: ["recent-documents", orgId],
+    queryKey: ["recent-documents", orgId, periodKey],
     enabled: !!orgId,
     queryFn: async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("documents")
         .select("id, file_name, document_type, extracted_supplier_name, extracted_amount, extracted_date, ocr_status, processing_status, created_at")
         .eq("organization_id", orgId!)
         .order("created_at", { ascending: false })
         .limit(5);
+      if (fromStr) q = q.gte("created_at", `${fromStr}T00:00:00`);
+      if (toStr) q = q.lte("created_at", `${toStr}T23:59:59`);
+      const { data } = await q;
       return data ?? [];
     },
   });
@@ -126,22 +145,20 @@ export function useDashboardData() {
   });
 
   const monthlyRevenue = useQuery({
-    queryKey: ["monthly-revenue", orgId],
+    queryKey: ["monthly-revenue", orgId, periodKey],
     enabled: !!orgId,
     queryFn: async () => {
-      const twelveMonthsAgo = new Date();
-      twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+      const lookback = period?.from ?? (() => { const d = new Date(); d.setMonth(d.getMonth() - 12); return d; })();
       const { data } = await supabase
         .from("journal_lines")
         .select("credit_amount, debit_amount, journal_entries!inner(date, organization_id, status)")
-        .gte("journal_entries.date", twelveMonthsAgo.toISOString().split("T")[0])
+        .gte("journal_entries.date", lookback.toISOString().split("T")[0])
         .eq("journal_entries.organization_id", orgId!)
         .eq("journal_entries.status", "posted");
       return data ?? [];
     },
   });
 
-  // === NEW: Cash Position (bank balances) ===
   const bankBalances = useQuery({
     queryKey: ["bank-balances", orgId],
     enabled: !!orgId,
@@ -157,16 +174,18 @@ export function useDashboardData() {
     },
   });
 
-  // === NEW: Open Items (debiteuren + crediteuren) ===
   const openInvoices = useQuery({
-    queryKey: ["open-invoices", orgId],
+    queryKey: ["open-invoices", orgId, periodKey],
     enabled: !!orgId,
     queryFn: async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("invoices")
         .select("id, invoice_type, total_amount, amount_paid, due_date, contact_name, status")
         .eq("organization_id", orgId!)
         .in("status", ["sent", "partial", "overdue"]);
+      if (fromStr) q = q.gte("invoice_date", fromStr);
+      if (toStr) q = q.lte("invoice_date", toStr);
+      const { data } = await q;
       const invoices = data ?? [];
       const receivable = invoices
         .filter(i => i.invoice_type === "sales")
@@ -184,39 +203,44 @@ export function useDashboardData() {
     },
   });
 
-  // === NEW: Burn Rate (avg monthly expenses last 3 months) ===
   const burnRate = useQuery({
-    queryKey: ["burn-rate", orgId],
+    queryKey: ["burn-rate", orgId, periodKey],
     enabled: !!orgId,
     queryFn: async () => {
-      const threeMonthsAgo = new Date();
-      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+      const lookbackFrom = fromStr ?? (() => { const d = new Date(); d.setMonth(d.getMonth() - 3); return d.toISOString().split("T")[0]; })();
+      const lookbackTo = toStr ?? new Date().toISOString().split("T")[0];
+
+      // Calculate months in range for averages
+      const rangeStart = new Date(lookbackFrom);
+      const rangeEnd = new Date(lookbackTo);
+      const monthsInRange = Math.max(1, (rangeEnd.getFullYear() - rangeStart.getFullYear()) * 12 + rangeEnd.getMonth() - rangeStart.getMonth() + 1);
+
       const { data } = await supabase
         .from("journal_lines")
         .select("debit_amount, credit_amount, account_id, accounts!inner(account_type), journal_entries!inner(date, organization_id, status)")
-        .gte("journal_entries.date", threeMonthsAgo.toISOString().split("T")[0])
+        .gte("journal_entries.date", lookbackFrom)
+        .lte("journal_entries.date", lookbackTo)
         .eq("journal_entries.organization_id", orgId!)
         .eq("journal_entries.status", "posted")
         .eq("accounts.account_type", "expense");
       
       const totalExpenses = (data ?? []).reduce((sum, line) => sum + ((line.debit_amount ?? 0) - (line.credit_amount ?? 0)), 0);
-      const monthlyBurn = totalExpenses / 3;
+      const monthlyBurn = totalExpenses / monthsInRange;
 
-      // Revenue for margin calculation
       const { data: revData } = await supabase
         .from("journal_lines")
         .select("debit_amount, credit_amount, accounts!inner(account_type), journal_entries!inner(date, organization_id, status)")
-        .gte("journal_entries.date", threeMonthsAgo.toISOString().split("T")[0])
+        .gte("journal_entries.date", lookbackFrom)
+        .lte("journal_entries.date", lookbackTo)
         .eq("journal_entries.organization_id", orgId!)
         .eq("journal_entries.status", "posted")
         .eq("accounts.account_type", "revenue");
       
       const totalRevenue = (revData ?? []).reduce((sum, line) => sum + ((line.credit_amount ?? 0) - (line.debit_amount ?? 0)), 0);
-      const monthlyRevenue = totalRevenue / 3;
-      const netProfit = monthlyRevenue - monthlyBurn;
-      const grossMargin = monthlyRevenue > 0 ? ((monthlyRevenue - monthlyBurn) / monthlyRevenue) * 100 : 0;
+      const monthlyRevenueAvg = totalRevenue / monthsInRange;
+      const netProfit = monthlyRevenueAvg - monthlyBurn;
+      const grossMargin = monthlyRevenueAvg > 0 ? ((monthlyRevenueAvg - monthlyBurn) / monthlyRevenueAvg) * 100 : 0;
 
-      // Cash runway
       const cashBalance = (await supabase
         .from("bank_accounts")
         .select("current_balance")
@@ -225,7 +249,7 @@ export function useDashboardData() {
 
       const cashRunwayMonths = monthlyBurn > 0 ? cashBalance / monthlyBurn : null;
 
-      return { monthlyBurn, monthlyRevenue, netProfit, grossMargin, cashRunwayMonths, cashBalance };
+      return { monthlyBurn, monthlyRevenue: monthlyRevenueAvg, netProfit, grossMargin, cashRunwayMonths, cashBalance };
     },
   });
 

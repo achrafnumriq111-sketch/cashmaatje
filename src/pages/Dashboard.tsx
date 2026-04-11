@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { KpiCards } from "@/components/dashboard/KpiCards";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
@@ -7,20 +8,25 @@ import { ActionItems } from "@/components/dashboard/ActionItems";
 import { CashPosition } from "@/components/dashboard/CashPosition";
 import { OpenItems } from "@/components/dashboard/OpenItems";
 import { RecentDocuments } from "@/components/dashboard/RecentDocuments";
+import { PeriodSelector, getDefaultPeriod, type DateRange } from "@/components/dashboard/PeriodSelector";
 
 export default function Dashboard() {
-  const data = useDashboardData();
+  const [period, setPeriod] = useState<DateRange>(getDefaultPeriod);
+  const data = useDashboardData({ from: period.from, to: period.to });
   const latest = data.healthSnapshot.data?.[0];
   const burn = data.burnRate.data;
   const openInv = data.openInvoices.data;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Dashboard</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {data.role === "entrepreneur" ? "Overzicht van je bedrijf" : "Financieel overzicht"}
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">Dashboard</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {data.role === "entrepreneur" ? "Overzicht van je bedrijf" : "Financieel overzicht"}
+          </p>
+        </div>
+        <PeriodSelector value={period} onChange={setPeriod} />
       </div>
 
       <KpiCards
