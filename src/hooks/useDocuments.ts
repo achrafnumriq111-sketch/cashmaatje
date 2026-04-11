@@ -65,11 +65,6 @@ export function useDocuments() {
         .upload(filePath, file, { contentType: file.type });
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from("documents")
-        .getPublicUrl(filePath);
-
       // Determine document type
       const docType = file.type === "application/pdf" ? "invoice" as const : "receipt" as const;
 
@@ -89,12 +84,12 @@ export function useDocuments() {
         .single();
       if (docError) throw docError;
 
-      // Trigger OCR processing
+      // Trigger OCR processing — edge function creates its own signed URL
       supabase.functions
         .invoke("process-invoice-ocr", {
           body: {
             document_id: doc.id,
-            file_url: urlData.publicUrl,
+            file_path: filePath,
             organization_id: orgId,
           },
         })
