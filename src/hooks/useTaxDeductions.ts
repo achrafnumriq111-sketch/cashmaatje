@@ -207,6 +207,18 @@ export function useTaxDeductions(year: number) {
   })();
 
   const taxableProfit = Math.max(0, profit - totalDeductions);
+  const taxBurdenPct = profit > 0 ? ((profit - taxableProfit) / profit) * 100 : 0;
+
+  // Enrich monthly data with net profit (pro-rata deduction spread)
+  const deductionRate = profit > 0 ? totalDeductions / profit : 0;
+  const enrichedMonthly = monthlyData.map((m) => ({
+    ...m,
+    netProfit: Math.max(0, m.grossProfit - m.grossProfit * deductionRate),
+  }));
+
+  const avgMonthlyNet = enrichedMonthly.length > 0
+    ? enrichedMonthly.reduce((s, m) => s + m.netProfit, 0) / enrichedMonthly.filter(m => m.revenue > 0 || m.expenses > 0).length || 0
+    : 0;
 
   return {
     deduction,
@@ -214,6 +226,9 @@ export function useTaxDeductions(year: number) {
     profit,
     totalDeductions,
     taxableProfit,
+    taxBurdenPct,
+    monthlyData: enrichedMonthly,
+    avgMonthlyNet,
     loading,
     saving,
     save,
