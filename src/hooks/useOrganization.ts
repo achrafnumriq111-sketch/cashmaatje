@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import type { Database } from "@/integrations/supabase/types";
@@ -16,30 +16,38 @@ export function useOrganization() {
   const [membership, setMembership] = useState<OrgMembership | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchMembership = async () => {
-      const { data } = await supabase
-        .from("organization_members")
-        .select("organization_id, role, organizations(name)")
-        .eq("user_id", user.id)
-        .limit(1)
-        .single();
-
-      if (data) {
-        const org = data.organizations as unknown as { name: string };
-        setMembership({
-          organizationId: data.organization_id,
-          organizationName: org?.name ?? "Organisatie",
-          role: data.role,
-        });
-      }
+  const fetchMembership = useCallback(async () => {
+    if (!user) {
       setLoading(false);
-    };
+      return;
+    }
 
-    fetchMembership();
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("organization_members")
+      .select("organization_id, role, organizations(name)")
+      .eq("user_id", user.id)
+      .limit(1)
+      .single();
+
+    if (error) {
+      console.error("Failed to fetch organization membership:", error.message);
+    }
+
+    if (data) {
+      const org = data.organizations as unknown as { name: string };
+      setMembership({
+        organizationId: data.organization_id,
+        organizationName: org?.name ?? "Organisatie",
+        role: data.role,
+      });
+    }
+    setLoading(false);
   }, [user]);
 
-  return { membership, loading };
+  useEffect(() => {
+    fetchMembership();
+  }, [fetchMembership]);
+
+  return { membership, loading, refetch: fetchMembership };
 }

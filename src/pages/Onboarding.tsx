@@ -164,7 +164,8 @@ export default function Onboarding() {
       }
 
       toast.success("Organisatie aangemaakt! Welkom bij Arcory.");
-      navigate("/", { replace: true });
+      // Force full reload to ensure fresh organization state
+      window.location.href = "/";
     } catch (e: any) {
       toast.error(e.message || "Er ging iets mis");
     } finally {
