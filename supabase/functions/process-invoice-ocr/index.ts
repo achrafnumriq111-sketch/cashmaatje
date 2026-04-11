@@ -16,11 +16,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { document_id, file_url, organization_id } = await req.json();
+    const { document_id, file_path, organization_id } = await req.json();
 
-    if (!document_id || !file_url || !organization_id) {
+    if (!document_id || !file_path || !organization_id) {
       return new Response(
-        JSON.stringify({ error: "Missing document_id, file_url, or organization_id" }),
+        JSON.stringify({ error: "Missing document_id, file_path, or organization_id" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -33,6 +33,25 @@ Deno.serve(async (req) => {
       .update({ ocr_status: "processing", processing_status: "processing" })
       .eq("id", document_id);
 
+    // Generate a signed URL (valid 10 min) so AI can read the private file
+    const { data: signedData, error: signedError } = await supabase.storage
+      .from("documents")
+      .createSignedUrl(file_path, 600);
+
+    if (signedError || !signedData?.signedUrl) {
+      console.error("Failed to create signed URL:", signedError);
+      await supabase
+        .from("documents")
+        .update({ ocr_status: "error", processing_status: "inbox" })
+        .eq("id", document_id);
+      return new Response(
+        JSON.stringify({ error: "Failed to access document file" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const fileUrl = signedData.signedUrl;
+
     // Check for existing supplier patterns to give AI context
     const { data: patterns } = await supabase
       .from("supplier_patterns")
@@ -43,6 +62,20 @@ Deno.serve(async (req) => {
     const patternContext = patterns && patterns.length > 0
       ? `\nKnown suppliers and their defaults:\n${patterns.map(p => 
           `- "${p.supplier_name}": category=${p.default_category}, vat=${p.default_vat_rate_type}, tax_box=${p.default_tax_box}, business=${p.is_business}`
+        ).join('\n')}`
+      : '';
+
+    // Fetch existing contacts for smart matching
+    const { data: contacts } = await supabase
+      .from("contacts")
+      .select("id, name, legal_name, btw_number, iban, is_supplier")
+      .eq("organization_id", organization_id)
+      .eq("is_active", true)
+      .limit(200);
+
+    const contactContext = contacts && contacts.length > 0
+      ? `\nKnown contacts (for matching):\n${contacts.filter(c => c.is_supplier).map(c =>
+          `- id="${c.id}" name="${c.name}" legal="${c.legal_name || ''}" btw="${c.btw_number || ''}" iban="${c.iban || ''}"`
         ).join('\n')}`
       : '';
 
@@ -60,7 +93,7 @@ Deno.serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a Dutch tax-intelligent OCR system. You extract data AND interpret it for Dutch tax compliance.
+            content: `You are a Dutch tax-intelligent OCR system for a bookkeeping application. You extract ALL data from receipts, invoices, and financial documents with maximum accuracy. Your goal is to make the user's life as easy as possible — they should not have to enter anything manually.
 
 Extract structured data from the provided document. Return ONLY valid JSON with these fields:
 {
@@ -76,14 +109,22 @@ Extract structured data from the provided document. Return ONLY valid JSON with 
   "currency": "EUR",
   "country_of_origin": "two-letter country code, default NL",
   
+  "line_items": [
+    {"description": "string", "quantity": 1, "unit_price": 0.00, "vat_rate": 21, "total": 0.00}
+  ],
+  
+  "matched_contact_id": "UUID of matching contact from known contacts list, or null",
+  
   "document_type": "purchase_invoice | sales_invoice | receipt | credit_note | other",
   "category": "one of: inventory, marketing, travel, food_drink, office, software, insurance, professional_services, utilities, rent, vehicle, telecom, shipping, bank_fees, payroll, depreciation, other",
   "is_business_expense": true,
   "business_private_reasoning": "short explanation why this is business or private",
   
   "vat_rate_type": "high | low | zero | exempt | reverse_charge | icp | import | margin",
-  "tax_box_mapping": "Dutch VAT box: 1a (high rate sales) | 1b (low rate sales) | 1c (zero rate sales) | 1d (private use) | 1e (reverse charge sales) | 2a (reverse charge purchases) | 3a (export non-EU) | 3b (intra-EU) | 4a (import) | 5b (input VAT deductible)",
+  "tax_box_mapping": "Dutch VAT box: 1a | 1b | 1c | 1d | 1e | 2a | 3a | 3b | 4a | 5b",
   "tax_reasoning": "explain why this VAT treatment was chosen",
+  
+  "suggested_account_code": "string - most likely RGS account code (e.g. 7430 for software, 7100 for rent)",
   
   "has_valid_invoice_requirements": true,
   "missing_invoice_fields": [],
@@ -107,42 +148,55 @@ Extract structured data from the provided document. Return ONLY valid JSON with 
 
 DUTCH TAX RULES:
 - Standard VAT rate: 21% (most goods/services)
-- Reduced rate: 9% (food, books, medicine, etc.)
+- Reduced rate: 9% (food, books, medicine, hairdresser, etc.)
 - Zero rate: exports, intra-EU supplies
 - Reverse charge: services from abroad
-- Purchase invoices map to box 5b (input VAT)
-- Sales invoices map to boxes 1a/1b based on rate
+- Purchase invoices → box 5b (input VAT)
+- Sales invoices → boxes 1a/1b based on rate
 - Foreign suppliers → check reverse charge rules
 - Invoices MUST have: supplier name, date, invoice number, VAT number, amounts
 - Missing fields = risk flag
+- Receipts under €100 are allowed without full invoice details
+
+CONTACT MATCHING:
+- Match supplier to known contacts by name, BTW number, or IBAN
+- Use fuzzy matching on names (e.g. "Albert Heijn BV" matches "Albert Heijn")
+- Only set matched_contact_id if you are confident in the match
+
+RECEIPT-SPECIFIC:
+- Read EVERY line item on the receipt
+- Supermarkt bonnen: read individual products, identify food (9% BTW) vs non-food (21% BTW)
+- Tankstation: separate fuel from shop purchases
+- Restaurant: full amount, check for tip
 
 RISK FLAGS to detect:
 - "unusual_vat_percentage" if VAT % doesn't match standard Dutch rates
 - "missing_vat_number" if amount > €100 and no BTW number
 - "possible_private" if expense looks personal
 - "mixed_receipt" if receipt contains both business and private items
-- "foreign_vat" if foreign VAT was charged (not reclaimable in NL VAT return)
-- "high_amount" if total > €5000 (flag for extra verification)
+- "foreign_vat" if foreign VAT was charged
+- "high_amount" if total > €5000
 ${patternContext}
+${contactContext}
 
-Be precise with amounts. Use dot as decimal separator. Parse Dutch date formats correctly.`,
+Be precise with amounts. Use dot as decimal separator. Parse Dutch date formats correctly. Read the ENTIRE document — every line, every number.`,
           },
           {
             role: "user",
             content: [
               {
                 type: "image_url",
-                image_url: { url: file_url },
+                image_url: { url: fileUrl },
               },
               {
                 type: "text",
-                text: "Extract all data from this document. Determine the category, VAT treatment, and tax box mapping. Flag any risks. Return only the JSON object.",
+                text: "Extract ALL data from this document. Read every line item. Determine the category, VAT treatment, and tax box mapping. Match to known contacts if possible. Flag any risks. Return only the JSON object.",
               },
             ],
           },
         ],
         temperature: 0.1,
-        max_tokens: 3000,
+        max_tokens: 4000,
       }),
     });
 
@@ -209,7 +263,7 @@ Be precise with amounts. Use dot as decimal separator. Parse Dutch date formats 
       : [];
     const avgConfidence =
       confidenceValues.length > 0
-        ? confidenceValues.reduce((a, b) => a + b, 0) / confidenceValues.length
+        ? confidenceValues.reduce((a: number, b: number) => a + b, 0) / confidenceValues.length
         : 0;
 
     // Determine processing status based on confidence and risk flags
@@ -227,6 +281,9 @@ Be precise with amounts. Use dot as decimal separator. Parse Dutch date formats 
       other: "other",
     };
     const docType = docTypeMap[extracted.document_type] || "other";
+
+    // Auto-link contact if AI matched one
+    const contactId = extracted.matched_contact_id || null;
 
     // Update document with all extracted data
     await supabase
@@ -253,8 +310,35 @@ Be precise with amounts. Use dot as decimal separator. Parse Dutch date formats 
         processing_status: processingStatus,
         country_of_origin: extracted.country_of_origin || "NL",
         ai_category_confidence: extracted.confidence?.category,
+        contact_id: contactId,
       })
       .eq("id", document_id);
+
+    // Auto-create contact if supplier not found and confidence is high
+    if (!contactId && extracted.supplier_name && avgConfidence >= 0.8) {
+      const { data: newContact } = await supabase
+        .from("contacts")
+        .insert({
+          organization_id,
+          name: extracted.supplier_name,
+          btw_number: extracted.vat_number || null,
+          iban: extracted.iban || null,
+          is_supplier: true,
+          is_customer: false,
+          is_domestic: (extracted.country_of_origin || "NL") === "NL",
+          is_eu: ["NL","DE","BE","FR","IT","ES","AT","LU","IE","PT","FI","GR","EE","LV","LT","MT","SK","SI","CY","BG","RO","HR","CZ","DK","HU","PL","SE"].includes(extracted.country_of_origin || "NL"),
+          address_country: extracted.country_of_origin || "NL",
+        })
+        .select("id")
+        .single();
+
+      if (newContact) {
+        await supabase
+          .from("documents")
+          .update({ contact_id: newContact.id })
+          .eq("id", document_id);
+      }
+    }
 
     // Update or create supplier pattern (AI learning loop)
     if (extracted.supplier_name) {
@@ -268,7 +352,6 @@ Be precise with amounts. Use dot as decimal separator. Parse Dutch date formats 
         .limit(1);
 
       if (existingPattern && existingPattern.length > 0) {
-        // Update existing pattern
         await supabase
           .from("supplier_patterns")
           .update({
@@ -281,13 +364,11 @@ Be precise with amounts. Use dot as decimal separator. Parse Dutch date formats 
           })
           .eq("id", existingPattern[0].id);
 
-        // Link document to pattern
         await supabase
           .from("documents")
           .update({ supplier_pattern_id: existingPattern[0].id })
           .eq("id", document_id);
       } else {
-        // Create new pattern
         const { data: newPattern } = await supabase
           .from("supplier_patterns")
           .insert({
