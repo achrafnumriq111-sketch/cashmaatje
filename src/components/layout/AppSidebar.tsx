@@ -66,7 +66,6 @@ const navItems: NavItem[] = [
   { id: "relaties", label: "Relaties", icon: <Users size={18} />, path: "/relaties" },
   { id: "grootboek", label: "Grootboek", icon: <BookOpen size={18} />, path: "/grootboek" },
   { id: "journaalposten", label: "Journaalposten", icon: <ScrollText size={18} />, path: "/journaalposten" },
-  // New enterprise modules
   { id: "offerte-studio", label: "Offertes & Branding", icon: <Briefcase size={18} />, path: "/offerte-studio" },
   {
     id: "audit", label: "Audit & Compliance", icon: <FileCheck size={18} />,
@@ -117,12 +116,12 @@ export function AppSidebar({ role }: { role?: UserRole }) {
       initial={{ x: -20, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="w-[260px] h-screen fixed left-0 top-0 z-40 bg-background/95 backdrop-blur-2xl border-r border-border flex flex-col overflow-y-auto overflow-x-hidden"
+      className="w-[260px] h-screen fixed left-0 top-0 z-40 bg-card border-r border-border flex flex-col overflow-y-auto overflow-x-hidden"
       style={{ scrollbarWidth: "none" }}
     >
       {/* Brand */}
       <div className="px-5 py-5 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-[0_2px_8px_rgba(16,185,129,0.3)]">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-teal-500 flex items-center justify-center shadow-sm">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 2L2 7l10 5 10-5-10-5z" />
             <path d="M2 17l10 5 10-5" />
@@ -157,8 +156,8 @@ export function AppSidebar({ role }: { role?: UserRole }) {
                   text-[13px] font-medium transition-all duration-200 ease-out
                   group relative overflow-hidden
                   ${active
-                    ? "text-foreground bg-white/[0.08]"
-                    : "text-muted-foreground hover:text-foreground/80 hover:bg-white/[0.04]"
+                    ? "text-foreground bg-secondary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
                   }
                 `}
               >
@@ -169,13 +168,13 @@ export function AppSidebar({ role }: { role?: UserRole }) {
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   />
                 )}
-                <span className={`w-5 h-5 flex items-center justify-center flex-shrink-0 transition-colors duration-200 ${active ? "text-primary" : "text-muted-foreground/60 group-hover:text-muted-foreground"}`}>
+                <span className={`w-5 h-5 flex items-center justify-center flex-shrink-0 transition-colors duration-200 ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}>
                   {item.icon}
                 </span>
                 <span className="flex-1 text-left">{item.label}</span>
                 {item.children && (
                   <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/40" />
+                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                   </motion.div>
                 )}
               </button>
@@ -200,8 +199,8 @@ export function AppSidebar({ role }: { role?: UserRole }) {
                               w-full text-left px-3 py-2 rounded-lg text-[12.5px]
                               transition-all duration-200
                               ${childActive
-                                ? "text-primary bg-primary/[0.08]"
-                                : "text-muted-foreground/60 hover:text-foreground/70 hover:bg-white/[0.03]"
+                                ? "text-primary font-medium bg-primary/[0.06]"
+                                : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                               }
                             `}
                           >
@@ -223,7 +222,7 @@ export function AppSidebar({ role }: { role?: UserRole }) {
         <button
           onClick={() => navigate("/platform/themas")}
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${
-            path === "/platform/themas" ? "text-foreground bg-white/[0.08]" : "text-muted-foreground hover:text-foreground/70 hover:bg-white/[0.04]"
+            path === "/platform/themas" ? "text-foreground bg-secondary" : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
           }`}
         >
           <Palette className="w-5 h-5" />
@@ -232,7 +231,7 @@ export function AppSidebar({ role }: { role?: UserRole }) {
         <button
           onClick={() => navigate("/instellingen")}
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${
-            path === "/instellingen" ? "text-foreground bg-white/[0.08]" : "text-muted-foreground hover:text-foreground/70 hover:bg-white/[0.04]"
+            path === "/instellingen" ? "text-foreground bg-secondary" : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
           }`}
         >
           <Settings className="w-5 h-5" />
@@ -242,7 +241,7 @@ export function AppSidebar({ role }: { role?: UserRole }) {
           <button
             onClick={() => navigate("/audit-log")}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${
-              path === "/audit-log" ? "text-foreground bg-white/[0.08]" : "text-muted-foreground hover:text-foreground/70 hover:bg-white/[0.04]"
+              path === "/audit-log" ? "text-foreground bg-secondary" : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
             }`}
           >
             <Shield className="w-5 h-5" />

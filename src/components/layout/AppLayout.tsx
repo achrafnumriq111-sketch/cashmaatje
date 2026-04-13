@@ -15,7 +15,7 @@ export function AppLayout() {
 
   if (loading) {
     return (
-      <div className="dark flex min-h-screen items-center justify-center bg-background">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -28,7 +28,7 @@ export function AppLayout() {
   const role = membership.role;
 
   return (
-    <div className="dark min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       <AppSidebar role={role} />
       <div className="pl-[260px] min-h-screen flex flex-col">
         <TopHeader
