@@ -9,7 +9,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { FileCheck, BookOpen, Receipt, GitMerge, FileDown, Shield, AlertTriangle, CheckCircle2, XCircle, Users, FileText, Loader2 } from "lucide-react";
 import { pageTransition, staggerContainer, cardVariant } from "@/lib/animations";
 import { useAuditDossier, AuditSection } from "@/hooks/useAuditDossier";
-import { ExportButton } from "@/components/ExportButton";
+import { exportToExcel, ExportColumn } from "@/lib/exportUtils";
+import { Button as ExportBtn } from "@/components/ui/button";
+import { FileSpreadsheet } from "lucide-react";
 
 const iconMap: Record<string, any> = {
   lead: BookOpen,
@@ -49,12 +51,14 @@ export default function AuditDossier() {
     ? Math.round((sections.filter((s) => s.status === "complete").length / sections.length) * 100)
     : 0;
 
-  const exportColumns = [
+  const exportColumns: ExportColumn[] = [
     { key: "title", header: "Sectie" },
     { key: "status", header: "Status" },
     { key: "itemCount", header: "Items" },
     { key: "totalAmount", header: "Bedrag" },
   ];
+
+  const handleExport = () => exportToExcel(sections, exportColumns, `audit-dossier-${year}`);
 
   return (
     <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-6">
@@ -72,7 +76,7 @@ export default function AuditDossier() {
               ))}
             </SelectContent>
           </Select>
-          <ExportButton data={sections} columns={exportColumns} fileName={`audit-dossier-${year}`} />
+          <ExportBtn variant="outline" size="sm" onClick={handleExport} className="gap-1.5"><FileSpreadsheet className="h-4 w-4" />Export Excel</ExportBtn>
           <Button size="sm" className="gap-1.5" disabled={loading}>
             <FileDown className="h-4 w-4" />Download Dossier
           </Button>
