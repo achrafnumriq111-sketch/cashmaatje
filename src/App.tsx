@@ -47,6 +47,7 @@ import StakeholderCRM from "./pages/StakeholderCRM";
 import ThemeStudio from "./pages/ThemeStudio";
 import ReferralCenter from "./pages/ReferralCenter";
 import CorporateStructure from "./pages/CorporateStructure";
+import FinancialIntelligence from "./pages/FinancialIntelligence";
 
 const queryClient = new QueryClient();
 

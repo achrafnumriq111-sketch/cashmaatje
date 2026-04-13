@@ -60,6 +60,7 @@ const navItems: NavItem[] = [
       { id: "proefbalans", label: "Proefbalans", path: "/rapporten/proefbalans" },
       { id: "cashflow", label: "Cashflow", path: "/rapporten/cashflow" },
       { id: "jaarrekening", label: "Jaarrekening", path: "/rapporten/jaarrekening" },
+      { id: "intelligence", label: "Financial Intelligence", path: "/rapporten/intelligence" },
     ],
   },
   { id: "relaties", label: "Relaties", icon: <Users size={18} />, path: "/relaties" },
