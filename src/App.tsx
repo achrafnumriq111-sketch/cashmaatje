@@ -79,6 +79,7 @@ const App = () => (
               <Route path="rapporten/proefbalans" element={<TrialBalance />} />
               <Route path="rapporten/cashflow" element={<Cashflow />} />
               <Route path="rapporten/jaarrekening" element={<AnnualReport />} />
+              <Route path="rapporten/intelligence" element={<FinancialIntelligence />} />
               <Route path="belasting/ondernemersaftrek" element={<TaxDeductions />} />
               <Route path="salaris" element={<SalaryOverview />} />
               <Route path="salaris/bedrijfskosten" element={<BusinessExpenses />} />
