@@ -75,6 +75,11 @@ export default function Dashboard() {
         />
       </div>
 
+      {/* Intelligence Widgets */}
+      <motion.div variants={fadeInUp}>
+        <IntelligenceWidgets isLoading={data.burnRate.isLoading} />
+      </motion.div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <RecentTransactions
           transactions={data.recentTransactions.data ?? []}
