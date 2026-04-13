@@ -7,7 +7,8 @@ import { useContacts } from "@/hooks/useContacts";
 import { pageTransition, staggerContainer, cardVariant } from "@/lib/animations";
 
 export default function StakeholderCRM() {
-  const { contacts, loading } = useContacts();
+  const defaultFilters = { search: "", type: "all" as const, country: "", riskStatus: "all" as const };
+  const { data: contacts, isLoading: loading } = useContacts(defaultFilters);
 
   return (
     <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-6">

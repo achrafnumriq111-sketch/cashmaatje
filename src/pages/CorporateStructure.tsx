@@ -7,7 +7,7 @@ import { useOrganization } from "@/hooks/useOrganization";
 import { pageTransition, staggerContainer, cardVariant } from "@/lib/animations";
 
 export default function CorporateStructure() {
-  const { organization } = useOrganization();
+  const { membership } = useOrganization();
 
   return (
     <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-6">
@@ -42,7 +42,7 @@ export default function CorporateStructure() {
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-2">
                 <Building2 className="h-6 w-6 text-primary" />
               </div>
-              <p className="font-medium text-foreground">{organization?.name ?? "Holding BV"}</p>
+              <p className="font-medium text-foreground">{membership?.organizationName ?? "Holding BV"}</p>
               <Badge variant="outline" className="mt-1 text-[10px]">100%</Badge>
             </CardContent>
           </Card>

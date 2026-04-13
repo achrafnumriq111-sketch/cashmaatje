@@ -27,7 +27,7 @@ interface AccountLine {
 
 export default function AnnualReport() {
   const { orgId, fetchAccountBalances, fetchBalanceSheet } = useReportData();
-  const { organization } = useOrganization();
+  const { membership } = useOrganization();
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(String(currentYear));
   const [balanceLines, setBalanceLines] = useState<AccountLine[]>([]);
@@ -112,7 +112,7 @@ export default function AnnualReport() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Jaarrekening</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {organization?.name ?? "—"} • Boekjaar {year}
+            {membership?.organizationName ?? "—"} • Boekjaar {year}
           </p>
         </div>
         <div className="flex items-center gap-2">
