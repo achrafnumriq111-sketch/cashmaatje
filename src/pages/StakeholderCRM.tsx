@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useContacts } from "@/hooks/useContacts";
 import { useInvoices } from "@/hooks/useInvoices";
+import type { InvoiceFilters } from "@/hooks/useInvoices";
 import { pageTransition, staggerContainer, cardVariant, fadeInUp } from "@/lib/animations";
 import { formatDistanceToNow } from "date-fns";
 import { nl } from "date-fns/locale";
