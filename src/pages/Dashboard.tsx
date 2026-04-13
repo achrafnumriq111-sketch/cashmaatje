@@ -9,6 +9,7 @@ import { ActionItems } from "@/components/dashboard/ActionItems";
 import { CashPosition } from "@/components/dashboard/CashPosition";
 import { OpenItems } from "@/components/dashboard/OpenItems";
 import { RecentDocuments } from "@/components/dashboard/RecentDocuments";
+import { IntelligenceWidgets } from "@/components/dashboard/IntelligenceWidgets";
 import { PeriodSelector, getDefaultPeriod, type DateRange } from "@/components/dashboard/PeriodSelector";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 
@@ -73,6 +74,11 @@ export default function Dashboard() {
           role={data.role}
         />
       </div>
+
+      {/* Intelligence Widgets */}
+      <motion.div variants={fadeInUp}>
+        <IntelligenceWidgets isLoading={data.burnRate.isLoading} />
+      </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <RecentTransactions
