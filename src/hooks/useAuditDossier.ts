@@ -105,7 +105,7 @@ export function useAuditDossier(year: number) {
       title: "BTW Controle",
       status: items.length === 0 ? "incomplete" : filed.length < items.length ? "warning" : "complete",
       itemCount: items.length,
-      totalAmount: items.reduce((s, v) => s + Math.abs(Number(v.vat_payable ?? 0)), 0),
+      totalAmount: items.reduce((s, v: any) => s + Math.abs(Number(v.box_5c_vat ?? 0)), 0),
       details: items,
     };
   }, [orgId, year]);
