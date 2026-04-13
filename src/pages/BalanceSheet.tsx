@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertTriangle } from "lucide-react";
 import { useReportData } from "@/hooks/useReportData";
+import { ExportButton } from "@/components/ExportButton";
+import { exportToExcel } from "@/lib/exportUtils";
 import { format } from "date-fns";
 import { pageTransition, staggerContainer, cardVariant } from "@/lib/animations";
 
@@ -86,6 +88,12 @@ export default function BalanceSheet() {
         <div className="flex items-center gap-2">
           <Label className="text-sm text-muted-foreground">Per datum</Label>
           <Input type="date" value={asOfDate} onChange={(e) => setAsOfDate(e.target.value)} className="w-[160px]" />
+          <ExportButton onClick={() => {
+            const allLines = [...assets, ...liabilities, ...equity].filter(l => Math.abs(l.balance) > 0.005);
+            exportToExcel(allLines.map(l => ({ code: l.code, rekening: l.nameNl ?? l.name, type: l.accountType, saldo: Math.abs(l.balance) })),
+              [{ header: "Code", key: "code" }, { header: "Rekening", key: "rekening" }, { header: "Type", key: "type" }, { header: "Saldo", key: "saldo", format: "currency" }],
+              `Balans_${asOfDate}`, "Balans");
+          }} />
         </div>
       </motion.div>
 

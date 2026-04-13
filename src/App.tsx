@@ -35,6 +35,18 @@ import CompanyCarPage from "./pages/CompanyCarPage";
 import MortgagePage from "./pages/MortgagePage";
 import IcpReport from "./pages/IcpReport";
 import NotFound from "./pages/NotFound";
+// New modules
+import AnnualReport from "./pages/AnnualReport";
+import AuditDossier from "./pages/AuditDossier";
+import ContractIntelligence from "./pages/ContractIntelligence";
+import ComplianceCheck from "./pages/ComplianceCheck";
+import ProcessFlows from "./pages/ProcessFlows";
+import OfferteStudio from "./pages/OfferteStudio";
+import AutomationCenter from "./pages/AutomationCenter";
+import StakeholderCRM from "./pages/StakeholderCRM";
+import ThemeStudio from "./pages/ThemeStudio";
+import ReferralCenter from "./pages/ReferralCenter";
+import CorporateStructure from "./pages/CorporateStructure";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +77,7 @@ const App = () => (
               <Route path="rapporten/balans" element={<BalanceSheet />} />
               <Route path="rapporten/proefbalans" element={<TrialBalance />} />
               <Route path="rapporten/cashflow" element={<Cashflow />} />
+              <Route path="rapporten/jaarrekening" element={<AnnualReport />} />
               <Route path="belasting/ondernemersaftrek" element={<TaxDeductions />} />
               <Route path="salaris" element={<SalaryOverview />} />
               <Route path="salaris/bedrijfskosten" element={<BusinessExpenses />} />
@@ -75,6 +88,17 @@ const App = () => (
               <Route path="relaties" element={<Contacts />} />
               <Route path="grootboek" element={<GeneralLedger />} />
               <Route path="journaalposten" element={<JournalEntries />} />
+              {/* New enterprise modules */}
+              <Route path="offerte-studio" element={<OfferteStudio />} />
+              <Route path="audit/dossier" element={<AuditDossier />} />
+              <Route path="audit/contracten" element={<ContractIntelligence />} />
+              <Route path="audit/compliance" element={<ComplianceCheck />} />
+              <Route path="audit/processen" element={<ProcessFlows />} />
+              <Route path="platform/stakeholders" element={<StakeholderCRM />} />
+              <Route path="platform/automation" element={<AutomationCenter />} />
+              <Route path="platform/structuur" element={<CorporateStructure />} />
+              <Route path="platform/referral" element={<ReferralCenter />} />
+              <Route path="platform/themas" element={<ThemeStudio />} />
               <Route path="instellingen" element={<Placeholder />} />
               <Route path="audit-log" element={<Placeholder />} />
             </Route>

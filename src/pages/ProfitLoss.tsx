@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ExportButton } from "@/components/ExportButton";
+import { exportToExcel } from "@/lib/exportUtils";
 import { FileDown, TrendingUp, TrendingDown } from "lucide-react";
 import { useReportData } from "@/hooks/useReportData";
 import { format, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subMonths, subQuarters, subYears } from "date-fns";
@@ -105,6 +107,12 @@ export default function ProfitLoss() {
           </Select>
           <div className="flex items-center gap-2"><Switch checked={compare} onCheckedChange={setCompare} id="compare" /><Label htmlFor="compare" className="text-sm text-muted-foreground">Vergelijken</Label></div>
           <Button variant="outline" size="sm"><FileDown className="mr-1.5 h-4 w-4" />PDF</Button>
+          <ExportButton onClick={() => {
+            const allLines = [...revenue, ...expenses].filter(l => Math.abs(l.balance) > 0.005);
+            exportToExcel(allLines.map(l => ({ code: l.code, rekening: l.nameNl ?? l.name, type: l.accountType === "revenue" ? "Omzet" : "Kosten", bedrag: Math.abs(l.balance) })),
+              [{ header: "Code", key: "code" }, { header: "Rekening", key: "rekening" }, { header: "Type", key: "type" }, { header: "Bedrag", key: "bedrag", format: "currency" }],
+              `WinstVerlies_${period}`, "W&V");
+          }} />
         </div>
       </motion.div>
 
