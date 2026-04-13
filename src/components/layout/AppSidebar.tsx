@@ -1,231 +1,234 @@
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  LayoutDashboard,
-  ArrowLeftRight,
-  FileText,
-  GitMerge,
-  Upload,
-  Receipt,
-  Camera,
-  BarChart3,
-  Users,
-  BookOpen,
-  ScrollText,
-  Settings,
-  Shield,
-  ChevronDown,
-  Wallet,
+  LayoutDashboard, ArrowLeftRight, FileText, GitMerge, Upload,
+  Receipt, Camera, BarChart3, Users, BookOpen, ScrollText,
+  Settings, Shield, Wallet, ChevronDown,
 } from "lucide-react";
-import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
-  useSidebar,
-} from "@/components/ui/sidebar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { AuthLogo } from "@/components/AuthLogo";
+import { staggerContainer, sidebarItemVariant, sidebarSubMenuVariant } from "@/lib/animations";
 import type { Database } from "@/integrations/supabase/types";
 
 type UserRole = Database["public"]["Enums"]["user_role"];
 
-interface AppSidebarProps {
-  role?: UserRole;
+interface NavItem {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  path?: string;
+  children?: { id: string; label: string; path: string }[];
 }
 
-const mainNav = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Transacties", url: "/transacties", icon: ArrowLeftRight },
+const navItems: NavItem[] = [
+  { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={18} />, path: "/" },
+  { id: "transacties", label: "Transacties", icon: <ArrowLeftRight size={18} />, path: "/transacties" },
+  {
+    id: "facturen", label: "Facturen", icon: <FileText size={18} />,
+    children: [
+      { id: "verkoop", label: "Verkoop", path: "/facturen/verkoop" },
+      { id: "inkoop", label: "Inkoop", path: "/facturen/inkoop" },
+    ],
+  },
+  { id: "reconciliatie", label: "Reconciliatie", icon: <GitMerge size={18} />, path: "/reconciliatie" },
+  { id: "bonnen", label: "Bonnen", icon: <Camera size={18} />, path: "/bonnen" },
+  { id: "documenten", label: "Documenten", icon: <Upload size={18} />, path: "/documenten" },
+  {
+    id: "btw", label: "BTW", icon: <Receipt size={18} />,
+    children: [
+      { id: "btw-aangifte", label: "Aangifte", path: "/btw/aangifte" },
+      { id: "btw-icp", label: "ICP Opgaaf", path: "/btw/icp" },
+    ],
+  },
+  {
+    id: "salaris", label: "Salaris", icon: <Wallet size={18} />,
+    children: [
+      { id: "salaris-overzicht", label: "Overzicht", path: "/salaris" },
+      { id: "salaris-bedrijfskosten", label: "Bedrijfskosten", path: "/salaris/bedrijfskosten" },
+      { id: "salaris-afschrijvingen", label: "Afschrijvingen", path: "/salaris/afschrijvingen" },
+      { id: "salaris-aftrek", label: "Ondernemersaftrek", path: "/belasting/ondernemersaftrek" },
+      { id: "salaris-premies", label: "Premies", path: "/salaris/premies" },
+      { id: "salaris-auto", label: "Auto van de zaak", path: "/salaris/auto" },
+      { id: "salaris-woning", label: "Koopwoning", path: "/salaris/woning" },
+    ],
+  },
+  {
+    id: "rapporten", label: "Rapporten", icon: <BarChart3 size={18} />,
+    children: [
+      { id: "wv", label: "Winst & Verlies", path: "/rapporten/winst-verlies" },
+      { id: "balans", label: "Balans", path: "/rapporten/balans" },
+      { id: "proefbalans", label: "Proefbalans", path: "/rapporten/proefbalans" },
+      { id: "cashflow", label: "Cashflow", path: "/rapporten/cashflow" },
+    ],
+  },
+  { id: "relaties", label: "Relaties", icon: <Users size={18} />, path: "/relaties" },
+  { id: "grootboek", label: "Grootboek", icon: <BookOpen size={18} />, path: "/grootboek" },
+  { id: "journaalposten", label: "Journaalposten", icon: <ScrollText size={18} />, path: "/journaalposten" },
 ];
 
-const invoicesSub = [
-  { title: "Verkoop", url: "/facturen/verkoop" },
-  { title: "Inkoop", url: "/facturen/inkoop" },
-];
-
-const vatSub = [
-  { title: "Aangifte", url: "/btw/aangifte" },
-  { title: "ICP Opgaaf", url: "/btw/icp" },
-];
-
-const salarySub = [
-  { title: "Overzicht", url: "/salaris" },
-  { title: "Bedrijfskosten", url: "/salaris/bedrijfskosten" },
-  { title: "Afschrijvingen", url: "/salaris/afschrijvingen" },
-  { title: "Ondernemersaftrek", url: "/belasting/ondernemersaftrek" },
-  { title: "Premies", url: "/salaris/premies" },
-  { title: "Auto van de zaak", url: "/salaris/auto" },
-  { title: "Koopwoning", url: "/salaris/woning" },
-];
-
-const reportsSub = [
-  { title: "Winst & Verlies", url: "/rapporten/winst-verlies" },
-  { title: "Balans", url: "/rapporten/balans" },
-  { title: "Proefbalans", url: "/rapporten/proefbalans" },
-  { title: "Cashflow", url: "/rapporten/cashflow" },
-];
-
-const bottomNav = [
-  { title: "Reconciliatie", url: "/reconciliatie", icon: GitMerge },
-  { title: "Bonnen", url: "/bonnen", icon: Camera },
-  { title: "Documenten", url: "/documenten", icon: Upload },
-];
-
-const afterReports = [
-  { title: "Relaties", url: "/relaties", icon: Users },
-  { title: "Grootboek", url: "/grootboek", icon: BookOpen },
-  { title: "Journaalposten", url: "/journaalposten", icon: ScrollText },
-];
-
-export function AppSidebar({ role }: AppSidebarProps) {
-  const { state } = useSidebar();
-  const collapsed = state === "collapsed";
+export function AppSidebar({ role }: { role?: UserRole }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [expanded, setExpanded] = useState<string | null>(null);
   const path = location.pathname;
 
-  const linkClass =
-    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent/10 hover:text-foreground";
-  const activeClass = "bg-primary/10 text-primary";
+  const isActive = (item: NavItem) => {
+    if (item.path) return item.path === "/" ? path === "/" : path.startsWith(item.path);
+    return false;
+  };
 
-  const renderCollapsible = (
-    label: string,
-    icon: React.ReactNode,
-    items: { title: string; url: string }[],
-    isOpen: boolean,
-  ) => (
-    <Collapsible defaultOpen={isOpen}>
-      <SidebarMenuItem>
-        <CollapsibleTrigger asChild>
-          <SidebarMenuButton className={`${linkClass} w-full justify-between cursor-pointer`}>
-            <span className="flex items-center gap-3">
-              {icon}
-              {!collapsed && <span>{label}</span>}
-            </span>
-            {!collapsed && <ChevronDown className="h-3.5 w-3.5 transition-transform [[data-state=open]>&]:rotate-180" />}
-          </SidebarMenuButton>
-        </CollapsibleTrigger>
-        {!collapsed && (
-          <CollapsibleContent>
-            <SidebarMenuSub>
-              {items.map((sub) => (
-                <SidebarMenuSubItem key={sub.url}>
-                  <SidebarMenuSubButton asChild>
-                    <NavLink to={sub.url} className="text-sm text-sidebar-foreground hover:text-foreground" activeClassName="text-primary">
-                      {sub.title}
-                    </NavLink>
-                  </SidebarMenuSubButton>
-                </SidebarMenuSubItem>
-              ))}
-            </SidebarMenuSub>
-          </CollapsibleContent>
-        )}
-      </SidebarMenuItem>
-    </Collapsible>
-  );
+  const isChildActive = (item: NavItem) =>
+    item.children?.some((c) => path.startsWith(c.path)) ?? false;
+
+  const handleClick = (item: NavItem) => {
+    if (item.children) {
+      setExpanded(expanded === item.id ? null : item.id);
+    } else if (item.path) {
+      navigate(item.path);
+    }
+  };
+
+  // Auto-expand active parent
+  const activeParent = navItems.find((i) => i.children && isChildActive(i));
+  if (activeParent && expanded === null && activeParent.id !== expanded) {
+    // handled by defaulting
+  }
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-      <div className="flex h-14 items-center gap-2 border-b border-sidebar-border px-4">
-        {!collapsed && <AuthLogo />}
-        {collapsed && (
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary-foreground">
-              <path d="M12 2L2 7l10 5 10-5-10-5z" />
-              <path d="M2 17l10 5 10-5" />
-              <path d="M2 12l10 5 10-5" />
-            </svg>
-          </div>
-        )}
+    <motion.aside
+      initial={{ x: -20, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="
+        w-[260px] h-screen fixed left-0 top-0 z-40
+        bg-background/95 backdrop-blur-2xl
+        border-r border-border
+        flex flex-col
+        overflow-y-auto overflow-x-hidden
+      "
+      style={{ scrollbarWidth: "none" }}
+    >
+      {/* Brand */}
+      <div className="px-5 py-5 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-[0_2px_8px_rgba(16,185,129,0.3)]">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+            <path d="M2 17l10 5 10-5" />
+            <path d="M2 12l10 5 10-5" />
+          </svg>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[14px] font-semibold text-foreground leading-tight tracking-tight">Arcory</span>
+          <span className="text-[12px] text-muted-foreground leading-tight">Tax Intelligence</span>
+        </div>
       </div>
 
-      <SidebarContent className="px-2 py-3">
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {mainNav.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} end className={linkClass} activeClassName={activeClass}>
-                      <item.icon className="h-4 w-4 shrink-0" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+      <div className="mx-4 h-px bg-border" />
 
-              {renderCollapsible("Facturen", <FileText className="h-4 w-4 shrink-0" />, invoicesSub, path.startsWith("/facturen"))}
+      {/* Nav */}
+      <motion.nav
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+        className="flex-1 px-3 py-4 space-y-0.5"
+      >
+        {navItems.map((item) => {
+          const active = isActive(item) || isChildActive(item);
+          const isOpen = expanded === item.id || (activeParent?.id === item.id && expanded === null);
 
-              {bottomNav.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={linkClass} activeClassName={activeClass}>
-                      <item.icon className="h-4 w-4 shrink-0" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+          return (
+            <motion.div key={item.id} variants={sidebarItemVariant}>
+              <button
+                onClick={() => handleClick(item)}
+                className={`
+                  w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
+                  text-[13px] font-medium transition-all duration-200 ease-out
+                  group relative overflow-hidden
+                  ${active
+                    ? "text-foreground bg-white/[0.08]"
+                    : "text-muted-foreground hover:text-foreground/80 hover:bg-white/[0.04]"
+                  }
+                `}
+              >
+                {active && (
+                  <motion.div
+                    layoutId="sidebar-active"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-primary"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <span className={`w-5 h-5 flex items-center justify-center flex-shrink-0 transition-colors duration-200 ${active ? "text-primary" : "text-muted-foreground/60 group-hover:text-muted-foreground"}`}>
+                  {item.icon}
+                </span>
+                <span className="flex-1 text-left">{item.label}</span>
+                {item.children && (
+                  <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/40" />
+                  </motion.div>
+                )}
+              </button>
 
-              {renderCollapsible("BTW", <Receipt className="h-4 w-4 shrink-0" />, vatSub, path.startsWith("/btw"))}
+              <AnimatePresence>
+                {item.children && isOpen && (
+                  <motion.div
+                    variants={sidebarSubMenuVariant}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="overflow-hidden"
+                  >
+                    <div className="ml-8 mt-0.5 space-y-0.5 py-1">
+                      {item.children.map((child) => {
+                        const childActive = path.startsWith(child.path);
+                        return (
+                          <button
+                            key={child.id}
+                            onClick={() => navigate(child.path)}
+                            className={`
+                              w-full text-left px-3 py-2 rounded-lg text-[12.5px]
+                              transition-all duration-200
+                              ${childActive
+                                ? "text-primary bg-primary/[0.08]"
+                                : "text-muted-foreground/60 hover:text-foreground/70 hover:bg-white/[0.03]"
+                              }
+                            `}
+                          >
+                            {child.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          );
+        })}
+      </motion.nav>
 
-              {renderCollapsible(
-                "Salaris",
-                <Wallet className="h-4 w-4 shrink-0" />,
-                salarySub,
-                path.startsWith("/salaris") || path.startsWith("/belasting"),
-              )}
-
-              {renderCollapsible("Rapporten", <BarChart3 className="h-4 w-4 shrink-0" />, reportsSub, path.startsWith("/rapporten"))}
-
-              {afterReports.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={linkClass} activeClassName={activeClass}>
-                      <item.icon className="h-4 w-4 shrink-0" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-
-      <SidebarFooter className="border-t border-sidebar-border px-2 py-3">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <NavLink to="/instellingen" className={linkClass} activeClassName={activeClass}>
-                <Settings className="h-4 w-4 shrink-0" />
-                {!collapsed && <span>Instellingen</span>}
-              </NavLink>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          {role === "accountant" && (
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <NavLink to="/audit-log" className={linkClass} activeClassName={activeClass}>
-                  <Shield className="h-4 w-4 shrink-0" />
-                  {!collapsed && <span>Audit Log</span>}
-                </NavLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )}
-        </SidebarMenu>
-      </SidebarFooter>
-    </Sidebar>
+      {/* Footer */}
+      <div className="px-3 py-4 border-t border-border">
+        <button
+          onClick={() => navigate("/instellingen")}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${
+            path === "/instellingen" ? "text-foreground bg-white/[0.08]" : "text-muted-foreground hover:text-foreground/70 hover:bg-white/[0.04]"
+          }`}
+        >
+          <Settings className="w-5 h-5" />
+          <span>Instellingen</span>
+        </button>
+        {role === "accountant" && (
+          <button
+            onClick={() => navigate("/audit-log")}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 mt-0.5 ${
+              path === "/audit-log" ? "text-foreground bg-white/[0.08]" : "text-muted-foreground hover:text-foreground/70 hover:bg-white/[0.04]"
+            }`}
+          >
+            <Shield className="w-5 h-5" />
+            <span>Audit Log</span>
+          </button>
+        )}
+      </div>
+    </motion.aside>
   );
 }

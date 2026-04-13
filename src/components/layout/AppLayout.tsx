@@ -1,10 +1,11 @@
 import { Outlet, Navigate } from "react-router-dom";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { motion } from "framer-motion";
 import { AppSidebar } from "./AppSidebar";
 import { TopHeader } from "./TopHeader";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Loader2 } from "lucide-react";
+import { pageTransition } from "@/lib/animations";
 
 export function AppLayout() {
   const { membership, loading } = useOrganization();
@@ -27,23 +28,26 @@ export function AppLayout() {
   const role = membership.role;
 
   return (
-    <SidebarProvider>
-      <div className="dark flex min-h-screen w-full">
-        <AppSidebar role={role} />
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <TopHeader
-            organizationName={membership.organizationName}
-            role={role}
-            notifications={notifications}
-            unreadCount={unreadCount}
-            onMarkRead={markAsRead}
-            onMarkAllRead={markAllRead}
-          />
-          <main className="flex-1 overflow-auto bg-background p-4 sm:p-6">
-            <Outlet />
-          </main>
-        </div>
+    <div className="dark min-h-screen bg-background">
+      <AppSidebar role={role} />
+      <div className="pl-[260px] min-h-screen flex flex-col">
+        <TopHeader
+          organizationName={membership.organizationName}
+          role={role}
+          notifications={notifications}
+          unreadCount={unreadCount}
+          onMarkRead={markAsRead}
+          onMarkAllRead={markAllRead}
+        />
+        <motion.main
+          variants={pageTransition}
+          initial="initial"
+          animate="animate"
+          className="flex-1 overflow-auto px-6 py-6"
+        >
+          <Outlet />
+        </motion.main>
       </div>
-    </SidebarProvider>
+    </div>
   );
 }

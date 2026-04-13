@@ -1,6 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { AlertTriangle, FileWarning, Calendar, GitMerge, ScanLine } from "lucide-react";
+import { cardVariant, staggerContainer } from "@/lib/animations";
 import type { Database } from "@/integrations/supabase/types";
 
 type Role = Database["public"]["Enums"]["user_role"] | undefined;
@@ -66,35 +67,34 @@ export function ActionItems({ unreconciledCount, missingDocsCount, pendingDocsCo
   ];
 
   return (
-    <Card className="border-border/50 bg-card">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-medium text-muted-foreground">Actiepunten</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          {items.map((item) => (
-            <button
-              key={item.label}
-              onClick={item.onClick}
-              className="flex items-center gap-3 w-full py-3 px-3 rounded-lg hover:bg-muted/50 transition-colors text-left group"
-            >
-              <div className={`p-2 rounded-lg ${item.bg}`}>
-                <item.icon className={`h-4 w-4 ${item.color}`} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.label}</span>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className={`text-lg font-semibold ${item.color}`}>{item.count}</span>
-                {"suffix" in item && <span className="text-xs text-muted-foreground">{(item as any).suffix}</span>}
-              </div>
-            </button>
-          ))}
-          {items.every((i) => i.count === 0) && (
-            <p className="text-sm text-muted-foreground text-center py-6">Alles is up-to-date 🎉</p>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    <motion.div variants={cardVariant} className="arcory-glass rounded-2xl p-5 sm:p-6">
+      <div className="mb-4">
+        <span className="text-micro text-muted-foreground">Actiepunten</span>
+      </div>
+      <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-1">
+        {items.map((item) => (
+          <motion.button
+            key={item.label}
+            variants={cardVariant}
+            onClick={item.onClick}
+            className="flex items-center gap-3 w-full py-3 px-3 rounded-xl hover:bg-white/[0.03] transition-colors text-left group"
+          >
+            <div className={`p-2 rounded-xl ${item.bg}`}>
+              <item.icon className={`h-4 w-4 ${item.color}`} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="text-[13px] text-foreground/80 group-hover:text-foreground transition-colors">{item.label}</span>
+            </div>
+            <div className="flex items-baseline gap-1">
+              <span className={`text-lg font-semibold ${item.color}`}>{item.count}</span>
+              {"suffix" in item && <span className="text-xs text-muted-foreground/50">{(item as any).suffix}</span>}
+            </div>
+          </motion.button>
+        ))}
+        {items.every((i) => i.count === 0) && (
+          <p className="text-[13px] text-muted-foreground/50 text-center py-6">Alles is up-to-date 🎉</p>
+        )}
+      </motion.div>
+    </motion.div>
   );
 }

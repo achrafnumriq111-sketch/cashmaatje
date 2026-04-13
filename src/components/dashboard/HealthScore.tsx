@@ -1,5 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cardVariant } from "@/lib/animations";
 import type { Database } from "@/integrations/supabase/types";
 
 type Snapshot = Database["public"]["Tables"]["financial_health_snapshots"]["Row"];
@@ -20,19 +21,21 @@ function CircularProgress({ score }: { score: number }) {
   return (
     <div className="relative flex items-center justify-center">
       <svg width="168" height="168" viewBox="0 0 168 168">
-        <circle cx="84" cy="84" r={radius} fill="none" stroke="hsl(240 3.7% 15.9%)" strokeWidth={stroke} />
-        <circle
+        <circle cx="84" cy="84" r={radius} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={stroke} />
+        <motion.circle
           cx="84" cy="84" r={radius} fill="none"
           stroke={color} strokeWidth={stroke}
-          strokeDasharray={circumference} strokeDashoffset={offset}
+          strokeDasharray={circumference}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
           strokeLinecap="round"
           transform="rotate(-90 84 84)"
-          className="transition-all duration-700"
         />
       </svg>
       <div className="absolute flex flex-col items-center">
         <span className="text-3xl font-bold" style={{ color }}>{score}</span>
-        <span className="text-xs text-muted-foreground">/ 100</span>
+        <span className="text-xs text-muted-foreground/50">/ 100</span>
       </div>
     </div>
   );
@@ -57,11 +60,12 @@ export function HealthScore({ snapshot, isLoading }: Props) {
   };
 
   return (
-    <Card className="border-border/50 bg-card h-full">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">Financiële Gezondheid</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col items-center gap-4">
+    <motion.div variants={cardVariant} className="arcory-glass rounded-2xl p-5 sm:p-6 h-full">
+      <div className="mb-4">
+        <span className="text-micro text-muted-foreground">Financiële Gezondheid</span>
+      </div>
+
+      <div className="flex flex-col items-center gap-4">
         {isLoading ? (
           <Skeleton className="h-[168px] w-[168px] rounded-full" />
         ) : (
@@ -69,18 +73,18 @@ export function HealthScore({ snapshot, isLoading }: Props) {
             <CircularProgress score={score} />
             <div className="w-full space-y-2">
               {Object.entries(factors).map(([key, value]) => (
-                <div key={key} className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{factorLabels[key] ?? key}</span>
+                <div key={key} className="flex items-center justify-between text-[13px]">
+                  <span className="text-muted-foreground/60">{factorLabels[key] ?? key}</span>
                   <span className="font-medium text-foreground">{typeof value === "number" ? value : "—"}</span>
                 </div>
               ))}
               {Object.keys(factors).length === 0 && (
-                <p className="text-xs text-muted-foreground text-center">Nog geen data beschikbaar</p>
+                <p className="text-xs text-muted-foreground/40 text-center">Nog geen data beschikbaar</p>
               )}
             </div>
           </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </motion.div>
   );
 }
