@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, ArrowLeftRight, FileText, GitMerge, Upload,
   Receipt, Camera, BarChart3, Users, BookOpen, ScrollText,
-  Settings, Shield, Wallet, ChevronDown,
+  Settings, Shield, Wallet, ChevronDown, FileCheck, Briefcase,
+  Palette, Gift, Building2, GitBranch, Mail, FileSearch, Scale,
 } from "lucide-react";
-import { AuthLogo } from "@/components/AuthLogo";
 import { staggerContainer, sidebarItemVariant, sidebarSubMenuVariant } from "@/lib/animations";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -59,11 +59,32 @@ const navItems: NavItem[] = [
       { id: "balans", label: "Balans", path: "/rapporten/balans" },
       { id: "proefbalans", label: "Proefbalans", path: "/rapporten/proefbalans" },
       { id: "cashflow", label: "Cashflow", path: "/rapporten/cashflow" },
+      { id: "jaarrekening", label: "Jaarrekening", path: "/rapporten/jaarrekening" },
     ],
   },
   { id: "relaties", label: "Relaties", icon: <Users size={18} />, path: "/relaties" },
   { id: "grootboek", label: "Grootboek", icon: <BookOpen size={18} />, path: "/grootboek" },
   { id: "journaalposten", label: "Journaalposten", icon: <ScrollText size={18} />, path: "/journaalposten" },
+  // New enterprise modules
+  { id: "offerte-studio", label: "Offertes & Branding", icon: <Briefcase size={18} />, path: "/offerte-studio" },
+  {
+    id: "audit", label: "Audit & Compliance", icon: <FileCheck size={18} />,
+    children: [
+      { id: "audit-dossier", label: "Audit Dossier", path: "/audit/dossier" },
+      { id: "contract-check", label: "Contract Intelligence", path: "/audit/contracten" },
+      { id: "compliance", label: "Compliance Check", path: "/audit/compliance" },
+      { id: "process-flows", label: "Process & Controls", path: "/audit/processen" },
+    ],
+  },
+  {
+    id: "platform", label: "Platform", icon: <Building2 size={18} />,
+    children: [
+      { id: "stakeholders", label: "Stakeholder CRM", path: "/platform/stakeholders" },
+      { id: "automation", label: "Automation Center", path: "/platform/automation" },
+      { id: "corporate", label: "Corporate Structure", path: "/platform/structuur" },
+      { id: "referral", label: "Referral Center", path: "/platform/referral" },
+    ],
+  },
 ];
 
 export function AppSidebar({ role }: { role?: UserRole }) {
@@ -88,24 +109,14 @@ export function AppSidebar({ role }: { role?: UserRole }) {
     }
   };
 
-  // Auto-expand active parent
   const activeParent = navItems.find((i) => i.children && isChildActive(i));
-  if (activeParent && expanded === null && activeParent.id !== expanded) {
-    // handled by defaulting
-  }
 
   return (
     <motion.aside
       initial={{ x: -20, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="
-        w-[260px] h-screen fixed left-0 top-0 z-40
-        bg-background/95 backdrop-blur-2xl
-        border-r border-border
-        flex flex-col
-        overflow-y-auto overflow-x-hidden
-      "
+      className="w-[260px] h-screen fixed left-0 top-0 z-40 bg-background/95 backdrop-blur-2xl border-r border-border flex flex-col overflow-y-auto overflow-x-hidden"
       style={{ scrollbarWidth: "none" }}
     >
       {/* Brand */}
@@ -119,7 +130,7 @@ export function AppSidebar({ role }: { role?: UserRole }) {
         </div>
         <div className="flex flex-col">
           <span className="text-[14px] font-semibold text-foreground leading-tight tracking-tight">Arcory</span>
-          <span className="text-[12px] text-muted-foreground leading-tight">Tax Intelligence</span>
+          <span className="text-[12px] text-muted-foreground leading-tight">Financial OS</span>
         </div>
       </div>
 
@@ -207,7 +218,16 @@ export function AppSidebar({ role }: { role?: UserRole }) {
       </motion.nav>
 
       {/* Footer */}
-      <div className="px-3 py-4 border-t border-border">
+      <div className="px-3 py-4 border-t border-border space-y-0.5">
+        <button
+          onClick={() => navigate("/platform/themas")}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${
+            path === "/platform/themas" ? "text-foreground bg-white/[0.08]" : "text-muted-foreground hover:text-foreground/70 hover:bg-white/[0.04]"
+          }`}
+        >
+          <Palette className="w-5 h-5" />
+          <span>Thema's</span>
+        </button>
         <button
           onClick={() => navigate("/instellingen")}
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${
@@ -220,7 +240,7 @@ export function AppSidebar({ role }: { role?: UserRole }) {
         {role === "accountant" && (
           <button
             onClick={() => navigate("/audit-log")}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 mt-0.5 ${
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${
               path === "/audit-log" ? "text-foreground bg-white/[0.08]" : "text-muted-foreground hover:text-foreground/70 hover:bg-white/[0.04]"
             }`}
           >
