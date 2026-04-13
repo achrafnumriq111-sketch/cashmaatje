@@ -113,6 +113,7 @@ export default function ProfitLoss() {
               [{ header: "Code", key: "code" }, { header: "Rekening", key: "rekening" }, { header: "Type", key: "type" }, { header: "Bedrag", key: "bedrag", format: "currency" }],
               `WinstVerlies_${period}`, "W&V");
           }} />
+        </div>
       </motion.div>
 
       {loading ? <p className="text-sm text-muted-foreground">Laden...</p> : (
