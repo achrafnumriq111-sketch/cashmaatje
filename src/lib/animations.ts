@@ -1,7 +1,7 @@
 import { Variants } from "framer-motion";
 
-const EASE_OUT_EXPO: number[] = [0.16, 1, 0.3, 1];
-const EASE_IN_OUT_CUBIC: number[] = [0.65, 0, 0.35, 1];
+const EASE_OUT_EXPO = [0.16, 1, 0.3, 1] as [number, number, number, number];
+const EASE_IN_OUT_CUBIC = [0.65, 0, 0.35, 1] as [number, number, number, number];
 
 export const pageTransition: Variants = {
   initial: { opacity: 0, y: 12, filter: "blur(4px)" },
