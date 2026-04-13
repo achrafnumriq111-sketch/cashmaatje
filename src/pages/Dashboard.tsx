@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { KpiCards } from "@/components/dashboard/KpiCards";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
@@ -9,6 +10,7 @@ import { CashPosition } from "@/components/dashboard/CashPosition";
 import { OpenItems } from "@/components/dashboard/OpenItems";
 import { RecentDocuments } from "@/components/dashboard/RecentDocuments";
 import { PeriodSelector, getDefaultPeriod, type DateRange } from "@/components/dashboard/PeriodSelector";
+import { fadeInUp, staggerContainer } from "@/lib/animations";
 
 export default function Dashboard() {
   const [period, setPeriod] = useState<DateRange>(getDefaultPeriod);
@@ -18,16 +20,21 @@ export default function Dashboard() {
   const openInv = data.openInvoices.data;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+    <motion.div
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
+      className="space-y-6 max-w-[1400px]"
+    >
+      <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">Dashboard</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h1 className="text-heading text-foreground">Dashboard</h1>
+          <p className="mt-1 text-[13px] text-muted-foreground/60">
             {data.role === "entrepreneur" ? "Overzicht van je bedrijf" : "Financieel overzicht"}
           </p>
         </div>
         <PeriodSelector value={period} onChange={setPeriod} />
-      </div>
+      </motion.div>
 
       <KpiCards
         cashBalance={burn?.cashBalance}
@@ -39,7 +46,7 @@ export default function Dashboard() {
         isLoading={data.burnRate.isLoading}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <div className="lg:col-span-3">
           <RevenueChart data={data.monthlyRevenue.data} isLoading={data.monthlyRevenue.isLoading} />
         </div>
@@ -48,11 +55,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <CashPosition
-          accounts={data.bankBalances.data ?? []}
-          isLoading={data.bankBalances.isLoading}
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <CashPosition accounts={data.bankBalances.data ?? []} isLoading={data.bankBalances.isLoading} />
         <OpenItems
           receivable={openInv?.receivable ?? 0}
           payable={openInv?.payable ?? 0}
@@ -70,7 +74,7 @@ export default function Dashboard() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <RecentTransactions
           transactions={data.recentTransactions.data ?? []}
           isLoading={data.recentTransactions.isLoading}
@@ -81,6 +85,6 @@ export default function Dashboard() {
           isLoading={data.recentDocuments.isLoading}
         />
       </div>
-    </div>
+    </motion.div>
   );
 }
