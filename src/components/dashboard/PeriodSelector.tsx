@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -38,60 +39,56 @@ export function PeriodSelector({ value, onChange }: Props) {
   const [customTo, setCustomTo] = useState<Date | undefined>(value.to);
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="inline-flex items-center gap-0.5 bg-white/[0.03] rounded-xl p-1">
       {presets.map((p) => (
-        <Button
+        <button
           key={p.key}
-          variant={value.key === p.key ? "default" : "outline"}
-          size="sm"
-          className="h-8 text-xs"
           onClick={() => onChange({ ...p })}
+          className={`
+            relative px-3.5 py-1.5 rounded-lg text-[12px] font-medium
+            transition-all duration-200
+            ${value.key === p.key ? "text-foreground" : "text-muted-foreground/60 hover:text-muted-foreground"}
+          `}
         >
-          {p.label}
-        </Button>
+          {value.key === p.key && (
+            <motion.div
+              layoutId="period-active"
+              className="absolute inset-0 bg-primary rounded-lg"
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            />
+          )}
+          <span className="relative z-10">{p.label}</span>
+        </button>
       ))}
 
       <Popover open={customOpen} onOpenChange={setCustomOpen}>
         <PopoverTrigger asChild>
-          <Button
-            variant={value.key === "custom" ? "default" : "outline"}
-            size="sm"
-            className="h-8 text-xs gap-1.5"
+          <button
+            className={`
+              flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium
+              transition-colors
+              ${value.key === "custom" ? "text-foreground" : "text-muted-foreground/60 hover:text-muted-foreground"}
+            `}
           >
-            <CalendarIcon className="h-3.5 w-3.5" />
+            <CalendarIcon className="w-3.5 h-3.5" />
             {value.key === "custom"
-              ? `${format(value.from, "d MMM", { locale: nl })} – ${format(value.to, "d MMM yyyy", { locale: nl })}`
+              ? `${format(value.from, "d MMM", { locale: nl })} – ${format(value.to, "d MMM", { locale: nl })}`
               : "Aangepast"}
-          </Button>
+          </button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="end">
           <div className="flex flex-col sm:flex-row">
             <div className="p-3 border-b sm:border-b-0 sm:border-r border-border">
               <p className="text-xs font-medium text-muted-foreground mb-2">Van</p>
-              <Calendar
-                mode="single"
-                selected={customFrom}
-                onSelect={setCustomFrom}
-                locale={nl}
-                className={cn("p-0 pointer-events-auto")}
-              />
+              <Calendar mode="single" selected={customFrom} onSelect={setCustomFrom} locale={nl} className={cn("p-0 pointer-events-auto")} />
             </div>
             <div className="p-3">
               <p className="text-xs font-medium text-muted-foreground mb-2">Tot</p>
-              <Calendar
-                mode="single"
-                selected={customTo}
-                onSelect={setCustomTo}
-                locale={nl}
-                disabled={(date) => customFrom ? date < customFrom : false}
-                className={cn("p-0 pointer-events-auto")}
-              />
+              <Calendar mode="single" selected={customTo} onSelect={setCustomTo} locale={nl} disabled={(date) => customFrom ? date < customFrom : false} className={cn("p-0 pointer-events-auto")} />
             </div>
           </div>
           <div className="flex justify-end gap-2 p-3 border-t border-border">
-            <Button variant="ghost" size="sm" onClick={() => setCustomOpen(false)}>
-              Annuleren
-            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setCustomOpen(false)}>Annuleren</Button>
             <Button
               size="sm"
               disabled={!customFrom || !customTo}
