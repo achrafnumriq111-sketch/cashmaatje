@@ -1,6 +1,6 @@
 import * as XLSX from "xlsx";
 
-interface ExportColumn {
+export interface ExportColumn {
   header: string;
   key: string;
   format?: "currency" | "date" | "number" | "text";
