@@ -9,6 +9,7 @@ import { ActionItems } from "@/components/dashboard/ActionItems";
 import { CashPosition } from "@/components/dashboard/CashPosition";
 import { OpenItems } from "@/components/dashboard/OpenItems";
 import { RecentDocuments } from "@/components/dashboard/RecentDocuments";
+import { IntelligenceWidgets } from "@/components/dashboard/IntelligenceWidgets";
 import { PeriodSelector, getDefaultPeriod, type DateRange } from "@/components/dashboard/PeriodSelector";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 
