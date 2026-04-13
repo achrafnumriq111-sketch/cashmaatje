@@ -62,8 +62,10 @@ export default function StakeholderCRM() {
   const [selectedContact, setSelectedContact] = useState<any | null>(null);
   const defaultFilters = { search: "", type: "all" as const, country: "", riskStatus: "all" as const };
   const { data: contacts, isLoading } = useContacts(defaultFilters);
-  const { invoices } = useInvoices();
-  const allInvoices = invoices ?? [];
+  const invoiceFilters: InvoiceFilters = { status: "all", dateFrom: "", dateTo: "", search: "" };
+  const { data: salesInvoices } = useInvoices("sales", invoiceFilters);
+  const { data: purchaseInvoices } = useInvoices("purchase", invoiceFilters);
+  const allInvoices = [...(salesInvoices ?? []), ...(purchaseInvoices ?? [])];
   const allContacts = contacts ?? [];
 
   const filtered = useMemo(() => {
