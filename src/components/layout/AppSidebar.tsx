@@ -31,8 +31,7 @@ const navItems: NavItem[] = [
     ],
   },
   { id: "reconciliatie", label: "Reconciliatie", icon: <GitMerge size={18} />, path: "/reconciliatie" },
-  { id: "bonnen", label: "Bonnen", icon: <Camera size={18} />, path: "/bonnen" },
-  { id: "documenten", label: "Documenten", icon: <Upload size={18} />, path: "/documenten" },
+  { id: "documenten", label: "Documenten & Bonnen", icon: <FileText size={18} />, path: "/documenten" },
   {
     id: "btw", label: "BTW", icon: <Receipt size={18} />,
     children: [
