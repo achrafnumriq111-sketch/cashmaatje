@@ -298,6 +298,22 @@ export default function VatReturn() {
         {isLocked && (
           <Badge variant="outline" className="gap-1"><Lock className="h-3 w-3" /> Vergrendeld</Badge>
         )}
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">VPB:</span>
+          <button
+            onClick={toggleVpb}
+            className={cn(
+              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-colors",
+              vpbEnabled
+                ? "bg-primary/10 border-primary/30 text-primary"
+                : "bg-secondary border-border text-muted-foreground hover:text-foreground"
+            )}
+            title="Vennootschapsbelasting voor BV/NV"
+          >
+            <Building className="h-3 w-3" />
+            {vpbEnabled ? "Aan" : "Uit"}
+          </button>
+        </div>
       </div>
 
       {loading ? (
