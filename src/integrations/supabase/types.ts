@@ -843,6 +843,48 @@ export type Database = {
           },
         ]
       }
+      contact_activities: {
+        Row: {
+          activity_type: string
+          contact_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          organization_id: string
+          outcome: string | null
+          performed_at: string
+          performed_by: string | null
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          activity_type: string
+          contact_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          outcome?: string | null
+          performed_at?: string
+          performed_by?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activity_type?: string
+          contact_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          outcome?: string | null
+          performed_at?: string
+          performed_by?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contacts: {
         Row: {
           address_city: string | null
@@ -1576,6 +1618,47 @@ export type Database = {
           },
         ]
       }
+      invoice_reminders_sent: {
+        Row: {
+          channel: string
+          id: string
+          invoice_id: string
+          organization_id: string
+          reminder_id: string | null
+          sent_at: string
+          sent_to: string | null
+          status: string
+        }
+        Insert: {
+          channel?: string
+          id?: string
+          invoice_id: string
+          organization_id: string
+          reminder_id?: string | null
+          sent_at?: string
+          sent_to?: string | null
+          status?: string
+        }
+        Update: {
+          channel?: string
+          id?: string
+          invoice_id?: string
+          organization_id?: string
+          reminder_id?: string | null
+          sent_at?: string
+          sent_to?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_reminders_sent_reminder_id_fkey"
+            columns: ["reminder_id"]
+            isOneToOne: false
+            referencedRelation: "payment_reminders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           ai_confidence: number | null
@@ -2264,6 +2347,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      payment_reminders: {
+        Row: {
+          body_template: string
+          channel: string
+          created_at: string
+          days_after_due: number
+          id: string
+          is_active: boolean
+          name: string
+          organization_id: string
+          sort_order: number
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body_template: string
+          channel?: string
+          created_at?: string
+          days_after_due?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          organization_id: string
+          sort_order?: number
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          body_template?: string
+          channel?: string
+          created_at?: string
+          days_after_due?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          organization_id?: string
+          sort_order?: number
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       reconciliation_rules: {
         Row: {
