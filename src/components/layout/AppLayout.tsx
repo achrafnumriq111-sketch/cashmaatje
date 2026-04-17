@@ -2,6 +2,7 @@ import { Outlet, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppSidebar } from "./AppSidebar";
 import { TopHeader } from "./TopHeader";
+import { ChatbotFab } from "./ChatbotFab";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Loader2 } from "lucide-react";
@@ -48,6 +49,7 @@ export function AppLayout() {
           <Outlet />
         </motion.main>
       </div>
+      <ChatbotFab />
     </div>
   );
 }
