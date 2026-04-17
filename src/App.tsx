@@ -48,6 +48,8 @@ import ThemeStudio from "./pages/ThemeStudio";
 import ReferralCenter from "./pages/ReferralCenter";
 import CorporateStructure from "./pages/CorporateStructure";
 import FinancialIntelligence from "./pages/FinancialIntelligence";
+import Inventory from "./pages/Inventory";
+import Integrations from "./pages/Integrations";
 
 const queryClient = new QueryClient();
 
@@ -90,6 +92,8 @@ const App = () => (
               <Route path="relaties" element={<Contacts />} />
               <Route path="grootboek" element={<GeneralLedger />} />
               <Route path="journaalposten" element={<JournalEntries />} />
+              <Route path="voorraad" element={<Inventory />} />
+              <Route path="integraties" element={<Integrations />} />
               {/* New enterprise modules */}
               <Route path="offerte-studio" element={<OfferteStudio />} />
               <Route path="audit/dossier" element={<AuditDossier />} />

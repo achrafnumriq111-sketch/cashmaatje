@@ -37,7 +37,7 @@ export default function Cashflow() {
 
   return (
     <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-6">
-      <motion.h1 variants={cardVariant} className="text-2xl font-semibold tracking-tight text-foreground">Cashflow</motion.h1>
+      <motion.h1 variants={cardVariant} className="text-2xl font-semibold tracking-tight text-foreground">Kasstroomoverzicht</motion.h1>
 
       {loading ? (
         <p className="text-sm text-muted-foreground">Laden...</p>
@@ -46,7 +46,7 @@ export default function Cashflow() {
           <motion.div variants={cardVariant}>
             <Card className="arcory-glass">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base font-medium">Kasstroom overzicht</CardTitle>
+                <CardTitle className="text-base font-medium">Kasstroomoverzicht</CardTitle>
               </CardHeader>
               <CardContent>
                 {points.length > 0 ? (
