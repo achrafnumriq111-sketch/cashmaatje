@@ -1,5 +1,8 @@
+import { useEffect, useState } from "react";
 import { useVatReturn, VatBoxValues } from "@/hooks/useVatReturn";
 import { useVatEngine } from "@/hooks/useVatEngine";
+import { useOrganization } from "@/hooks/useOrganization";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Separator } from "@/components/ui/separator";
 import {
   AlertTriangle, CheckCircle2, FileText, Loader2, Lock, Send, Save,
-  Download, Info, ShieldAlert, TrendingUp, Eye, ArrowDown, ArrowUp, Minus,
+  Download, Info, ShieldAlert, TrendingUp, Eye, ArrowDown, ArrowUp, Minus, Building,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -154,6 +157,37 @@ export default function VatReturn() {
   } = useVatReturn();
 
   const vatEngine = useVatEngine();
+  const { membership } = useOrganization();
+  const [orgType, setOrgType] = useState<string>("");
+  const [vpbEnabled, setVpbEnabled] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!membership) return;
+    supabase
+      .from("organizations")
+      .select("org_type, settings")
+      .eq("id", membership.organizationId)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setOrgType(data.org_type as string);
+          const s = (data.settings as Record<string, unknown>) ?? {};
+          setVpbEnabled(!!s.vpb_enabled || ["bv", "nv"].includes(data.org_type as string));
+        }
+      });
+  }, [membership]);
+
+  const toggleVpb = async () => {
+    if (!membership) return;
+    const next = !vpbEnabled;
+    setVpbEnabled(next);
+    const { data: row } = await supabase.from("organizations").select("settings").eq("id", membership.organizationId).single();
+    const s = (row?.settings as Record<string, unknown>) ?? {};
+    await supabase
+      .from("organizations")
+      .update({ settings: { ...s, vpb_enabled: next } as never })
+      .eq("id", membership.organizationId);
+  };
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
