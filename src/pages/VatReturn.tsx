@@ -509,6 +509,41 @@ export default function VatReturn() {
                 </CardContent>
               </Card>
 
+              {/* VPB context card */}
+              {vpbEnabled && (
+                <Card className="border-primary/30">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Building className="h-4 w-4 text-primary" />
+                      Vennootschapsbelasting
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      VPB-aangifte is een jaarlijkse verplichting voor BV's en NV's.
+                      De jaarlijkse winst wordt belast volgens de VPB-tarieven.
+                    </p>
+                    <Separator />
+                    <div className="space-y-1 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Tarief 2025 (≤ €200k)</span>
+                        <span className="font-mono font-medium">19%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Tarief 2025 (&gt; €200k)</span>
+                        <span className="font-mono font-medium">25,8%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Status</span>
+                        <Badge variant="outline" className="text-[10px]">
+                          {orgType === "bv" || orgType === "nv" ? "Verplicht" : "Optioneel"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Warnings */}
               {warnings.length > 0 && (
                 <Card className="border-destructive/30">
