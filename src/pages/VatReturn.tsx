@@ -1,5 +1,8 @@
+import { useEffect, useState } from "react";
 import { useVatReturn, VatBoxValues } from "@/hooks/useVatReturn";
 import { useVatEngine } from "@/hooks/useVatEngine";
+import { useOrganization } from "@/hooks/useOrganization";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Separator } from "@/components/ui/separator";
 import {
   AlertTriangle, CheckCircle2, FileText, Loader2, Lock, Send, Save,
-  Download, Info, ShieldAlert, TrendingUp, Eye, ArrowDown, ArrowUp, Minus,
+  Download, Info, ShieldAlert, TrendingUp, Eye, ArrowDown, ArrowUp, Minus, Building,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -154,6 +157,37 @@ export default function VatReturn() {
   } = useVatReturn();
 
   const vatEngine = useVatEngine();
+  const { membership } = useOrganization();
+  const [orgType, setOrgType] = useState<string>("");
+  const [vpbEnabled, setVpbEnabled] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!membership) return;
+    supabase
+      .from("organizations")
+      .select("org_type, settings")
+      .eq("id", membership.organizationId)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setOrgType(data.org_type as string);
+          const s = (data.settings as Record<string, unknown>) ?? {};
+          setVpbEnabled(!!s.vpb_enabled || ["bv", "nv"].includes(data.org_type as string));
+        }
+      });
+  }, [membership]);
+
+  const toggleVpb = async () => {
+    if (!membership) return;
+    const next = !vpbEnabled;
+    setVpbEnabled(next);
+    const { data: row } = await supabase.from("organizations").select("settings").eq("id", membership.organizationId).single();
+    const s = (row?.settings as Record<string, unknown>) ?? {};
+    await supabase
+      .from("organizations")
+      .update({ settings: { ...s, vpb_enabled: next } as never })
+      .eq("id", membership.organizationId);
+  };
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
@@ -264,6 +298,22 @@ export default function VatReturn() {
         {isLocked && (
           <Badge variant="outline" className="gap-1"><Lock className="h-3 w-3" /> Vergrendeld</Badge>
         )}
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">VPB:</span>
+          <button
+            onClick={toggleVpb}
+            className={cn(
+              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-colors",
+              vpbEnabled
+                ? "bg-primary/10 border-primary/30 text-primary"
+                : "bg-secondary border-border text-muted-foreground hover:text-foreground"
+            )}
+            title="Vennootschapsbelasting voor BV/NV"
+          >
+            <Building className="h-3 w-3" />
+            {vpbEnabled ? "Aan" : "Uit"}
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -458,6 +508,41 @@ export default function VatReturn() {
                   )}
                 </CardContent>
               </Card>
+
+              {/* VPB context card */}
+              {vpbEnabled && (
+                <Card className="border-primary/30">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Building className="h-4 w-4 text-primary" />
+                      Vennootschapsbelasting
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      VPB-aangifte is een jaarlijkse verplichting voor BV's en NV's.
+                      De jaarlijkse winst wordt belast volgens de VPB-tarieven.
+                    </p>
+                    <Separator />
+                    <div className="space-y-1 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Tarief 2025 (≤ €200k)</span>
+                        <span className="font-mono font-medium">19%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Tarief 2025 (&gt; €200k)</span>
+                        <span className="font-mono font-medium">25,8%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Status</span>
+                        <Badge variant="outline" className="text-[10px]">
+                          {orgType === "bv" || orgType === "nv" ? "Verplicht" : "Optioneel"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Warnings */}
               {warnings.length > 0 && (

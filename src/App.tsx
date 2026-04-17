@@ -4,7 +4,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, ProtectedRoute } from "@/lib/auth";
+import { OrganizationProvider } from "@/hooks/useOrganization";
 import { AppLayout } from "@/components/layout/AppLayout";
+import BulkSettings from "./pages/BulkSettings";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -60,6 +62,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <OrganizationProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -106,10 +109,12 @@ const App = () => (
               <Route path="platform/referral" element={<ReferralCenter />} />
               <Route path="platform/themas" element={<ThemeStudio />} />
               <Route path="instellingen" element={<Placeholder />} />
+              <Route path="instellingen/bulk" element={<BulkSettings />} />
               <Route path="audit-log" element={<Placeholder />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </OrganizationProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

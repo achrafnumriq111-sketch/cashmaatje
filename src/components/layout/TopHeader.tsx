@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, LogOut, User, Search, Gift, Building2, ChevronDown } from "lucide-react";
+import { Bell, LogOut, User, Search, Gift } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { NotificationPanel } from "./NotificationPanel";
 import { LanguageToggle } from "./LanguageToggle";
+import { OrgSwitcher } from "./OrgSwitcher";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -29,7 +30,6 @@ interface TopHeaderProps {
 }
 
 export function TopHeader({
-  organizationName,
   role,
   notifications,
   unreadCount,
@@ -41,7 +41,6 @@ export function TopHeader({
   const navigate = useNavigate();
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [orgOpen, setOrgOpen] = useState(false);
 
   const initials = user?.email ? user.email.substring(0, 2).toUpperCase() : "??";
 
@@ -67,39 +66,7 @@ export function TopHeader({
 
         {/* RIGHT: Company switcher | Referrals | Lang | Notif | Avatar */}
         <div className="flex items-center gap-1.5">
-          {/* Organization switcher */}
-          <div className="relative">
-            <button
-              onClick={() => setOrgOpen((o) => !o)}
-              className="flex items-center gap-2 pl-2.5 pr-2 py-1.5 rounded-lg hover:bg-secondary transition-all duration-200 text-[13px]"
-            >
-              <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-foreground font-medium">{organizationName}</span>
-              <ChevronDown className="w-3 h-3 text-muted-foreground" />
-            </button>
-            {orgOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setOrgOpen(false)} />
-                <div className="absolute right-0 top-11 z-50 w-60 rounded-xl bg-card border border-border shadow-lg overflow-hidden">
-                  <div className="px-3 py-2 border-b border-border">
-                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{t("header.switchOrg")}</p>
-                  </div>
-                  <button className="w-full flex items-center gap-2 px-3 py-2.5 text-[13px] text-foreground bg-secondary/60">
-                    <span className="w-2 h-2 rounded-full bg-primary" />
-                    <span className="flex-1 text-left truncate">{organizationName}</span>
-                    <span className="text-[10px] text-muted-foreground">Actief</span>
-                  </button>
-                  <div className="border-t border-border" />
-                  <button
-                    onClick={() => { setOrgOpen(false); navigate("/instellingen"); }}
-                    className="w-full text-left px-3 py-2 text-[13px] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-                  >
-                    {t("header.editOrg")}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+          <OrgSwitcher />
 
           <div className="w-px h-5 bg-border mx-1" />
 
