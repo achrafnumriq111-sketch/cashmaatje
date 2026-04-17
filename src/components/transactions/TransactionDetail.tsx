@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Sparkles, Save } from "lucide-react";
+import { Sparkles, Save, FileText, ScrollText, Link2, ExternalLink } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useUpdateTransaction } from "@/hooks/useTransactions";
 import { toast } from "sonner";
 
@@ -23,6 +24,7 @@ function fmtAmount(n: number) {
 
 export function TransactionDetail({ transaction: tx, open, onClose, accounts }: Props) {
   const updateTx = useUpdateTransaction();
+  const navigate = useNavigate();
   const [selectedAccountId, setSelectedAccountId] = useState<string>("");
   const [accountSearch, setAccountSearch] = useState("");
 
@@ -143,6 +145,39 @@ export function TransactionDetail({ transaction: tx, open, onClose, accounts }: 
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Audit trail — gekoppelde stukken */}
+          <Separator className="bg-border/50" />
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Link2 className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">Audit trail</span>
+            </div>
+            <div className="space-y-1.5 text-sm">
+              {tx.matched_invoice_id ? (
+                <button
+                  onClick={() => { onClose(); navigate(tx.amount > 0 ? "/facturen/verkoop" : "/facturen/inkoop"); }}
+                  className="w-full flex items-center justify-between rounded-md bg-muted/30 hover:bg-muted/50 transition-colors px-3 py-2 text-left"
+                >
+                  <span className="flex items-center gap-2"><FileText className="h-3.5 w-3.5" /> Gekoppelde factuur</span>
+                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              ) : (
+                <p className="text-xs text-muted-foreground italic px-3 py-2">Geen factuur gekoppeld</p>
+              )}
+              {tx.journal_entry_id ? (
+                <button
+                  onClick={() => { onClose(); navigate("/journaalposten"); }}
+                  className="w-full flex items-center justify-between rounded-md bg-muted/30 hover:bg-muted/50 transition-colors px-3 py-2 text-left"
+                >
+                  <span className="flex items-center gap-2"><ScrollText className="h-3.5 w-3.5" /> Journaalpost</span>
+                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              ) : (
+                <p className="text-xs text-muted-foreground italic px-3 py-2">Nog geen journaalpost geboekt</p>
+              )}
+            </div>
           </div>
 
           <Button onClick={handleSave} disabled={updateTx.isPending} className="w-full">
