@@ -2029,6 +2029,50 @@ export type Database = {
           },
         ]
       }
+      module_entitlements: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          granted_at: string
+          granted_by: string | null
+          id: string
+          metadata: Json | null
+          module_key: string
+          organization_id: string
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          metadata?: Json | null
+          module_key: string
+          organization_id: string
+          source?: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          metadata?: Json | null
+          module_key?: string
+          organization_id?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_entitlements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mortgage_deduction: {
         Row: {
           created_at: string | null
@@ -2584,6 +2628,90 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          successful_invites: number
+          total_invites: number
+          total_revenue_cents: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          successful_invites?: number
+          total_invites?: number
+          total_revenue_cents?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          successful_invites?: number
+          total_invites?: number
+          total_revenue_cents?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referral_invites: {
+        Row: {
+          converted_at: string | null
+          created_at: string
+          id: string
+          invited_email: string | null
+          invited_name: string | null
+          notes: string | null
+          referral_code: string
+          referrer_user_id: string
+          reward_granted: boolean
+          reward_type: string | null
+          signed_up_at: string | null
+          signed_up_user_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          converted_at?: string | null
+          created_at?: string
+          id?: string
+          invited_email?: string | null
+          invited_name?: string | null
+          notes?: string | null
+          referral_code: string
+          referrer_user_id: string
+          reward_granted?: boolean
+          reward_type?: string | null
+          signed_up_at?: string | null
+          signed_up_user_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          converted_at?: string | null
+          created_at?: string
+          id?: string
+          invited_email?: string | null
+          invited_name?: string | null
+          notes?: string | null
+          referral_code?: string
+          referrer_user_id?: string
+          reward_granted?: boolean
+          reward_type?: string | null
+          signed_up_at?: string | null
+          signed_up_user_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       supplier_patterns: {
         Row: {
