@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { LedgerFilters } from "@/components/ledger/LedgerFilters";
 import { LedgerTable } from "@/components/ledger/LedgerTable";
 import { AccountDetail } from "@/components/ledger/AccountDetail";
+import { CreateAccountDialog } from "@/components/ledger/CreateAccountDialog";
 import { useGeneralLedger, type LedgerFilters as Filters, type LedgerAccount } from "@/hooks/useGeneralLedger";
 import { toast } from "sonner";
 import { startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, format } from "date-fns";
@@ -58,14 +59,17 @@ export default function GeneralLedger() {
             {stats.anomalies > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500/15 text-amber-400 border-0 text-[10px]">{stats.anomalies} afwijkend saldo</Badge>}
           </p>
         </div>
-        <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="month">Maand</SelectItem>
-            <SelectItem value="quarter">Kwartaal</SelectItem>
-            <SelectItem value="year">Jaar</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <CreateAccountDialog />
+          <Select value={period} onValueChange={setPeriod}>
+            <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="month">Maand</SelectItem>
+              <SelectItem value="quarter">Kwartaal</SelectItem>
+              <SelectItem value="year">Jaar</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </motion.div>
 
       <motion.div variants={cardVariant}><LedgerFilters filters={filters} onChange={setFilters} onExport={handleExport} /></motion.div>

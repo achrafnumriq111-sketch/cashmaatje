@@ -33,6 +33,7 @@ const dict: Dict = {
   "nav.invoices": { nl: "Facturen", en: "Invoices" },
   "nav.invoices.sales": { nl: "Verkoop", en: "Sales" },
   "nav.invoices.purchase": { nl: "Inkoop", en: "Purchase" },
+  "nav.invoices.reminders": { nl: "Herinneringen", en: "Reminders" },
   "nav.reconciliation": { nl: "Reconciliatie", en: "Reconciliation" },
   "nav.documents": { nl: "Documenten & Bonnen", en: "Documents & Receipts" },
   "nav.vat": { nl: "BTW", en: "VAT" },
