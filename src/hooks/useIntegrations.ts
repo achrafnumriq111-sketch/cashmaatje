@@ -17,7 +17,8 @@ export interface IntegrationConnection {
 }
 
 export function useIntegrations() {
-  const { activeOrgId } = useOrganization();
+  const { membership } = useOrganization();
+  const activeOrgId = membership?.organizationId ?? null;
   const qc = useQueryClient();
 
   const connectionsQuery = useQuery({

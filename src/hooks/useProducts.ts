@@ -25,7 +25,8 @@ export interface Product {
 }
 
 export function useProducts() {
-  const { activeOrgId } = useOrganization();
+  const { membership } = useOrganization();
+  const activeOrgId = membership?.organizationId ?? null;
   const qc = useQueryClient();
 
   const productsQuery = useQuery({
@@ -121,7 +122,8 @@ export function useProducts() {
 }
 
 export function useStockMovements(productId?: string) {
-  const { activeOrgId } = useOrganization();
+  const { membership } = useOrganization();
+  const activeOrgId = membership?.organizationId ?? null;
 
   return useQuery({
     queryKey: ["stock_movements", activeOrgId, productId],
