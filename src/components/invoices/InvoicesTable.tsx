@@ -57,7 +57,19 @@ export function InvoicesTable({ invoices, isLoading, onSelect }: Props) {
       <TableBody>
         {invoices.map((inv) => {
           const s = STATUS_MAP[inv.status] ?? STATUS_MAP.draft;
-          const isOverdue = inv.due_date && inv.status === "sent" && new Date(inv.due_date) < new Date();
+          const dueDate = inv.due_date ? new Date(inv.due_date) : null;
+          const today = new Date(); today.setHours(0,0,0,0);
+          const daysDiff = dueDate ? Math.round((dueDate.getTime() - today.getTime()) / 86400000) : null;
+          const isUnpaid = ["sent","partial","overdue"].includes(inv.status);
+          const isOverdue = isUnpaid && daysDiff !== null && daysDiff < 0;
+
+          let countdown: { label: string; cls: string } | null = null;
+          if (isUnpaid && daysDiff !== null) {
+            if (daysDiff < 0) countdown = { label: `${Math.abs(daysDiff)}d te laat`, cls: "bg-destructive/15 text-destructive" };
+            else if (daysDiff === 0) countdown = { label: "Vervalt vandaag", cls: "bg-amber-500/15 text-amber-400" };
+            else if (daysDiff <= 7) countdown = { label: `${daysDiff}d resterend`, cls: "bg-amber-500/15 text-amber-400" };
+            else countdown = { label: `${daysDiff}d resterend`, cls: "bg-muted text-muted-foreground" };
+          }
 
           return (
             <TableRow
@@ -77,9 +89,16 @@ export function InvoicesTable({ invoices, isLoading, onSelect }: Props) {
                 </Badge>
               </TableCell>
               <TableCell>
-                {inv.due_date
-                  ? format(new Date(inv.due_date), "d MMM yyyy", { locale: nl })
-                  : "—"}
+                {dueDate ? (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm">{format(dueDate, "d MMM yyyy", { locale: nl })}</span>
+                    {countdown && (
+                      <Badge variant="secondary" className={`text-[10px] border-0 w-fit ${countdown.cls}`}>
+                        {countdown.label}
+                      </Badge>
+                    )}
+                  </div>
+                ) : "—"}
               </TableCell>
             </TableRow>
           );

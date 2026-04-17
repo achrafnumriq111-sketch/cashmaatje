@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useContactStats } from "@/hooks/useContacts";
 import { Building2, User, Globe, Mail, Phone, CreditCard, FileText, ArrowLeftRight, TrendingUp, Calendar } from "lucide-react";
+import { ContactActivityLog } from "./ContactActivityLog";
 
 function fmtAmount(n: number) {
   return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(n);
@@ -151,6 +152,10 @@ export function ContactDetail({ contact, open, onClose }: Props) {
                   </div>
                 ) : null}
               </div>
+
+              <Separator />
+
+              <ContactActivityLog contactId={contact.id} email={contact.email} phone={contact.phone} />
             </div>
           </>
         )}
