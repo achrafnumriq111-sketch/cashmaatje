@@ -78,6 +78,7 @@ const dict: Dict = {
   "header.language": { nl: "Taal", en: "Language" },
   "header.switchOrg": { nl: "Wissel organisatie", en: "Switch organization" },
   "header.editOrg": { nl: "Bedrijfsgegevens", en: "Company details" },
+  "header.bulkSettings": { nl: "Bulk instellingen", en: "Bulk settings" },
 
   // Chat
   "chat.title": { nl: "Cashmaatje Assistent", en: "Cashmaatje Assistant" },
