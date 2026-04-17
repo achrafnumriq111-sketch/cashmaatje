@@ -6,71 +6,85 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
-  Gift, Link, Mail, Share2, Users, Copy, TrendingUp, Euro,
-  CheckCircle, Clock, ExternalLink, Sparkles, Zap
+  Gift, Link as LinkIcon, Mail, Share2, Users, Copy, TrendingUp, Euro,
+  CheckCircle, Clock, Sparkles, Zap, Loader2,
 } from "lucide-react";
 import { pageTransition, staggerContainer, cardVariant } from "@/lib/animations";
 import { toast } from "sonner";
-
-const referralCode = "ARCORY-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-const referralLink = `https://arcory.app/ref/${referralCode}`;
-
-const mockReferrals = [
-  { id: "1", name: "Jan de Vries", email: "jan@example.nl", status: "active", revenue: 2400, date: "2026-03-15" },
-  { id: "2", name: "Sara Bakker", email: "sara@bedrijf.nl", status: "active", revenue: 1800, date: "2026-03-22" },
-  { id: "3", name: "Mohammed El-Hassan", email: "m.hassan@corp.nl", status: "pending", revenue: 0, date: "2026-04-01" },
-  { id: "4", name: "Lisa van Dijk", email: "lisa@startup.io", status: "pending", revenue: 0, date: "2026-04-05" },
-  { id: "5", name: "Thomas Jansen", email: "thomas@bv.nl", status: "converted", revenue: 3600, date: "2026-02-10" },
-];
-
-const rewards = [
-  { threshold: 1, label: "1 referral", reward: "1 maand gratis", unlocked: true },
-  { threshold: 3, label: "3 referrals", reward: "Premium features", unlocked: true },
-  { threshold: 5, label: "5 referrals", reward: "€100 tegoed", unlocked: false },
-  { threshold: 10, label: "10 referrals", reward: "Partner status", unlocked: false },
-];
+import { useReferralCode, useReferralInvites } from "@/hooks/useReferrals";
+import { MODULE_CATALOG } from "@/hooks/useEntitlements";
 
 export default function ReferralCenter() {
+  const { data: codeRow, isLoading: codeLoading } = useReferralCode();
+  const { invites, isLoading: invitesLoading, create } = useReferralInvites();
   const [copyFeedback, setCopyFeedback] = useState(false);
-  const activeRefs = mockReferrals.filter(r => r.status === "active").length;
-  const totalRevenue = mockReferrals.reduce((s, r) => s + r.revenue, 0);
-  const conversionRate = Math.round((mockReferrals.filter(r => r.status !== "pending").length / mockReferrals.length) * 100);
+  const [inviteEmail, setInviteEmail] = useState("");
+
+  const referralCode = codeRow?.code ?? "";
+  const referralLink = referralCode ? `${window.location.origin}/register?ref=${referralCode}` : "";
+
+  const successful = invites.filter((i) => i.status === "converted" || i.status === "signed_up").length;
+  const totalRevenue = (codeRow?.total_revenue_cents ?? 0) / 100;
+  const conversionRate = invites.length ? Math.round((successful / invites.length) * 100) : 0;
+
+  // Beloningen afgeleid van module-catalogus
+  const referralRewards = MODULE_CATALOG
+    .filter((m) => m.unlockMethod === "referral")
+    .sort((a, b) => (a.requiredReferrals ?? 0) - (b.requiredReferrals ?? 0))
+    .map((m) => ({
+      threshold: m.requiredReferrals ?? 1,
+      label: `${m.requiredReferrals} referral${(m.requiredReferrals ?? 1) > 1 ? "s" : ""}`,
+      reward: m.name,
+      unlocked: successful >= (m.requiredReferrals ?? 1),
+    }));
 
   const handleCopy = () => {
+    if (!referralLink) return;
     navigator.clipboard.writeText(referralLink);
     setCopyFeedback(true);
     toast.success("Link gekopieerd!");
     setTimeout(() => setCopyFeedback(false), 2000);
   };
 
+  const handleSendInvite = () => {
+    if (!inviteEmail.trim() || !referralCode) return;
+    create.mutate({ code: referralCode, email: inviteEmail.trim() });
+    setInviteEmail("");
+  };
+
   const handleWhatsApp = () => {
-    window.open(`https://wa.me/?text=Probeer Arcory voor je boekhouding! ${referralLink}`, "_blank");
+    if (!referralLink) return;
+    window.open(`https://wa.me/?text=${encodeURIComponent(`Probeer Cashmaatje voor je boekhouding! ${referralLink}`)}`, "_blank");
   };
 
   const handleEmail = () => {
-    window.open(`mailto:?subject=Probeer Arcory&body=Ik gebruik Arcory voor mijn boekhouding en het is geweldig! Meld je aan via: ${referralLink}`, "_blank");
+    if (!referralLink) return;
+    window.open(`mailto:?subject=${encodeURIComponent("Probeer Cashmaatje")}&body=${encodeURIComponent(`Ik gebruik Cashmaatje voor mijn boekhouding. Meld je aan via: ${referralLink}`)}`, "_blank");
   };
+
+  if (codeLoading) {
+    return <div className="flex items-center justify-center h-96"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+  }
 
   return (
     <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-6">
       <motion.div variants={cardVariant}>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Referral Center</h1>
-        <p className="text-sm text-muted-foreground mt-1">Nodig anderen uit en verdien beloningen</p>
+        <p className="text-sm text-muted-foreground mt-1">Nodig anderen uit en ontgrendel premium modules</p>
       </motion.div>
 
-      {/* Stats */}
       <motion.div variants={staggerContainer} initial="initial" animate="animate" className="grid gap-4 sm:grid-cols-4">
         {[
-          { label: "Uitnodigingen", value: mockReferrals.length, icon: Users, color: "text-blue-400" },
-          { label: "Actieve klanten", value: activeRefs, icon: CheckCircle, color: "text-primary" },
-          { label: "Conversie", value: `${conversionRate}%`, icon: TrendingUp, color: "text-amber-400" },
-          { label: "Gegenereerde omzet", value: `€${(totalRevenue / 1000).toFixed(1)}k`, icon: Euro, color: "text-emerald-400" },
-        ].map(s => (
+          { label: "Uitnodigingen", value: invites.length, icon: Users },
+          { label: "Geconverteerd", value: successful, icon: CheckCircle },
+          { label: "Conversie", value: `${conversionRate}%`, icon: TrendingUp },
+          { label: "Omzet", value: `€${(totalRevenue / 1000).toFixed(1)}k`, icon: Euro },
+        ].map((s) => (
           <motion.div key={s.label} variants={cardVariant}>
             <Card className="arcory-glass">
               <CardContent className="pt-4 pb-3">
                 <div className="flex items-center justify-between">
-                  <s.icon className={`h-4 w-4 ${s.color}`} />
+                  <s.icon className="h-4 w-4 text-primary" />
                   <span className="text-xl font-bold text-foreground">{s.value}</span>
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-1">{s.label}</p>
@@ -81,11 +95,10 @@ export default function ReferralCenter() {
       </motion.div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Share section */}
         <motion.div variants={cardVariant} className="lg:col-span-2 space-y-4">
           <Card className="arcory-glass">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2"><Link className="h-4 w-4 text-primary" />Jouw referral link</CardTitle>
+              <CardTitle className="text-sm flex items-center gap-2"><LinkIcon className="h-4 w-4 text-primary" />Jouw referral link</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-2">
@@ -96,11 +109,24 @@ export default function ReferralCenter() {
                 </Button>
               </div>
               <div className="flex gap-2">
+                <Input
+                  placeholder="E-mailadres uitnodiging..."
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  className="flex-1"
+                  onKeyDown={(e) => e.key === "Enter" && handleSendInvite()}
+                />
+                <Button size="sm" className="gap-1.5" onClick={handleSendInvite} disabled={!inviteEmail.trim() || create.isPending}>
+                  {create.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Mail className="h-3.5 w-3.5" />}
+                  Verstuur
+                </Button>
+              </div>
+              <div className="flex gap-2">
                 <Button variant="outline" size="sm" className="gap-1.5 flex-1" onClick={handleEmail}>
-                  <Mail className="h-4 w-4" />Email uitnodiging
+                  <Mail className="h-4 w-4" />Email
                 </Button>
                 <Button variant="outline" size="sm" className="gap-1.5 flex-1" onClick={handleWhatsApp}>
-                  <Share2 className="h-4 w-4" />WhatsApp delen
+                  <Share2 className="h-4 w-4" />WhatsApp
                 </Button>
               </div>
               <div className="p-3 rounded-xl bg-primary/5 border border-primary/10">
@@ -113,50 +139,51 @@ export default function ReferralCenter() {
             </CardContent>
           </Card>
 
-          {/* Referral list */}
           <Card className="arcory-glass">
-            <CardHeader className="pb-3"><CardTitle className="text-sm">Jouw referrals</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="text-sm">Verstuurde uitnodigingen</CardTitle></CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {mockReferrals.map(r => (
-                  <div key={r.id} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors">
-                    <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                      <Users className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-foreground">{r.name}</p>
-                      <p className="text-[10px] text-muted-foreground">{r.email}</p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <Badge variant="outline" className={`text-[9px] ${r.status === "active" ? "text-primary border-primary/30" : r.status === "converted" ? "text-amber-400 border-amber-400/30" : "text-muted-foreground"}`}>
-                        {r.status === "active" ? "Actief" : r.status === "converted" ? "Geconverteerd" : "Uitgenodigd"}
+              {invitesLoading ? (
+                <div className="text-xs text-muted-foreground py-6 text-center">Laden...</div>
+              ) : invites.length === 0 ? (
+                <div className="text-xs text-muted-foreground py-6 text-center">Nog geen uitnodigingen verstuurd.</div>
+              ) : (
+                <div className="space-y-2">
+                  {invites.map((r) => (
+                    <div key={r.id} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors">
+                      <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <Users className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-foreground truncate">{r.invited_name ?? r.invited_email}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">{r.invited_email}</p>
+                      </div>
+                      <Badge variant="outline" className="text-[9px]">
+                        {r.status === "converted" ? "Geconverteerd" : r.status === "signed_up" ? "Aangemeld" : "Uitgenodigd"}
                       </Badge>
-                      {r.revenue > 0 && <p className="text-[10px] text-primary mt-0.5">€{r.revenue}</p>}
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Rewards */}
         <motion.div variants={cardVariant}>
           <Card className="arcory-glass">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2"><Gift className="h-4 w-4 text-amber-400" />Beloningen</CardTitle>
+              <CardTitle className="text-sm flex items-center gap-2"><Gift className="h-4 w-4 text-primary" />Module beloningen</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <div className="flex justify-between text-xs mb-1.5">
                   <span className="text-muted-foreground">Voortgang</span>
-                  <span className="text-foreground font-medium">{activeRefs + 1} / 5 referrals</span>
+                  <span className="text-foreground font-medium">{successful} referrals</span>
                 </div>
-                <Progress value={((activeRefs + 1) / 5) * 100} className="h-2" />
+                <Progress value={Math.min(100, (successful / 3) * 100)} className="h-2" />
               </div>
               <div className="space-y-2">
-                {rewards.map(r => (
-                  <div key={r.threshold} className={`p-3 rounded-xl border transition-all ${r.unlocked ? "border-primary/30 bg-primary/5" : "border-border bg-muted/10"}`}>
+                {referralRewards.map((r) => (
+                  <div key={`${r.threshold}-${r.reward}`} className={`p-3 rounded-xl border transition-all ${r.unlocked ? "border-primary/30 bg-primary/5" : "border-border bg-muted/10"}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {r.unlocked ? <CheckCircle className="h-4 w-4 text-primary" /> : <Clock className="h-4 w-4 text-muted-foreground" />}
@@ -165,7 +192,7 @@ export default function ReferralCenter() {
                           <p className="text-[10px] text-muted-foreground">{r.reward}</p>
                         </div>
                       </div>
-                      {r.unlocked && <Zap className="h-4 w-4 text-amber-400" />}
+                      {r.unlocked && <Zap className="h-4 w-4 text-primary" />}
                     </div>
                   </div>
                 ))}
