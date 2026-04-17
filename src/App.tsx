@@ -52,6 +52,7 @@ import CorporateStructure from "./pages/CorporateStructure";
 import FinancialIntelligence from "./pages/FinancialIntelligence";
 import Inventory from "./pages/Inventory";
 import Integrations from "./pages/Integrations";
+import PaymentReminders from "./pages/PaymentReminders";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +75,7 @@ const App = () => (
               <Route path="transacties" element={<Transactions />} />
               <Route path="facturen/verkoop" element={<SalesInvoices />} />
               <Route path="facturen/inkoop" element={<PurchaseInvoices />} />
+              <Route path="facturen/herinneringen" element={<PaymentReminders />} />
               <Route path="reconciliatie" element={<Reconciliation />} />
               <Route path="bonnen" element={<Receipts />} />
               <Route path="documenten" element={<Documents />} />

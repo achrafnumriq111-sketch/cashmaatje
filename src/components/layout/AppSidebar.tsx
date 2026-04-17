@@ -34,6 +34,7 @@ const navItems: NavItem[] = [
     children: [
       { id: "verkoop", labelKey: "nav.invoices.sales", path: "/facturen/verkoop" },
       { id: "inkoop", labelKey: "nav.invoices.purchase", path: "/facturen/inkoop" },
+      { id: "herinneringen", labelKey: "nav.invoices.reminders", path: "/facturen/herinneringen" },
     ],
   },
   { id: "reconciliatie", labelKey: "nav.reconciliation", icon: <GitMerge size={18} />, path: "/reconciliatie" },
