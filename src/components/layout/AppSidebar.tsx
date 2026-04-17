@@ -5,10 +5,11 @@ import {
   LayoutDashboard, ArrowLeftRight, FileText, GitMerge,
   Receipt, BarChart3, Users, BookOpen, ScrollText,
   Settings, Shield, Wallet, ChevronDown, FileCheck, Briefcase,
-  Palette, Building2, Boxes, Plug, Calculator,
+  Palette, Building2, Boxes, Plug, Calculator, Lock,
 } from "lucide-react";
 import { staggerContainer, sidebarItemVariant, sidebarSubMenuVariant } from "@/lib/animations";
 import { useI18n } from "@/lib/i18n";
+import { useEntitlements } from "@/hooks/useEntitlements";
 import type { Database } from "@/integrations/supabase/types";
 
 type UserRole = Database["public"]["Enums"]["user_role"];
@@ -17,12 +18,14 @@ interface NavChild {
   id: string;
   labelKey: string;
   path: string;
+  moduleKey?: string;
 }
 interface NavItem {
   id: string;
   labelKey: string;
   icon: React.ReactNode;
   path?: string;
+  moduleKey?: string;
   children?: NavChild[];
 }
 
@@ -67,8 +70,8 @@ const navItems: NavItem[] = [
       { id: "balans", labelKey: "nav.balanceSheet", path: "/rapporten/balans" },
       { id: "proefbalans", labelKey: "nav.trialBalance", path: "/rapporten/proefbalans" },
       { id: "cashflow", labelKey: "nav.cashflow", path: "/rapporten/cashflow" },
-      { id: "jaarrekening", labelKey: "nav.annualReport", path: "/rapporten/jaarrekening" },
-      { id: "intelligence", labelKey: "nav.intelligence", path: "/rapporten/intelligence" },
+      { id: "jaarrekening", labelKey: "nav.annualReport", path: "/rapporten/jaarrekening", moduleKey: "annual_report" },
+      { id: "intelligence", labelKey: "nav.intelligence", path: "/rapporten/intelligence", moduleKey: "financial_intelligence" },
     ],
   },
   { id: "relaties", labelKey: "nav.contacts", icon: <Users size={18} />, path: "/relaties" },
@@ -80,18 +83,18 @@ const navItems: NavItem[] = [
   {
     id: "audit", labelKey: "nav.audit", icon: <FileCheck size={18} />,
     children: [
-      { id: "audit-dossier", labelKey: "nav.audit.dossier", path: "/audit/dossier" },
-      { id: "contract-check", labelKey: "nav.audit.contracts", path: "/audit/contracten" },
-      { id: "compliance", labelKey: "nav.audit.compliance", path: "/audit/compliance" },
-      { id: "process-flows", labelKey: "nav.audit.processes", path: "/audit/processen" },
+      { id: "audit-dossier", labelKey: "nav.audit.dossier", path: "/audit/dossier", moduleKey: "audit_dossier" },
+      { id: "contract-check", labelKey: "nav.audit.contracts", path: "/audit/contracten", moduleKey: "contract_intelligence" },
+      { id: "compliance", labelKey: "nav.audit.compliance", path: "/audit/compliance", moduleKey: "compliance_check" },
+      { id: "process-flows", labelKey: "nav.audit.processes", path: "/audit/processen", moduleKey: "process_flows" },
     ],
   },
   {
     id: "platform", labelKey: "nav.platform", icon: <Building2 size={18} />,
     children: [
-      { id: "stakeholders", labelKey: "nav.platform.stakeholders", path: "/platform/stakeholders" },
-      { id: "automation", labelKey: "nav.platform.automation", path: "/platform/automation" },
-      { id: "corporate", labelKey: "nav.platform.structure", path: "/platform/structuur" },
+      { id: "stakeholders", labelKey: "nav.platform.stakeholders", path: "/platform/stakeholders", moduleKey: "stakeholder_crm" },
+      { id: "automation", labelKey: "nav.platform.automation", path: "/platform/automation", moduleKey: "automation_center" },
+      { id: "corporate", labelKey: "nav.platform.structure", path: "/platform/structuur", moduleKey: "corporate_structure" },
     ],
   },
 ];
@@ -100,6 +103,7 @@ export function AppSidebar({ role }: { role?: UserRole }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useI18n();
+  const { isUnlocked } = useEntitlements();
   const [expanded, setExpanded] = useState<string | null>(null);
   const path = location.pathname;
 
@@ -207,20 +211,22 @@ export function AppSidebar({ role }: { role?: UserRole }) {
                     <div className="ml-8 mt-0.5 space-y-0.5 py-1">
                       {item.children.map((child) => {
                         const childActive = path === child.path || path.startsWith(child.path + "/");
+                        const locked = child.moduleKey ? !isUnlocked(child.moduleKey) : false;
                         return (
                           <button
                             key={child.id}
                             onClick={() => navigate(child.path)}
                             className={`
                               w-full text-left px-3 py-2 rounded-lg text-[12.5px]
-                              transition-all duration-200
+                              transition-all duration-200 flex items-center justify-between gap-2
                               ${childActive
                                 ? "text-primary font-medium bg-primary/[0.06]"
                                 : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                               }
                             `}
                           >
-                            {t(child.labelKey)}
+                            <span className="truncate">{t(child.labelKey)}</span>
+                            {locked && <Lock className="w-3 h-3 text-muted-foreground/60 flex-shrink-0" />}
                           </button>
                         );
                       })}

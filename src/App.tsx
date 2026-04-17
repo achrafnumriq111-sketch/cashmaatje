@@ -53,6 +53,7 @@ import FinancialIntelligence from "./pages/FinancialIntelligence";
 import Inventory from "./pages/Inventory";
 import Integrations from "./pages/Integrations";
 import PaymentReminders from "./pages/PaymentReminders";
+import { ModuleLockOverlay } from "./components/modules/ModuleLockOverlay";
 
 const queryClient = new QueryClient();
 
@@ -85,8 +86,8 @@ const App = () => (
               <Route path="rapporten/balans" element={<BalanceSheet />} />
               <Route path="rapporten/proefbalans" element={<TrialBalance />} />
               <Route path="rapporten/cashflow" element={<Cashflow />} />
-              <Route path="rapporten/jaarrekening" element={<AnnualReport />} />
-              <Route path="rapporten/intelligence" element={<FinancialIntelligence />} />
+              <Route path="rapporten/jaarrekening" element={<ModuleLockOverlay moduleKey="annual_report"><AnnualReport /></ModuleLockOverlay>} />
+              <Route path="rapporten/intelligence" element={<ModuleLockOverlay moduleKey="financial_intelligence"><FinancialIntelligence /></ModuleLockOverlay>} />
               <Route path="belasting/ondernemersaftrek" element={<TaxDeductions />} />
               <Route path="salaris" element={<SalaryOverview />} />
               <Route path="salaris/bedrijfskosten" element={<BusinessExpenses />} />
@@ -101,15 +102,15 @@ const App = () => (
               <Route path="integraties" element={<Integrations />} />
               {/* New enterprise modules */}
               <Route path="offerte-studio" element={<OfferteStudio />} />
-              <Route path="audit/dossier" element={<AuditDossier />} />
-              <Route path="audit/contracten" element={<ContractIntelligence />} />
-              <Route path="audit/compliance" element={<ComplianceCheck />} />
-              <Route path="audit/processen" element={<ProcessFlows />} />
-              <Route path="platform/stakeholders" element={<StakeholderCRM />} />
-              <Route path="platform/automation" element={<AutomationCenter />} />
-              <Route path="platform/structuur" element={<CorporateStructure />} />
+              <Route path="audit/dossier" element={<ModuleLockOverlay moduleKey="audit_dossier"><AuditDossier /></ModuleLockOverlay>} />
+              <Route path="audit/contracten" element={<ModuleLockOverlay moduleKey="contract_intelligence"><ContractIntelligence /></ModuleLockOverlay>} />
+              <Route path="audit/compliance" element={<ModuleLockOverlay moduleKey="compliance_check"><ComplianceCheck /></ModuleLockOverlay>} />
+              <Route path="audit/processen" element={<ModuleLockOverlay moduleKey="process_flows"><ProcessFlows /></ModuleLockOverlay>} />
+              <Route path="platform/stakeholders" element={<ModuleLockOverlay moduleKey="stakeholder_crm"><StakeholderCRM /></ModuleLockOverlay>} />
+              <Route path="platform/automation" element={<ModuleLockOverlay moduleKey="automation_center"><AutomationCenter /></ModuleLockOverlay>} />
+              <Route path="platform/structuur" element={<ModuleLockOverlay moduleKey="corporate_structure"><CorporateStructure /></ModuleLockOverlay>} />
               <Route path="platform/referral" element={<ReferralCenter />} />
-              <Route path="platform/themas" element={<ThemeStudio />} />
+              <Route path="platform/themas" element={<ModuleLockOverlay moduleKey="theme_studio"><ThemeStudio /></ModuleLockOverlay>} />
               <Route path="instellingen" element={<Placeholder />} />
               <Route path="instellingen/bulk" element={<BulkSettings />} />
               <Route path="audit-log" element={<Placeholder />} />
