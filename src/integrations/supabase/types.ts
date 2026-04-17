@@ -1555,6 +1555,59 @@ export type Database = {
           },
         ]
       }
+      integration_connections: {
+        Row: {
+          config: Json | null
+          connected_at: string | null
+          connected_by: string | null
+          created_at: string | null
+          display_name: string
+          id: string
+          integration_key: string
+          last_error: string | null
+          last_sync_at: string | null
+          organization_id: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          config?: Json | null
+          connected_at?: string | null
+          connected_by?: string | null
+          created_at?: string | null
+          display_name: string
+          id?: string
+          integration_key: string
+          last_error?: string | null
+          last_sync_at?: string | null
+          organization_id: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          config?: Json | null
+          connected_at?: string | null
+          connected_by?: string | null
+          created_at?: string | null
+          display_name?: string
+          id?: string
+          integration_key?: string
+          last_error?: string | null
+          last_sync_at?: string | null
+          organization_id?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_connections_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_lines: {
         Row: {
           account_id: string | null
@@ -2434,6 +2487,77 @@ export type Database = {
         }
         Relationships: []
       }
+      products: {
+        Row: {
+          barcode: string | null
+          category: string | null
+          created_at: string | null
+          current_stock: number | null
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          min_stock: number | null
+          name: string
+          notes: string | null
+          organization_id: string
+          purchase_price: number | null
+          sales_price: number | null
+          sku: string
+          unit: string | null
+          updated_at: string | null
+          vat_percentage: number | null
+        }
+        Insert: {
+          barcode?: string | null
+          category?: string | null
+          created_at?: string | null
+          current_stock?: number | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          min_stock?: number | null
+          name: string
+          notes?: string | null
+          organization_id: string
+          purchase_price?: number | null
+          sales_price?: number | null
+          sku: string
+          unit?: string | null
+          updated_at?: string | null
+          vat_percentage?: number | null
+        }
+        Update: {
+          barcode?: string | null
+          category?: string | null
+          created_at?: string | null
+          current_stock?: number | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          min_stock?: number | null
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          purchase_price?: number | null
+          sales_price?: number | null
+          sku?: string
+          unit?: string | null
+          updated_at?: string | null
+          vat_percentage?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reconciliation_rules: {
         Row: {
           assign_account_id: string | null
@@ -2712,6 +2836,161 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      stock_count_lines: {
+        Row: {
+          counted_quantity: number | null
+          created_at: string | null
+          difference: number | null
+          expected_quantity: number
+          id: string
+          notes: string | null
+          product_id: string
+          stock_count_id: string
+        }
+        Insert: {
+          counted_quantity?: number | null
+          created_at?: string | null
+          difference?: number | null
+          expected_quantity?: number
+          id?: string
+          notes?: string | null
+          product_id: string
+          stock_count_id: string
+        }
+        Update: {
+          counted_quantity?: number | null
+          created_at?: string | null
+          difference?: number | null
+          expected_quantity?: number
+          id?: string
+          notes?: string | null
+          product_id?: string
+          stock_count_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_count_lines_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_count_lines_stock_count_id_fkey"
+            columns: ["stock_count_id"]
+            isOneToOne: false
+            referencedRelation: "stock_counts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_counts: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          count_date: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          count_date?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          count_date?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_counts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_movements: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          movement_date: string
+          movement_type: string
+          notes: string | null
+          organization_id: string
+          product_id: string
+          quantity: number
+          reference_id: string | null
+          reference_type: string | null
+          unit_price: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          movement_date?: string
+          movement_type: string
+          notes?: string | null
+          organization_id: string
+          product_id: string
+          quantity: number
+          reference_id?: string | null
+          reference_type?: string | null
+          unit_price?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          movement_date?: string
+          movement_type?: string
+          notes?: string | null
+          organization_id?: string
+          product_id?: string
+          quantity?: number
+          reference_id?: string | null
+          reference_type?: string | null
+          unit_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       supplier_patterns: {
         Row: {
