@@ -68,7 +68,6 @@ export function useReferralInvites() {
       });
       if (error) throw error;
       // Update teller
-      await supabase.rpc("set_limit", { value: 0.5 }).then(() => {}, () => {});
       const { data: codeRow } = await supabase
         .from("referral_codes")
         .select("total_invites")
