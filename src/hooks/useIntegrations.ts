@@ -42,12 +42,12 @@ export function useIntegrations() {
         integration_key: input.integration_key,
         display_name: input.display_name,
         status: input.status,
-        config: input.config ?? {},
+        config: (input.config ?? {}) as never,
         connected_at: input.status === "connected" ? new Date().toISOString() : null,
       };
       const { data, error } = await supabase
         .from("integration_connections")
-        .upsert(payload, { onConflict: "organization_id,integration_key" })
+        .upsert([payload], { onConflict: "organization_id,integration_key" })
         .select()
         .single();
       if (error) throw error;
