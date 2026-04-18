@@ -9,7 +9,7 @@ export function AuthLogo() {
         </svg>
       </div>
       <span className="text-lg font-semibold tracking-tight text-foreground">
-        Arcory Tax Intelligence
+        Cash Maatje
       </span>
     </div>
   );

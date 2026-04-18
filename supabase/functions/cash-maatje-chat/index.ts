@@ -5,7 +5,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `Je bent Cash Maatje, de AI-assistent van Arcory — een geautomatiseerde belasting- en boekhoudplatform voor Nederlandse ondernemers (ZZP, BV, eenmanszaak).
+const SYSTEM_PROMPT = `Je bent Cash Maatje, de AI-assistent van Cash Maatje — een geautomatiseerd belasting- en boekhoudplatform voor Nederlandse ondernemers (ZZP, BV, eenmanszaak).
 
 Je helpt gebruikers met:
 - Vragen over hun boekhouding, BTW-aangifte (omzetbelasting), inkomstenbelasting en VPB
@@ -18,7 +18,7 @@ Stijl:
 - Gebruik markdown waar nuttig (lijsten, **bold**, code-snippets)
 - Geef concrete antwoorden, geen vage waarschuwingen
 - Vermeld bij twijfel dat de gebruiker een belastingadviseur kan raadplegen voor specifieke situaties
-- Verwijs nooit naar onderliggende technologie zoals "Supabase", "Gemini" of "OpenAI" — je bent simpelweg de Arcory AI-assistent`;
+- Verwijs nooit naar onderliggende technologie zoals "Supabase", "Gemini" of "OpenAI" — je bent simpelweg de Cash Maatje AI-assistent`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });

@@ -20,7 +20,7 @@ interface ThemeConfig {
 }
 
 const themes: ThemeConfig[] = [
-  { id: "dark", name: "Arcory Dark", desc: "Standaard donker thema", colors: ["#0a0a0a", "#171717", "#10B981", "#27272a"], cssVars: { "--background": "0 0% 3.9%", "--primary": "160 84% 39%", "--card": "0 0% 7.8%" } },
+  { id: "dark", name: "Cash Maatje Dark", desc: "Standaard donker thema", colors: ["#0a0a0a", "#171717", "#10B981", "#27272a"], cssVars: { "--background": "0 0% 3.9%", "--primary": "160 84% 39%", "--card": "0 0% 7.8%" } },
   { id: "emerald", name: "Emerald Glass", desc: "Premium glaseffect met emerald accent", colors: ["#0c1017", "#131a24", "#10B981", "#1a2332"], cssVars: { "--background": "215 30% 5%", "--primary": "160 84% 39%", "--card": "215 25% 8%" } },
   { id: "midnight", name: "Midnight Blue", desc: "Diepblauw met koele tinten", colors: ["#0a0f1a", "#111827", "#3B82F6", "#1e293b"], cssVars: { "--background": "222 47% 5%", "--primary": "217 91% 60%", "--card": "222 47% 8%" } },
   { id: "light", name: "Minimal Light", desc: "Schoon licht thema", colors: ["#ffffff", "#f4f4f5", "#10B981", "#e4e4e7"], cssVars: { "--background": "0 0% 100%", "--primary": "160 84% 39%", "--card": "0 0% 100%" } },
@@ -82,7 +82,7 @@ export default function ThemeStudio() {
     <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-6">
       <motion.div variants={cardVariant}>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Theme Studio</h1>
-        <p className="text-sm text-muted-foreground mt-1">Personaliseer je Arcory ervaring</p>
+        <p className="text-sm text-muted-foreground mt-1">Personaliseer je Cash Maatje ervaring</p>
       </motion.div>
 
       <Tabs defaultValue="themes">

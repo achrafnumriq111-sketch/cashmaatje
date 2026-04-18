@@ -43,7 +43,7 @@ export default function Register() {
           <AuthLogo />
           <div className="text-center">
             <h1 className="text-xl font-semibold tracking-tight text-foreground">Create your account</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Get started with Arcory Tax Intelligence</p>
+            <p className="mt-1 text-sm text-muted-foreground">Begin met Cash Maatje</p>
           </div>
         </div>
 

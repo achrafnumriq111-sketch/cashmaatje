@@ -31,7 +31,7 @@ export default function StepDocumenten() {
             </div>
             <div className="flex-1">
               <p className="font-medium text-foreground">Auto-forwarding email</p>
-              <p className="text-sm text-muted-foreground">Stuur facturen automatisch door naar Arcory.</p>
+              <p className="text-sm text-muted-foreground">Stuur facturen automatisch door naar Cash Maatje.</p>
             </div>
             <span className="text-xs text-muted-foreground">Binnenkort</span>
           </CardContent>

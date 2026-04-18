@@ -337,7 +337,7 @@ export default function OfferteStudio() {
               <CardContent className="space-y-3">
                 <div>
                   <Label className="text-xs">Bedrijfsnaam</Label>
-                  <Input value={branding.companyName} onChange={e => setBranding({ ...branding, companyName: e.target.value })} placeholder="Arcory B.V." />
+                  <Input value={branding.companyName} onChange={e => setBranding({ ...branding, companyName: e.target.value })} placeholder="Cash Maatje B.V." />
                 </div>
                 <div>
                   <Label className="text-xs">Adres</Label>
