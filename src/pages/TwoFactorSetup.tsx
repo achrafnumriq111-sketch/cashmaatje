@@ -28,7 +28,7 @@ export default function TwoFactorSetup() {
         const { data: existing } = await supabase.auth.mfa.listFactors();
         if (existing) {
           for (const f of existing.totp ?? []) {
-            if (f.status === "unverified") await supabase.auth.mfa.unenroll({ factorId: f.id });
+            if ((f.status as string) !== "verified") await supabase.auth.mfa.unenroll({ factorId: f.id });
           }
         }
         const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: `Cashmaatje ${Date.now()}` });
