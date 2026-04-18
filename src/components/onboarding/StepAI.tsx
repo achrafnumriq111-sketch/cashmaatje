@@ -26,7 +26,7 @@ export default function StepAI({ data, setData }: Props) {
         <div className="flex items-center gap-3">
           <Brain className="h-5 w-5 text-primary" />
           <p className="text-sm text-foreground">
-            Arcory gebruikt AI om transacties automatisch te categoriseren en facturen te verwerken. Je houdt altijd de controle.
+            Cash Maatje gebruikt AI om transacties automatisch te categoriseren en facturen te verwerken. Je houdt altijd de controle.
           </p>
         </div>
       </div>
