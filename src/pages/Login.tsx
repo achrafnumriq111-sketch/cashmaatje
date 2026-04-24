@@ -20,9 +20,16 @@ export default function Login() {
     setLoading(true);
     try {
       if (mode === "password") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate("/");
+
+        const { data: roles } = await supabase
+          .from("platform_roles")
+          .select("role")
+          .eq("user_id", data.user.id);
+
+        const isSuperAdmin = roles?.some((role) => role.role === "super_admin");
+        navigate(isSuperAdmin ? "/admin" : "/");
       } else {
         const { error } = await supabase.auth.signInWithOtp({
           email,
