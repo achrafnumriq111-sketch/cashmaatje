@@ -218,7 +218,6 @@ export function useCreateInvoice() {
             subtotal: Math.round(subtotal * 100) / 100,
             total_vat: Math.round(totalVat * 100) / 100,
             total_amount: totalAmount,
-            amount_due: totalAmount,
             amount_paid: 0,
             currency: "EUR",
             created_by: userId,
