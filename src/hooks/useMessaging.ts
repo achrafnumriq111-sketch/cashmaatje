@@ -53,8 +53,8 @@ export function useBroadcasts() {
 
   useEffect(() => {
     if (!user) return;
-    const channel = supabase
-      .channel("broadcasts-list")
+    const channel = supabase.channel(`broadcasts-list-${user.id}-${Math.random().toString(36).slice(2)}`);
+    channel
       .on("postgres_changes", { event: "*", schema: "public", table: "broadcasts" }, () =>
         qc.invalidateQueries({ queryKey: ["broadcasts", user.id] })
       )
@@ -131,8 +131,8 @@ export function useSupportThreads(adminView = false) {
 
   useEffect(() => {
     if (!user) return;
-    const channel = supabase
-      .channel(`threads-${adminView ? "admin" : "user"}`)
+    const channel = supabase.channel(`threads-${adminView ? "admin" : "user"}-${user.id}-${Math.random().toString(36).slice(2)}`);
+    channel
       .on("postgres_changes", { event: "*", schema: "public", table: "support_threads" }, () =>
         qc.invalidateQueries({ queryKey: ["support_threads", adminView, user.id] })
       )
@@ -200,8 +200,8 @@ export function useSupportMessages(threadId: string | null) {
 
   useEffect(() => {
     if (!threadId) return;
-    const channel = supabase
-      .channel(`messages-${threadId}`)
+    const channel = supabase.channel(`messages-${threadId}-${Math.random().toString(36).slice(2)}`);
+    channel
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "support_messages", filter: `thread_id=eq.${threadId}` },
