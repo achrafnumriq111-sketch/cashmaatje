@@ -31,7 +31,12 @@ export default function Register() {
       // If email confirmation is required there is no session yet.
       if (data.session) {
         toast.success("Account aangemaakt — welkom bij Cash Maatje");
-        navigate("/onboarding");
+        const { data: roles } = await supabase
+          .from("platform_roles")
+          .select("role")
+          .eq("user_id", data.session.user.id);
+        const isSuperAdmin = roles?.some((r) => r.role === "super_admin");
+        navigate(isSuperAdmin ? "/admin" : "/onboarding");
       } else {
         toast.success("Account aangemaakt. Bevestig je e-mailadres via de link in je inbox.");
         navigate("/login");
