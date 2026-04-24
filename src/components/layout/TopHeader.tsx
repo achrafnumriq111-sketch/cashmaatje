@@ -7,6 +7,7 @@ import { useI18n } from "@/lib/i18n";
 import { NotificationPanel } from "./NotificationPanel";
 import { LanguageToggle } from "./LanguageToggle";
 import { OrgSwitcher } from "./OrgSwitcher";
+import { InboxBell } from "./InboxBell";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -87,6 +88,8 @@ export function TopHeader({
           </Tooltip>
 
           <LanguageToggle compact />
+
+          <InboxBell />
 
           {/* Notification bell */}
           <Tooltip>

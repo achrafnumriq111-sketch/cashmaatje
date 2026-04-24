@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { AppSidebar } from "./AppSidebar";
 import { TopHeader } from "./TopHeader";
 import { ChatbotFab } from "./ChatbotFab";
+import { BroadcastBanner } from "./BroadcastBanner";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Loader2 } from "lucide-react";
@@ -40,6 +41,7 @@ export function AppLayout() {
           onMarkRead={markAsRead}
           onMarkAllRead={markAllRead}
         />
+        <BroadcastBanner />
         <motion.main
           variants={pageTransition}
           initial="initial"
