@@ -111,7 +111,9 @@ Deno.serve(async (req) => {
     )
   }
 
-  const supabase = createClient(supabaseUrl, supabaseServiceKey)
+  // Cast to any: email_send_log and pgmq RPCs are not in the project's
+  // generated Database types, but exist at runtime via the email_infra migration.
+  const supabase = createClient(supabaseUrl, supabaseServiceKey) as any
 
   // 1. Check rate-limit cooldown and read queue config
   const { data: state } = await supabase
