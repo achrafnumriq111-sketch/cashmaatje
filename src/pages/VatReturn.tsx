@@ -612,6 +612,9 @@ export default function VatReturn() {
               )}
             </div>
           </div>
+
+          {/* Submitted returns with payment tracking */}
+          <SubmittedReturnsList />
         </>
       )}
     </div>
