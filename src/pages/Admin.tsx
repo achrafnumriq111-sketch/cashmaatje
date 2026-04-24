@@ -254,7 +254,7 @@ function BroadcastsPanel() {
     title: "",
     body: "",
     kind: "info" as "info" | "warning" | "success" | "announcement",
-    audience: "all" as "all" | "trial" | "paid" | "free",
+    audience: "all" as "all" | "plan_start" | "plan_smart" | "plan_pro" | "no_subscription",
     cta_label: "",
     cta_url: "",
     show_as_banner: false,
@@ -274,7 +274,7 @@ function BroadcastsPanel() {
 
   const create = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("broadcasts").insert({
+      const payload = {
         title: form.title,
         body: form.body,
         kind: form.kind,
@@ -282,7 +282,8 @@ function BroadcastsPanel() {
         cta_label: form.cta_label || null,
         cta_url: form.cta_url || null,
         show_as_banner: form.show_as_banner,
-      });
+      };
+      const { error } = await supabase.from("broadcasts").insert(payload as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -369,9 +370,10 @@ function BroadcastsPanel() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Iedereen</SelectItem>
-                  <SelectItem value="trial">Trial gebruikers</SelectItem>
-                  <SelectItem value="paid">Betalend</SelectItem>
-                  <SelectItem value="free">Free</SelectItem>
+                  <SelectItem value="no_subscription">Zonder abonnement</SelectItem>
+                  <SelectItem value="plan_start">Start plan</SelectItem>
+                  <SelectItem value="plan_smart">Smart plan</SelectItem>
+                  <SelectItem value="plan_pro">Pro plan</SelectItem>
                 </SelectContent>
               </Select>
             </div>
