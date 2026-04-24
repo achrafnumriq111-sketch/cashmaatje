@@ -255,9 +255,11 @@ export function useVatReturn() {
     setLoading(false);
   }, [orgId, year, periodNumber, vatFrequency]);
 
+  // Re-runs whenever loadReturn changes OR when ["vat-return"] is invalidated
+  // (refreshTick bumps via tanstack query's refetch).
   useEffect(() => {
     loadReturn();
-  }, [loadReturn]);
+  }, [loadReturn, refreshTick]);
 
   // Drill into a box
   const drillInto = useCallback(async (box: string) => {
