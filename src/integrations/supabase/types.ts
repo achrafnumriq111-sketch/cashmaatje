@@ -665,6 +665,80 @@ export type Database = {
           },
         ]
       }
+      broadcast_reads: {
+        Row: {
+          broadcast_id: string
+          dismissed: boolean
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          broadcast_id: string
+          dismissed?: boolean
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          broadcast_id?: string
+          dismissed?: boolean
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "broadcast_reads_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "broadcasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      broadcasts: {
+        Row: {
+          audience: Database["public"]["Enums"]["broadcast_audience"]
+          body: string
+          created_at: string
+          created_by: string | null
+          cta_label: string | null
+          cta_url: string | null
+          ends_at: string | null
+          id: string
+          kind: Database["public"]["Enums"]["broadcast_kind"]
+          show_as_banner: boolean
+          starts_at: string
+          title: string
+        }
+        Insert: {
+          audience?: Database["public"]["Enums"]["broadcast_audience"]
+          body: string
+          created_at?: string
+          created_by?: string | null
+          cta_label?: string | null
+          cta_url?: string | null
+          ends_at?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["broadcast_kind"]
+          show_as_banner?: boolean
+          starts_at?: string
+          title: string
+        }
+        Update: {
+          audience?: Database["public"]["Enums"]["broadcast_audience"]
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          cta_label?: string | null
+          cta_url?: string | null
+          ends_at?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["broadcast_kind"]
+          show_as_banner?: boolean
+          starts_at?: string
+          title?: string
+        }
+        Relationships: []
+      }
       business_expenses: {
         Row: {
           amount: number
@@ -2487,6 +2561,30 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_roles: {
+        Row: {
+          granted_at: string
+          granted_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["platform_role"]
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["platform_role"]
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["platform_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           barcode: string | null
@@ -2992,6 +3090,90 @@ export type Database = {
           },
         ]
       }
+      subscribers: {
+        Row: {
+          cancel_at_period_end: boolean
+          created_at: string
+          current_period_end: string | null
+          email: string
+          id: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          tier: Database["public"]["Enums"]["plan_tier"] | null
+          trial_end: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          email: string
+          id?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: Database["public"]["Enums"]["plan_tier"] | null
+          trial_end?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          email?: string
+          id?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: Database["public"]["Enums"]["plan_tier"] | null
+          trial_end?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          description: string | null
+          features: Json
+          is_recommended: boolean
+          limits: Json
+          modules: string[]
+          name: string
+          price_monthly_cents: number
+          sort_order: number
+          stripe_price_id_monthly: string | null
+          tier: Database["public"]["Enums"]["plan_tier"]
+        }
+        Insert: {
+          description?: string | null
+          features?: Json
+          is_recommended?: boolean
+          limits?: Json
+          modules?: string[]
+          name: string
+          price_monthly_cents: number
+          sort_order?: number
+          stripe_price_id_monthly?: string | null
+          tier: Database["public"]["Enums"]["plan_tier"]
+        }
+        Update: {
+          description?: string | null
+          features?: Json
+          is_recommended?: boolean
+          limits?: Json
+          modules?: string[]
+          name?: string
+          price_monthly_cents?: number
+          sort_order?: number
+          stripe_price_id_monthly?: string | null
+          tier?: Database["public"]["Enums"]["plan_tier"]
+        }
+        Relationships: []
+      }
       supplier_patterns: {
         Row: {
           country: string | null
@@ -3057,6 +3239,77 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      support_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          sender_id: string
+          sender_is_admin: boolean
+          thread_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          sender_id: string
+          sender_is_admin?: boolean
+          thread_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+          sender_is_admin?: boolean
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "support_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_threads: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          id: string
+          last_message_at: string
+          status: Database["public"]["Enums"]["thread_status"]
+          subject: string
+          unread_for_admin: boolean
+          unread_for_user: boolean
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          status?: Database["public"]["Enums"]["thread_status"]
+          subject: string
+          unread_for_admin?: boolean
+          unread_for_user?: boolean
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          status?: Database["public"]["Enums"]["thread_status"]
+          subject?: string
+          unread_for_admin?: boolean
+          unread_for_user?: boolean
+          user_id?: string
+        }
+        Relationships: []
       }
       tax_deductions: {
         Row: {
@@ -3641,6 +3894,14 @@ export type Database = {
         Args: { p_org_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      has_platform_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["platform_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_platform_admin: { Args: { _user_id?: string }; Returns: boolean }
       seed_chart_of_accounts: { Args: { p_org_id: string }; Returns: undefined }
       seed_vat_rates: { Args: { p_org_id: string }; Returns: undefined }
       setup_new_organization: {
@@ -3723,6 +3984,13 @@ export type Database = {
         | "manually_matched"
         | "excluded"
         | "reconciled"
+      broadcast_audience:
+        | "all"
+        | "plan_start"
+        | "plan_smart"
+        | "plan_pro"
+        | "no_subscription"
+      broadcast_kind: "info" | "warning" | "success" | "announcement"
       document_type:
         | "invoice"
         | "receipt"
@@ -3760,6 +4028,15 @@ export type Database = {
         | "unmatched"
         | "excluded"
       period_status: "open" | "closing" | "closed" | "locked"
+      plan_tier: "start" | "smart" | "pro"
+      platform_role: "super_admin" | "support_agent"
+      subscription_status:
+        | "trialing"
+        | "active"
+        | "past_due"
+        | "canceled"
+        | "incomplete"
+      thread_status: "open" | "pending" | "resolved" | "closed"
       transaction_direction: "debit" | "credit"
       user_role: "entrepreneur" | "bookkeeper" | "accountant" | "admin"
       vat_frequency: "monthly" | "quarterly" | "yearly"
@@ -3958,6 +4235,14 @@ export const Constants = {
         "excluded",
         "reconciled",
       ],
+      broadcast_audience: [
+        "all",
+        "plan_start",
+        "plan_smart",
+        "plan_pro",
+        "no_subscription",
+      ],
+      broadcast_kind: ["info", "warning", "success", "announcement"],
       document_type: [
         "invoice",
         "receipt",
@@ -4000,6 +4285,16 @@ export const Constants = {
         "excluded",
       ],
       period_status: ["open", "closing", "closed", "locked"],
+      plan_tier: ["start", "smart", "pro"],
+      platform_role: ["super_admin", "support_agent"],
+      subscription_status: [
+        "trialing",
+        "active",
+        "past_due",
+        "canceled",
+        "incomplete",
+      ],
+      thread_status: ["open", "pending", "resolved", "closed"],
       transaction_direction: ["debit", "credit"],
       user_role: ["entrepreneur", "bookkeeper", "accountant", "admin"],
       vat_frequency: ["monthly", "quarterly", "yearly"],
