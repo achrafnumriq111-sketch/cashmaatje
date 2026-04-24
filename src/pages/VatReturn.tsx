@@ -14,6 +14,7 @@ import {
   Download, Info, ShieldAlert, TrendingUp, Eye, ArrowDown, ArrowUp, Minus, Building,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SubmittedReturnsList } from "@/components/vat/SubmittedReturnsList";
 
 const fmt = (v: number) =>
   new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(v);
