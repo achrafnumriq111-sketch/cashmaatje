@@ -280,6 +280,10 @@ export function useCreateInvoice() {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       queryClient.invalidateQueries({ queryKey: ["next-invoice-number"] });
       queryClient.invalidateQueries({ queryKey: ["journal-entries"] });
+      // Live VAT/BTW updates
+      queryClient.invalidateQueries({ queryKey: ["vat-engine"] });
+      queryClient.invalidateQueries({ queryKey: ["vat-return"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
 }
