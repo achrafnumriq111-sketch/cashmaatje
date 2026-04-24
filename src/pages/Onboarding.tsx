@@ -156,21 +156,46 @@ export default function Onboarding() {
         p_vat_frequency: data.tax.vatFrequency as any,
         p_fiscal_year_start_month: data.tax.fiscalYearStartMonth,
         p_kor_eligible: data.tax.vatScheme === "kor",
-        p_settings: { ai: data.ai },
+        p_settings: { ai: data.ai, processing: data.documents ?? null },
       });
 
       if (setupErr) throw setupErr;
 
-      // Create bank accounts
+      // Create bank accounts and remember the primary id (for queued bank rows)
+      let primaryBankId: string | null = null;
       for (const ba of data.bankAccounts) {
-        await supabase.from("bank_accounts").insert({
+        const { data: inserted } = await supabase.from("bank_accounts").insert({
           organization_id: orgId,
           name: ba.name,
           iban: ba.iban,
           bic: ba.bic || null,
           bank_name: ba.bankName || null,
           is_primary: ba.isPrimary,
+        }).select("id, is_primary").single();
+        if (inserted?.is_primary) primaryBankId = inserted.id;
+      }
+      if (!primaryBankId && data.bankAccounts[0]) {
+        const { data: first } = await supabase.from("bank_accounts").select("id").eq("organization_id", orgId).limit(1).maybeSingle();
+        primaryBankId = first?.id ?? null;
+      }
+
+      // Queued imports from StepImport
+      if (data.pendingOpeningBalance && data.pendingOpeningBalance.length > 0) {
+        await supabase.rpc("import_opening_balance", {
+          p_org_id: orgId,
+          p_date: new Date().toISOString().slice(0, 10),
+          p_lines: data.pendingOpeningBalance as never,
         });
+      }
+      if (data.pendingContacts && data.pendingContacts.length > 0) {
+        await supabase.from("contacts").insert(
+          data.pendingContacts.map((c: any) => ({ ...c, organization_id: orgId }))
+        );
+      }
+      if (data.pendingBankRows && data.pendingBankRows.length > 0 && primaryBankId) {
+        await supabase.from("bank_transactions").insert(
+          data.pendingBankRows.map((r: any) => ({ ...r, organization_id: orgId, bank_account_id: primaryBankId }))
+        );
       }
 
       toast.success("Organisatie aangemaakt! Welkom bij Cash Maatje.");
