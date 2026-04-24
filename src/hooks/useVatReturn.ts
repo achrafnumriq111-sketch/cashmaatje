@@ -94,6 +94,7 @@ function getPeriodDates(year: number, periodType: string, periodNumber: number) 
 export function useVatReturn() {
   const { membership } = useOrganization();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [year, setYear] = useState(new Date().getFullYear());
   const [periodNumber, setPeriodNumber] = useState(() => {
     const m = new Date().getMonth();
@@ -110,6 +111,16 @@ export function useVatReturn() {
 
   const orgId = membership?.organizationId;
 
+  // Subscribe to a tanstack-query key so other mutations (e.g. saving an
+  // invoice, reconciling a payment) can invalidate ["vat-return"] and
+  // automatically trigger a recalculation here.
+  const { data: refreshTick = 0 } = useQuery({
+    queryKey: ["vat-return", orgId, year, periodNumber],
+    enabled: !!orgId,
+    queryFn: () => Date.now(),
+    staleTime: 0,
+  });
+
   // Fetch org vat frequency
   useEffect(() => {
     if (!orgId) return;
@@ -122,6 +133,41 @@ export function useVatReturn() {
         if (data) setVatFrequency(data.vat_frequency);
       });
   }, [orgId]);
+
+  // Realtime: any change to journal lines/entries or VAT-relevant documents
+  // for this org invalidates the VAT queries → live BTW updates.
+  useEffect(() => {
+    if (!orgId) return;
+    const channel = supabase
+      .channel(`vat-live-${orgId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "journal_entries", filter: `organization_id=eq.${orgId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["vat-return"] });
+          queryClient.invalidateQueries({ queryKey: ["vat-engine"] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "journal_lines" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["vat-return"] });
+          queryClient.invalidateQueries({ queryKey: ["vat-engine"] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "documents", filter: `organization_id=eq.${orgId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["vat-engine"] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [orgId, queryClient]);
 
   // Load / calculate
   const loadReturn = useCallback(async () => {
