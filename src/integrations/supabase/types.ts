@@ -3984,6 +3984,13 @@ export type Database = {
           filing_reference: string | null
           id: string
           organization_id: string
+          paid_amount: number | null
+          paid_at: string | null
+          payment_due_date: string | null
+          payment_method: string | null
+          payment_notes: string | null
+          payment_reference: string | null
+          payment_status: string
           period_end: string
           period_number: number
           period_start: string
@@ -4030,6 +4037,13 @@ export type Database = {
           filing_reference?: string | null
           id?: string
           organization_id: string
+          paid_amount?: number | null
+          paid_at?: string | null
+          payment_due_date?: string | null
+          payment_method?: string | null
+          payment_notes?: string | null
+          payment_reference?: string | null
+          payment_status?: string
           period_end: string
           period_number: number
           period_start: string
@@ -4076,6 +4090,13 @@ export type Database = {
           filing_reference?: string | null
           id?: string
           organization_id?: string
+          paid_amount?: number | null
+          paid_at?: string | null
+          payment_due_date?: string | null
+          payment_method?: string | null
+          payment_notes?: string | null
+          payment_reference?: string | null
+          payment_status?: string
           period_end?: string
           period_number?: number
           period_start?: string
