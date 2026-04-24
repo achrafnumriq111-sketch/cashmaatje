@@ -3090,51 +3090,6 @@ export type Database = {
           },
         ]
       }
-      subscribers: {
-        Row: {
-          cancel_at_period_end: boolean
-          created_at: string
-          current_period_end: string | null
-          email: string
-          id: string
-          status: Database["public"]["Enums"]["subscription_status"]
-          stripe_customer_id: string | null
-          stripe_subscription_id: string | null
-          tier: Database["public"]["Enums"]["plan_tier"] | null
-          trial_end: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          cancel_at_period_end?: boolean
-          created_at?: string
-          current_period_end?: string | null
-          email: string
-          id?: string
-          status?: Database["public"]["Enums"]["subscription_status"]
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          tier?: Database["public"]["Enums"]["plan_tier"] | null
-          trial_end?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          cancel_at_period_end?: boolean
-          created_at?: string
-          current_period_end?: string | null
-          email?: string
-          id?: string
-          status?: Database["public"]["Enums"]["subscription_status"]
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          tier?: Database["public"]["Enums"]["plan_tier"] | null
-          trial_end?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       subscription_plans: {
         Row: {
           description: string | null
@@ -3171,6 +3126,54 @@ export type Database = {
           sort_order?: number
           stripe_price_id_monthly?: string | null
           tier?: Database["public"]["Enums"]["plan_tier"]
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          environment: string
+          id: string
+          price_id: string
+          product_id: string
+          status: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          price_id: string
+          product_id: string
+          status?: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          price_id?: string
+          product_id?: string
+          status?: string
+          stripe_customer_id?: string
+          stripe_subscription_id?: string
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -3894,6 +3897,10 @@ export type Database = {
         Args: { p_org_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      has_active_subscription: {
+        Args: { check_env?: string; user_uuid: string }
+        Returns: boolean
+      }
       has_platform_role: {
         Args: {
           _role: Database["public"]["Enums"]["platform_role"]
@@ -3928,6 +3935,10 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      tier_from_price: {
+        Args: { p_price_id: string }
+        Returns: Database["public"]["Enums"]["plan_tier"]
+      }
     }
     Enums: {
       account_subtype:
