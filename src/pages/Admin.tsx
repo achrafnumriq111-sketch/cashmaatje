@@ -531,3 +531,577 @@ function SupportPanel() {
     </div>
   );
 }
+
+// ============================================================================
+// Organizations panel — view/manage all customer orgs, mark internal sandboxes
+// ============================================================================
+function OrganizationsPanel() {
+  const qc = useQueryClient();
+  const [search, setSearch] = useState("");
+
+  const { data: orgs, isLoading } = useQuery({
+    queryKey: ["admin_orgs"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("organizations")
+        .select("id, name, legal_name, kvk_number, btw_number, email, is_internal_test_org, created_at")
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: memberCounts } = useQuery({
+    queryKey: ["admin_org_member_counts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("organization_members")
+        .select("organization_id")
+        .limit(5000);
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      (data ?? []).forEach((m: any) => {
+        counts[m.organization_id] = (counts[m.organization_id] ?? 0) + 1;
+      });
+      return counts;
+    },
+  });
+
+  const toggleTestOrg = useMutation({
+    mutationFn: async ({ id, value }: { id: string; value: boolean }) => {
+      const { error } = await supabase
+        .from("organizations")
+        .update({ is_internal_test_org: value })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin_orgs"] });
+      toast.success("Bijgewerkt");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const filtered = (orgs ?? []).filter(
+    (o: any) =>
+      !search ||
+      o.name?.toLowerCase().includes(search.toLowerCase()) ||
+      o.kvk_number?.toLowerCase().includes(search.toLowerCase()) ||
+      o.btw_number?.toLowerCase().includes(search.toLowerCase()) ||
+      o.email?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <Card>
+      <CardContent className="p-5 space-y-4">
+        <div className="flex items-center gap-2">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Zoek op naam, KVK, BTW of email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="max-w-md"
+          />
+          <Badge variant="outline" className="ml-auto">{filtered.length} organisaties</Badge>
+        </div>
+        {isLoading ? (
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        ) : (
+          <div className="border border-border rounded-lg overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Naam</TableHead>
+                  <TableHead>KVK / BTW</TableHead>
+                  <TableHead>Leden</TableHead>
+                  <TableHead>Aangemaakt</TableHead>
+                  <TableHead className="text-right gap-1 inline-flex items-center">
+                    <Beaker className="h-3.5 w-3.5" /> Test sandbox
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((o: any) => (
+                  <TableRow key={o.id}>
+                    <TableCell>
+                      <div className="font-medium text-foreground">{o.name}</div>
+                      {o.email && <div className="text-xs text-muted-foreground">{o.email}</div>}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {o.kvk_number ?? "—"} {o.btw_number ? `· ${o.btw_number}` : ""}
+                    </TableCell>
+                    <TableCell className="text-xs">{memberCounts?.[o.id] ?? 0}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {o.created_at ? format(new Date(o.created_at), "d MMM yyyy", { locale: nl }) : "—"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Switch
+                        checked={!!o.is_internal_test_org}
+                        onCheckedChange={(v) => toggleTestOrg.mutate({ id: o.id, value: v })}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {filtered.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-8">
+                      Geen organisaties gevonden
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+        <p className="text-xs text-muted-foreground flex items-start gap-2">
+          <Shield className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+          Test sandbox-organisaties krijgen automatisch toegang tot alle feature flags die "test orgs" toestaan. Gebruik dit om nieuwe versies te valideren voor breed uitrollen.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ============================================================================
+// Feature flags panel — global rollout + per-org overrides
+// ============================================================================
+function FeatureFlagsPanel() {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ key: "", name: "", description: "" });
+  const [overrideOpen, setOverrideOpen] = useState<string | null>(null);
+
+  const { data: flags, isLoading } = useQuery({
+    queryKey: ["admin_feature_flags"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("feature_flags" as any)
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const update = useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: any }) => {
+      const { error } = await supabase.from("feature_flags" as any).update(patch).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin_feature_flags"] }),
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const create = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("feature_flags" as any)
+        .insert({ key: form.key.trim(), name: form.name.trim(), description: form.description.trim() || null });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Feature flag aangemaakt");
+      qc.invalidateQueries({ queryKey: ["admin_feature_flags"] });
+      setOpen(false);
+      setForm({ key: "", name: "", description: "" });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("feature_flags" as any).delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Verwijderd");
+      qc.invalidateQueries({ queryKey: ["admin_feature_flags"] });
+    },
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button onClick={() => setOpen(true)} className="gap-2">
+          <Plus className="h-4 w-4" /> Nieuwe flag
+        </Button>
+      </div>
+
+      <div className="space-y-3">
+        {isLoading && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
+        {(flags ?? []).map((f: any) => (
+          <Card key={f.id}>
+            <CardContent className="p-5 space-y-3">
+              <div className="flex items-start gap-3">
+                <ToggleRight className="h-5 w-5 text-primary mt-0.5" />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-foreground">{f.name}</h3>
+                    <Badge variant="outline" className="font-mono text-[10px]">{f.key}</Badge>
+                    {f.enabled_globally && <Badge className="text-[10px]">Live voor iedereen</Badge>}
+                  </div>
+                  {f.description && <p className="text-xs text-muted-foreground">{f.description}</p>}
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => remove.mutate(f.id)}
+                  className="text-destructive hover:text-destructive"
+                >
+                  Verwijderen
+                </Button>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-4 pt-3 border-t border-border">
+                <label className="flex items-center justify-between gap-2 text-sm">
+                  <span className="text-foreground">Globaal aan</span>
+                  <Switch
+                    checked={!!f.enabled_globally}
+                    onCheckedChange={(v) => update.mutate({ id: f.id, patch: { enabled_globally: v } })}
+                  />
+                </label>
+                <label className="flex items-center justify-between gap-2 text-sm">
+                  <span className="text-foreground">Test orgs auto</span>
+                  <Switch
+                    checked={!!f.enabled_for_test_orgs}
+                    onCheckedChange={(v) => update.mutate({ id: f.id, patch: { enabled_for_test_orgs: v } })}
+                  />
+                </label>
+                <div>
+                  <div className="flex items-center justify-between text-sm mb-2">
+                    <span className="text-foreground">Rollout</span>
+                    <span className="text-muted-foreground tabular-nums">{f.rollout_percentage}%</span>
+                  </div>
+                  <Slider
+                    value={[f.rollout_percentage]}
+                    max={100}
+                    step={5}
+                    onValueCommit={(v) => update.mutate({ id: f.id, patch: { rollout_percentage: v[0] } })}
+                  />
+                </div>
+              </div>
+
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setOverrideOpen(f.key)}
+                className="gap-2"
+              >
+                <Building2 className="h-3.5 w-3.5" /> Per-organisatie overrides
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+        {(flags ?? []).length === 0 && !isLoading && (
+          <p className="text-sm text-center text-muted-foreground py-8">Nog geen feature flags</p>
+        )}
+      </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nieuwe feature flag</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              placeholder="Key (bv. new_dashboard_v2)"
+              value={form.key}
+              onChange={(e) => setForm({ ...form, key: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "_") })}
+            />
+            <Input
+              placeholder="Naam"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+            <Textarea
+              placeholder="Beschrijving (optioneel)"
+              rows={3}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Annuleren</Button>
+            <Button
+              disabled={!form.key || !form.name || create.isPending}
+              onClick={() => create.mutate()}
+            >
+              Aanmaken
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {overrideOpen && (
+        <OverridesDialog featureKey={overrideOpen} onClose={() => setOverrideOpen(null)} />
+      )}
+    </div>
+  );
+}
+
+function OverridesDialog({ featureKey, onClose }: { featureKey: string; onClose: () => void }) {
+  const qc = useQueryClient();
+  const [orgQuery, setOrgQuery] = useState("");
+
+  const { data: overrides } = useQuery({
+    queryKey: ["overrides", featureKey],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("org_feature_overrides" as any)
+        .select("id, organization_id, enabled, reason, organizations(name)")
+        .eq("feature_key", featureKey);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: orgs } = useQuery({
+    queryKey: ["admin_orgs_lookup"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("organizations")
+        .select("id, name")
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const addOverride = useMutation({
+    mutationFn: async ({ orgId, enabled }: { orgId: string; enabled: boolean }) => {
+      const { error } = await supabase
+        .from("org_feature_overrides" as any)
+        .upsert(
+          { organization_id: orgId, feature_key: featureKey, enabled },
+          { onConflict: "organization_id,feature_key" }
+        );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["overrides", featureKey] });
+      toast.success("Override opgeslagen");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const removeOverride = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("org_feature_overrides" as any).delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["overrides", featureKey] }),
+  });
+
+  const filteredOrgs = (orgs ?? []).filter((o: any) =>
+    !orgQuery || o.name.toLowerCase().includes(orgQuery.toLowerCase())
+  );
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="font-mono text-sm">{featureKey} — overrides</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground">Actieve overrides</p>
+          {(overrides ?? []).map((o: any) => (
+            <div key={o.id} className="flex items-center gap-2 p-2 border border-border rounded-md">
+              <Badge className={cn("text-[10px]", o.enabled ? "" : "bg-muted text-muted-foreground")}>
+                {o.enabled ? "AAN" : "UIT"}
+              </Badge>
+              <span className="text-sm flex-1">{o.organizations?.name ?? o.organization_id}</span>
+              <Button size="sm" variant="ghost" onClick={() => removeOverride.mutate(o.id)}>
+                Verwijder
+              </Button>
+            </div>
+          ))}
+          {(overrides ?? []).length === 0 && (
+            <p className="text-xs text-muted-foreground">Geen overrides</p>
+          )}
+        </div>
+
+        <div className="space-y-2 pt-3 border-t border-border">
+          <p className="text-xs text-muted-foreground">Voeg organisatie toe</p>
+          <Input
+            placeholder="Zoek organisatie..."
+            value={orgQuery}
+            onChange={(e) => setOrgQuery(e.target.value)}
+          />
+          <div className="max-h-60 overflow-auto space-y-1">
+            {filteredOrgs.slice(0, 20).map((o: any) => (
+              <div key={o.id} className="flex items-center gap-2 p-2 hover:bg-secondary rounded-md">
+                <span className="text-sm flex-1">{o.name}</span>
+                <Button size="sm" variant="outline" onClick={() => addOverride.mutate({ orgId: o.id, enabled: true })}>
+                  Aan
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => addOverride.mutate({ orgId: o.id, enabled: false })}>
+                  Uit
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ============================================================================
+// Releases panel — version notes that auto-broadcast to customers
+// ============================================================================
+function ReleasesPanel() {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ version: "", title: "", body: "", broadcast: true });
+
+  const { data: notes, isLoading } = useQuery({
+    queryKey: ["admin_release_notes"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("release_notes" as any)
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const publish = useMutation({
+    mutationFn: async () => {
+      const { data: note, error } = await supabase
+        .from("release_notes" as any)
+        .insert({
+          version: form.version.trim(),
+          title: form.title.trim(),
+          body: form.body.trim(),
+          is_published: true,
+          published_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      if (form.broadcast) {
+        const { error: bErr } = await supabase.from("broadcasts").insert({
+          title: `${form.version} — ${form.title}`,
+          body: form.body,
+          kind: "announcement",
+          audience: "all",
+          show_as_banner: false,
+        } as any);
+        if (bErr) throw bErr;
+      }
+      return note;
+    },
+    onSuccess: () => {
+      toast.success("Release gepubliceerd");
+      qc.invalidateQueries({ queryKey: ["admin_release_notes"] });
+      qc.invalidateQueries({ queryKey: ["admin_broadcasts"] });
+      qc.invalidateQueries({ queryKey: ["broadcasts"] });
+      setOpen(false);
+      setForm({ version: "", title: "", body: "", broadcast: true });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const togglePublish = useMutation({
+    mutationFn: async ({ id, value }: { id: string; value: boolean }) => {
+      const { error } = await supabase
+        .from("release_notes" as any)
+        .update({ is_published: value, published_at: value ? new Date().toISOString() : null })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin_release_notes"] }),
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button onClick={() => setOpen(true)} className="gap-2">
+          <Plus className="h-4 w-4" /> Nieuwe release
+        </Button>
+      </div>
+
+      <div className="space-y-3">
+        {isLoading && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
+        {(notes ?? []).map((n: any) => (
+          <Card key={n.id}>
+            <CardContent className="p-5">
+              <div className="flex items-start gap-3">
+                <Sparkles className="h-5 w-5 text-primary mt-0.5" />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge variant="outline" className="font-mono text-[10px]">{n.version}</Badge>
+                    <h3 className="font-semibold text-foreground">{n.title}</h3>
+                    {n.is_published ? (
+                      <Badge className="text-[10px]">Live</Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[10px]">Concept</Badge>
+                    )}
+                    <span className="text-[11px] text-muted-foreground ml-auto">
+                      {n.published_at
+                        ? format(new Date(n.published_at), "d MMM yyyy", { locale: nl })
+                        : formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: nl })}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap mt-2">{n.body}</p>
+                </div>
+                <Switch
+                  checked={!!n.is_published}
+                  onCheckedChange={(v) => togglePublish.mutate({ id: n.id, value: v })}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+        {(notes ?? []).length === 0 && !isLoading && (
+          <p className="text-sm text-center text-muted-foreground py-8">Nog geen releases</p>
+        )}
+      </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Nieuwe release publiceren</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              placeholder="Versie (bv. v1.4.0)"
+              value={form.version}
+              onChange={(e) => setForm({ ...form, version: e.target.value })}
+            />
+            <Input
+              placeholder="Titel (bv. Bank-import & nieuwe widgets)"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+            />
+            <Textarea
+              placeholder="Wat is er nieuw, beter of opgelost?"
+              rows={6}
+              value={form.body}
+              onChange={(e) => setForm({ ...form, body: e.target.value })}
+            />
+            <label className="flex items-center gap-2 text-sm text-foreground">
+              <Checkbox
+                checked={form.broadcast}
+                onCheckedChange={(v) => setForm({ ...form, broadcast: !!v })}
+              />
+              Direct als aankondiging tonen aan alle klanten
+            </label>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Annuleren</Button>
+            <Button
+              disabled={!form.version || !form.title || !form.body || publish.isPending}
+              onClick={() => publish.mutate()}
+            >
+              Publiceren
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
