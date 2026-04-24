@@ -36,7 +36,7 @@ export default function Login() {
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        toast.success("Check your email for the magic link");
+        toast.success("Controleer je inbox voor de inloglink");
       }
     } catch (err: any) {
       toast.error(err.message);
@@ -64,18 +64,18 @@ export default function Login() {
         <div className="flex flex-col items-center gap-6">
           <AuthLogo />
           <div className="text-center">
-            <h1 className="text-xl font-semibold tracking-tight text-foreground">Welcome back</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Sign in to your account</p>
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">Welkom terug</h1>
+            <p className="mt-1 text-sm text-muted-foreground">Log in op je account</p>
           </div>
         </div>
 
         <form onSubmit={handleEmailLogin} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm text-muted-foreground">Email</Label>
+            <Label htmlFor="email" className="text-sm text-muted-foreground">E-mail</Label>
             <Input
               id="email"
               type="email"
-              placeholder="you@example.com"
+              placeholder="jij@voorbeeld.nl"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -86,9 +86,9 @@ export default function Login() {
           {mode === "password" && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm text-muted-foreground">Password</Label>
+                <Label htmlFor="password" className="text-sm text-muted-foreground">Wachtwoord</Label>
                 <Link to="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                  Forgot password?
+                  Wachtwoord vergeten?
                 </Link>
               </div>
               <Input
@@ -104,13 +104,13 @@ export default function Login() {
           )}
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in..." : mode === "password" ? "Sign in" : "Send magic link"}
+            {loading ? "Bezig met inloggen..." : mode === "password" ? "Inloggen" : "Stuur inloglink"}
           </Button>
         </form>
 
         <div className="flex items-center gap-3">
           <div className="h-px flex-1 bg-border" />
-          <span className="text-xs text-muted-foreground">or</span>
+          <span className="text-xs text-muted-foreground">of</span>
           <div className="h-px flex-1 bg-border" />
         </div>
 
@@ -122,7 +122,7 @@ export default function Login() {
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
             </svg>
-            Continue with Google
+            Doorgaan met Google
           </Button>
 
           <Button
@@ -130,14 +130,14 @@ export default function Login() {
             className="w-full text-muted-foreground hover:text-foreground"
             onClick={() => setMode(mode === "password" ? "magic" : "password")}
           >
-            {mode === "password" ? "Use magic link instead" : "Use password instead"}
+            {mode === "password" ? "Liever een inloglink via e-mail" : "Liever met wachtwoord"}
           </Button>
         </div>
 
         <p className="text-center text-sm text-muted-foreground">
-          Don't have an account?{" "}
+          Nog geen account?{" "}
           <Link to="/register" className="text-primary hover:underline">
-            Sign up
+            Registreren
           </Link>
         </p>
       </div>

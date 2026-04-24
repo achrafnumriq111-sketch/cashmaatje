@@ -24,7 +24,8 @@ import ProfitLoss from "./pages/ProfitLoss";
 import BalanceSheet from "./pages/BalanceSheet";
 import TrialBalance from "./pages/TrialBalance";
 import Cashflow from "./pages/Cashflow";
-import Placeholder from "./pages/Placeholder";
+import Settings from "./pages/Settings";
+import AuditLog from "./pages/AuditLog";
 import JournalEntries from "./pages/JournalEntries";
 import GeneralLedger from "./pages/GeneralLedger";
 import Contacts from "./pages/Contacts";
@@ -125,9 +126,9 @@ const App = () => (
               <Route path="platform/structuur" element={<ModuleLockOverlay moduleKey="corporate_structure"><CorporateStructure /></ModuleLockOverlay>} />
               <Route path="platform/referral" element={<ReferralCenter />} />
               <Route path="platform/themas" element={<ModuleLockOverlay moduleKey="theme_studio"><ThemeStudio /></ModuleLockOverlay>} />
-              <Route path="instellingen" element={<Placeholder />} />
+              <Route path="instellingen" element={<Settings />} />
               <Route path="instellingen/bulk" element={<BulkSettings />} />
-              <Route path="audit-log" element={<Placeholder />} />
+              <Route path="audit-log" element={<AuditLog />} />
               <Route path="inbox" element={<Inbox />} />
             </Route>
             <Route path="*" element={<NotFound />} />
