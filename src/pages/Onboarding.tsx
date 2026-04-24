@@ -30,6 +30,16 @@ const STEPS = [
 ];
 
 export interface OnboardingData {
+  pendingOpeningBalance?: { account_code: string; debit: number; credit: number; description: string }[];
+  pendingBankRows?: any[];
+  pendingContacts?: any[];
+  documents?: {
+    autoOcr: boolean;
+    autoCategorize: boolean;
+    duplicateCheck: boolean;
+    autoAttachToTransaction: boolean;
+    defaultExpenseAccount: string;
+  };
   company: {
     name: string;
     legalForm: string;
@@ -177,10 +187,10 @@ export default function Onboarding() {
     <StepBedrijfsprofiel data={data} setData={setData} />,
     <StepBelasting data={data} setData={setData} />,
     <StepBankrekeningen data={data} setData={setData} />,
-    <StepImport />,
-    <StepDocumenten />,
+    <StepImport data={data} setData={setData} />,
+    <StepDocumenten data={data} setData={setData} />,
     <StepAI data={data} setData={setData} />,
-    <StepTransacties />,
+    <StepTransacties data={data} />,
     <StepGereedheid data={data} />,
   ];
 

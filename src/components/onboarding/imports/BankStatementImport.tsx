@@ -15,7 +15,7 @@ interface BankRow {
   counterparty_name: string | null;
   counterparty_iban: string | null;
   external_id: string | null;
-  status: "pending";
+  status: "new";
   currency: "EUR";
 }
 
@@ -83,8 +83,8 @@ export function BankStatementImport({ organizationId, onboardingBankAccounts, pe
       counterparty_name: r.counterparty_name || r.tegenpartij || null,
       counterparty_iban: r.counterparty_iban || r.tegenrekening || null,
       external_id: r.external_id || r.reference || null,
-      status: "pending",
-      currency: "EUR",
+      status: "new" as const,
+      currency: "EUR" as const,
     })).filter((r) => r.transaction_date && !isNaN(r.amount));
 
     if (list.length === 0) { toast.error("Geen geldige transacties gevonden"); return; }
