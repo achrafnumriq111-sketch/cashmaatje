@@ -157,7 +157,14 @@ export function useCreateInvoice() {
 
   return useMutation({
     mutationFn: async (input: CreateInvoiceInput) => {
-      if (!orgId) throw new Error("Geen organisatie");
+      if (!orgId) throw new Error("Geen organisatie geselecteerd");
+      if (!input.lines || input.lines.length === 0) {
+        throw new Error("Voeg minimaal één regel toe");
+      }
+
+      // Get the current user (for created_by + audit)
+      const { data: userResult } = await supabase.auth.getUser();
+      const userId = userResult?.user?.id ?? null;
 
       // Calculate totals
       let subtotal = 0;
@@ -177,69 +184,95 @@ export function useCreateInvoice() {
         return { ...line, lineTotal, vatAmount, lineNumber: i + 1 };
       });
 
-      const totalAmount = subtotal + totalVat;
+      const totalAmount = Math.round((subtotal + totalVat) * 100) / 100;
 
-      // Create invoice
-      const { data: invoice, error: invErr } = await supabase
-        .from("invoices")
-        .insert({
-          organization_id: orgId,
-          invoice_number: "",
-          invoice_type: input.invoice_type,
-          status: input.status === "sent" ? "sent" : "draft",
-          contact_id: input.contact_id,
-          contact_name: input.contact_name,
-          invoice_date: input.invoice_date,
-          due_date: input.due_date,
-          subtotal,
-          total_vat: totalVat,
-          total_amount: totalAmount,
-          amount_due: totalAmount,
-          notes: input.notes || null,
-          vat_summary: Object.entries(vatSummary).map(([type, v]) => ({
-            rate_type: type,
-            percentage: v.percentage,
-            base: v.base,
-            vat: v.vat,
-          })),
-        })
-        .select()
-        .single();
-
-      if (invErr) throw invErr;
-
-      // Generate invoice number
+      // Generate invoice number BEFORE insert (unique constraint requires non-empty unique value)
       const prefix = input.invoice_type === "sales" ? "VK" : "IK";
       const year = new Date(input.invoice_date).getFullYear();
-      const { count } = await supabase
+      const { count: existingCount } = await supabase
         .from("invoices")
         .select("*", { count: "exact", head: true })
         .eq("organization_id", orgId)
         .eq("invoice_type", input.invoice_type)
-        .gte("invoice_date", `${year}-01-01`);
+        .gte("invoice_date", `${year}-01-01`)
+        .lte("invoice_date", `${year}-12-31`);
 
-      const invoiceNumber = `${prefix}${year}-${String(count ?? 1).padStart(4, "0")}`;
-      await supabase.from("invoices").update({ invoice_number: invoiceNumber }).eq("id", invoice.id);
+      // Try a few times in case of race
+      let invoice: { id: string } | null = null;
+      let invoiceNumber = "";
+      let lastErr: { message?: string; code?: string } | null = null;
+
+      for (let attempt = 0; attempt < 5; attempt++) {
+        invoiceNumber = `${prefix}${year}-${String((existingCount ?? 0) + 1 + attempt).padStart(4, "0")}`;
+        const { data, error } = await supabase
+          .from("invoices")
+          .insert({
+            organization_id: orgId,
+            invoice_number: invoiceNumber,
+            invoice_type: input.invoice_type,
+            status: input.status === "sent" ? "sent" : "draft",
+            contact_id: input.contact_id,
+            contact_name: input.contact_name,
+            invoice_date: input.invoice_date,
+            due_date: input.due_date,
+            subtotal: Math.round(subtotal * 100) / 100,
+            total_vat: Math.round(totalVat * 100) / 100,
+            total_amount: totalAmount,
+            amount_due: totalAmount,
+            amount_paid: 0,
+            currency: "EUR",
+            created_by: userId,
+            notes: input.notes || null,
+            vat_summary: Object.entries(vatSummary).map(([type, v]) => ({
+              rate_type: type,
+              percentage: v.percentage,
+              base: Math.round(v.base * 100) / 100,
+              vat: Math.round(v.vat * 100) / 100,
+            })),
+          })
+          .select("id")
+          .single();
+
+        if (!error && data) {
+          invoice = data;
+          break;
+        }
+        lastErr = error;
+        // Only retry on unique violation
+        if (error?.code !== "23505") break;
+      }
+
+      if (!invoice) {
+        throw new Error(lastErr?.message ?? "Factuur kon niet worden opgeslagen");
+      }
 
       // Create invoice lines
       const lineInserts = processedLines.map((l) => ({
-        invoice_id: invoice.id,
+        invoice_id: invoice!.id,
         line_number: l.lineNumber,
         description: l.description,
         quantity: l.quantity,
-        unit_price: l.unit_price,
+        unit_price: Math.round(l.unit_price * 100) / 100,
         vat_rate_type: l.vat_rate_type,
         vat_percentage: l.vat_percentage,
-        vat_amount: l.vatAmount,
-        line_total: l.lineTotal,
+        vat_amount: Math.round(l.vatAmount * 100) / 100,
+        line_total: Math.round(l.lineTotal * 100) / 100,
       }));
 
       const { error: lineErr } = await supabase.from("invoice_lines").insert(lineInserts);
-      if (lineErr) throw lineErr;
+      if (lineErr) {
+        // Roll back the invoice so we don't leave orphans
+        await supabase.from("invoices").delete().eq("id", invoice.id);
+        throw new Error("Regels konden niet worden opgeslagen: " + lineErr.message);
+      }
 
-      // If status is "sent", create journal entries
+      // If status is "sent", create journal entries (best effort — don't block save if it fails)
       if (input.status === "sent") {
-        await createJournalFromInvoice(orgId, invoice.id, input, processedLines, subtotal, totalVat, totalAmount);
+        try {
+          await createJournalFromInvoice(orgId, invoice.id, input, processedLines, subtotal, totalVat, totalAmount);
+        } catch (e) {
+          console.error("Journal entry creation failed:", e);
+        }
       }
 
       return { ...invoice, invoice_number: invoiceNumber };
