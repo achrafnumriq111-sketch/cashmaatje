@@ -3,8 +3,10 @@ import { motion } from "framer-motion";
 import { ContactFilters } from "@/components/contacts/ContactFilters";
 import { ContactsTable } from "@/components/contacts/ContactsTable";
 import { ContactDetail } from "@/components/contacts/ContactDetail";
+import { CreateContactDialog } from "@/components/contacts/CreateContactDialog";
 import { useContacts, type ContactFilters as CFilters } from "@/hooks/useContacts";
-import { Users } from "lucide-react";
+import { Users, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 
 export default function Contacts() {
@@ -15,6 +17,7 @@ export default function Contacts() {
     riskStatus: "all",
   });
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const { data: contacts = [], isLoading } = useContacts(filters);
 
@@ -50,6 +53,10 @@ export default function Contacts() {
             )}
           </p>
         </div>
+        <Button onClick={() => setCreateOpen(true)} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Nieuwe relatie
+        </Button>
       </motion.div>
 
       <motion.div variants={fadeInUp}>
@@ -70,6 +77,8 @@ export default function Contacts() {
         open={!!detailId}
         onClose={() => setDetailId(null)}
       />
+
+      <CreateContactDialog open={createOpen} onOpenChange={setCreateOpen} />
     </motion.div>
   );
 }
