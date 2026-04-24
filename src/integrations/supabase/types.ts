@@ -1465,6 +1465,45 @@ export type Database = {
         }
         Relationships: []
       }
+      feature_flags: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          enabled_for_test_orgs: boolean
+          enabled_globally: boolean
+          id: string
+          key: string
+          name: string
+          rollout_percentage: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enabled_for_test_orgs?: boolean
+          enabled_globally?: boolean
+          id?: string
+          key: string
+          name: string
+          rollout_percentage?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enabled_for_test_orgs?: boolean
+          enabled_globally?: boolean
+          id?: string
+          key?: string
+          name?: string
+          rollout_percentage?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       financial_health_snapshots: {
         Row: {
           accounts_payable: number | null
@@ -2412,6 +2451,44 @@ export type Database = {
           },
         ]
       }
+      org_feature_overrides: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          enabled: boolean
+          feature_key: string
+          id: string
+          organization_id: string
+          reason: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          feature_key: string
+          id?: string
+          organization_id: string
+          reason?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          feature_key?: string
+          id?: string
+          organization_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_feature_overrides_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           accepted_at: string | null
@@ -2476,6 +2553,7 @@ export type Database = {
           fiscal_year_start_month: number | null
           iban: string | null
           id: string
+          is_internal_test_org: boolean
           kor_eligible: boolean | null
           kor_threshold_amount: number | null
           kvk_number: string | null
@@ -2502,6 +2580,7 @@ export type Database = {
           fiscal_year_start_month?: number | null
           iban?: string | null
           id?: string
+          is_internal_test_org?: boolean
           kor_eligible?: boolean | null
           kor_threshold_amount?: number | null
           kvk_number?: string | null
@@ -2528,6 +2607,7 @@ export type Database = {
           fiscal_year_start_month?: number | null
           iban?: string | null
           id?: string
+          is_internal_test_org?: boolean
           kor_eligible?: boolean | null
           kor_threshold_amount?: number | null
           kvk_number?: string | null
@@ -3019,6 +3099,45 @@ export type Database = {
           signed_up_user_id?: string | null
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      release_notes: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          highlights: Json | null
+          id: string
+          is_published: boolean
+          published_at: string | null
+          title: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by?: string | null
+          highlights?: Json | null
+          id?: string
+          is_published?: boolean
+          published_at?: string | null
+          title: string
+          updated_at?: string
+          version: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          highlights?: Json | null
+          id?: string
+          is_published?: boolean
+          published_at?: string | null
+          title?: string
+          updated_at?: string
+          version?: string
         }
         Relationships: []
       }
@@ -4031,6 +4150,10 @@ export type Database = {
       import_opening_balance: {
         Args: { p_date: string; p_lines: Json; p_org_id: string }
         Returns: string
+      }
+      is_feature_enabled: {
+        Args: { _feature_key: string; _org_id?: string }
+        Returns: boolean
       }
       is_platform_admin: { Args: { _user_id?: string }; Returns: boolean }
       move_to_dlq: {
