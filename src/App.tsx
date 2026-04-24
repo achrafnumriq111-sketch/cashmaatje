@@ -84,6 +84,7 @@ const App = () => (
             <Route path="/2fa/setup" element={<ProtectedRoute><TwoFactorSetup /></ProtectedRoute>} />
             <Route path="/2fa/verify" element={<ProtectedRoute><TwoFactorVerify /></ProtectedRoute>} />
             <Route path="/2fa/recovery" element={<TwoFactorRecovery />} />
+            <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><TwoFactorGate><AppLayout /></TwoFactorGate></ProtectedRoute>}>
               <Route index element={<Dashboard />} />
               <Route path="transacties" element={<Transactions />} />
@@ -128,7 +129,6 @@ const App = () => (
               <Route path="instellingen/bulk" element={<BulkSettings />} />
               <Route path="audit-log" element={<Placeholder />} />
               <Route path="inbox" element={<Inbox />} />
-              <Route path="admin" element={<Admin />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
