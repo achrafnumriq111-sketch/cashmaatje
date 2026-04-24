@@ -48,9 +48,18 @@ export default function Admin() {
       </div>
 
       <Tabs defaultValue="users">
-        <TabsList>
+        <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="users" className="gap-2">
             <Users className="h-3.5 w-3.5" /> Gebruikers
+          </TabsTrigger>
+          <TabsTrigger value="organizations" className="gap-2">
+            <Building2 className="h-3.5 w-3.5" /> Organisaties
+          </TabsTrigger>
+          <TabsTrigger value="flags" className="gap-2">
+            <Flag className="h-3.5 w-3.5" /> Feature flags
+          </TabsTrigger>
+          <TabsTrigger value="releases" className="gap-2">
+            <Sparkles className="h-3.5 w-3.5" /> Releases
           </TabsTrigger>
           <TabsTrigger value="subscriptions" className="gap-2">
             <CreditCard className="h-3.5 w-3.5" /> Abonnementen
@@ -65,6 +74,15 @@ export default function Admin() {
 
         <TabsContent value="users" className="mt-4">
           <UsersPanel />
+        </TabsContent>
+        <TabsContent value="organizations" className="mt-4">
+          <OrganizationsPanel />
+        </TabsContent>
+        <TabsContent value="flags" className="mt-4">
+          <FeatureFlagsPanel />
+        </TabsContent>
+        <TabsContent value="releases" className="mt-4">
+          <ReleasesPanel />
         </TabsContent>
         <TabsContent value="subscriptions" className="mt-4">
           <SubscriptionsPanel />
