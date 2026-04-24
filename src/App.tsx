@@ -57,6 +57,10 @@ import FinancialIntelligence from "./pages/FinancialIntelligence";
 import Inventory from "./pages/Inventory";
 import Integrations from "./pages/Integrations";
 import PaymentReminders from "./pages/PaymentReminders";
+import Pricing from "./pages/Pricing";
+import CheckoutReturn from "./pages/CheckoutReturn";
+import Inbox from "./pages/Inbox";
+import Admin from "./pages/Admin";
 import { ModuleLockOverlay } from "./components/modules/ModuleLockOverlay";
 
 const queryClient = new QueryClient();
@@ -72,6 +76,8 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/checkout/return" element={<CheckoutReturn />} />
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
@@ -121,6 +127,8 @@ const App = () => (
               <Route path="instellingen" element={<Placeholder />} />
               <Route path="instellingen/bulk" element={<BulkSettings />} />
               <Route path="audit-log" element={<Placeholder />} />
+              <Route path="inbox" element={<Inbox />} />
+              <Route path="admin" element={<Admin />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

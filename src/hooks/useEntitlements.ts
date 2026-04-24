@@ -1,7 +1,32 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/hooks/useOrganization";
+import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
+
+// Plan-tier → modules die automatisch worden ontgrendeld
+const TIER_MODULE_MAP: Record<string, string[]> = {
+  start: ["financial_intelligence"],
+  smart: [
+    "financial_intelligence",
+    "annual_report",
+    "automation_center",
+    "contract_intelligence",
+    "compliance_check",
+  ],
+  pro: [
+    "financial_intelligence",
+    "annual_report",
+    "audit_dossier",
+    "automation_center",
+    "contract_intelligence",
+    "compliance_check",
+    "stakeholder_crm",
+    "corporate_structure",
+    "process_flows",
+    "theme_studio",
+  ],
+};
 
 // Module catalogus — bron van waarheid voor module-gating
 export interface ModuleDefinition {
@@ -42,6 +67,7 @@ export const MODULE_CATALOG: ModuleDefinition[] = [
 
 export function useEntitlements() {
   const { membership } = useOrganization();
+  const sub = useSubscription();
   const qc = useQueryClient();
   const orgId = membership?.organizationId;
 
@@ -62,11 +88,13 @@ export function useEntitlements() {
     enabled: !!orgId,
   });
 
-  const unlocked = new Set(query.data ?? []);
+  // Combine: explicitly-granted entitlements + plan-tier auto-unlocks
+  const tierUnlocks = sub.isActive && sub.tier ? TIER_MODULE_MAP[sub.tier] ?? [] : [];
+  const unlocked = new Set<string>([...(query.data ?? []), ...tierUnlocks]);
 
   const isUnlocked = (key: string): boolean => {
     const def = MODULE_CATALOG.find((m) => m.key === key);
-    if (!def) return true; // onbekende keys = vrij
+    if (!def) return true;
     if (def.unlockMethod === "free") return true;
     return unlocked.has(key);
   };
