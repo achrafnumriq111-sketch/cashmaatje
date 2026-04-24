@@ -64,14 +64,14 @@ const rubriek5: RowDef[] = [
   { code: "5f", label: "Totaal", vatKey: "box_5f_vat", autoCalc: true, highlight: true },
 ];
 
-function BoxInput({ value, disabled, onChange }: { value: number; disabled: boolean; onChange: (v: number) => void }) {
+function BoxInput({ value }: { value: number }) {
   return (
     <input
       type="number"
       step="0.01"
-      disabled={disabled}
+      disabled
+      readOnly
       value={value || ""}
-      onChange={(e) => onChange(Number(e.target.value) || 0)}
       className="w-28 rounded-md border border-input bg-background px-2 py-1 text-right text-sm font-mono disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-ring"
     />
   );
@@ -105,7 +105,7 @@ function RubriekSection({
             <span className="text-xs font-mono font-semibold text-muted-foreground">{r.code}</span>
             <span className={cn("text-sm", is5f && "font-semibold")}>{r.label}</span>
             {r.baseKey ? (
-              <BoxInput value={boxes[r.baseKey]} disabled={isLocked || !!r.autoCalc} onChange={(v) => onUpdate(r.baseKey!, v)} />
+              <BoxInput value={boxes[r.baseKey]} />
             ) : (
               <span />
             )}
@@ -118,7 +118,7 @@ function RubriekSection({
                   {is5f ? fmt(totalVal) : fmtPlain(totalVal)}
                 </span>
               ) : (
-                <BoxInput value={boxes[r.vatKey]} disabled={isLocked} onChange={(v) => onUpdate(r.vatKey!, v)} />
+                <BoxInput value={boxes[r.vatKey]} />
               )
             ) : (
               <span />

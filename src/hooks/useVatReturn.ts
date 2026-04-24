@@ -73,6 +73,20 @@ const emptyBoxes: VatBoxValues = {
   box_5d_vat: 0, box_5e_vat: 0, box_5f_vat: 0,
 };
 
+function toVatBoxes(source: Partial<Record<keyof VatBoxValues, unknown>>): VatBoxValues {
+  const next: VatBoxValues = { ...emptyBoxes };
+
+  for (const key of Object.keys(next) as (keyof VatBoxValues)[]) {
+    next[key] = Number(source[key]) || 0;
+  }
+
+  next.box_5a_vat = next.box_1a_vat + next.box_1b_vat + next.box_1c_vat + next.box_1d_vat + next.box_1e_vat + next.box_2a_vat + next.box_4a_vat + next.box_4b_vat;
+  next.box_5c_vat = next.box_5a_vat - next.box_5b_vat;
+  next.box_5f_vat = next.box_5c_vat - next.box_5d_vat - next.box_5e_vat;
+
+  return next;
+}
+
 function getPeriodDates(year: number, periodType: string, periodNumber: number) {
   if (periodType === "quarterly") {
     const startMonth = (periodNumber - 1) * 3;
@@ -185,17 +199,15 @@ export function useVatReturn() {
       .eq("period_number", periodNumber)
       .maybeSingle();
 
-    if (existing) {
+    if (existing && existing.status !== "draft") {
       setVatReturn(existing as unknown as VatReturn);
-      const b: VatBoxValues = { ...emptyBoxes };
-      for (const k of Object.keys(b) as (keyof VatBoxValues)[]) {
-        b[k] = Number((existing as Record<string, unknown>)[k]) || 0;
-      }
-      setBoxes(b);
+      setBoxes(toVatBoxes(existing as Record<string, unknown>));
       setWarnings((existing.warnings as string[]) ?? []);
       setLoading(false);
       return;
     }
+
+    setVatReturn((existing as unknown as VatReturn) ?? null);
 
     // Calculate from DB function
     const dates = getPeriodDates(year, vatFrequency, periodNumber);
@@ -207,18 +219,42 @@ export function useVatReturn() {
 
     if (error) {
       console.error(error);
-      setBoxes({ ...emptyBoxes });
-    } else if (calc) {
-      const c = calc as Record<string, unknown>;
-      const b: VatBoxValues = { ...emptyBoxes };
-      for (const k of Object.keys(b) as (keyof VatBoxValues)[]) {
-        b[k] = Number(c[k]) || 0;
+
+      const { data: fallbackLines, error: fallbackError } = await supabase
+        .from("journal_lines")
+        .select("vat_box, debit_amount, credit_amount, vat_amount, journal_entries!inner(date, organization_id, status)")
+        .eq("journal_entries.organization_id", orgId)
+        .eq("journal_entries.status", "posted")
+        .gte("journal_entries.date", dates.start)
+        .lte("journal_entries.date", dates.end)
+        .not("vat_box", "is", null);
+
+      if (fallbackError) {
+        console.error(fallbackError);
+        setBoxes({ ...emptyBoxes });
+      } else {
+        const aggregated = (fallbackLines ?? []).reduce<Partial<Record<keyof VatBoxValues, number>>>((acc, line) => {
+          const vatBox = (line.vat_box ?? "") as string;
+          const baseKey = `box_${vatBox}_base` as keyof VatBoxValues;
+          const vatKey = `box_${vatBox}_vat` as keyof VatBoxValues;
+          const baseAmount = Number(line.debit_amount) - Number(line.credit_amount);
+          const vatAmount = Number(line.vat_amount) || 0;
+
+          if (baseKey in emptyBoxes) {
+            acc[baseKey] = (acc[baseKey] ?? 0) + baseAmount;
+          }
+
+          if (vatKey in emptyBoxes) {
+            acc[vatKey] = (acc[vatKey] ?? 0) + vatAmount;
+          }
+
+          return acc;
+        }, {});
+
+        setBoxes(toVatBoxes(aggregated));
       }
-      // Compute 5a, 5c, 5f
-      b.box_5a_vat = b.box_1a_vat + b.box_1b_vat + b.box_1c_vat + b.box_1d_vat + b.box_1e_vat + b.box_2a_vat + b.box_4a_vat + b.box_4b_vat;
-      b.box_5c_vat = b.box_5a_vat - b.box_5b_vat;
-      b.box_5f_vat = b.box_5c_vat - b.box_5d_vat - b.box_5e_vat;
-      setBoxes(b);
+    } else if (calc) {
+      setBoxes(toVatBoxes(calc as Record<string, unknown>));
     }
 
     // Generate warnings
@@ -251,7 +287,6 @@ export function useVatReturn() {
     if (anomalyCount && anomalyCount > 0) w.push(`${anomalyCount} openstaande afwijkingen`);
 
     setWarnings(w);
-    setVatReturn(null);
     setLoading(false);
   }, [orgId, year, periodNumber, vatFrequency]);
 
