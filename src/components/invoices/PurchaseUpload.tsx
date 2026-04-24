@@ -24,6 +24,8 @@ interface OcrResult {
   iban: string;
   vat_number: string;
   currency: string;
+  vat_rate_type?: VatRateType;
+  matched_contact_id?: string | null;
   confidence: Record<string, number>;
   is_duplicate: boolean;
   duplicate_invoice_id?: string;
@@ -55,42 +57,114 @@ export function PurchaseUpload({ open, onClose }: Props) {
   const [vatRateType, setVatRateType] = useState<VatRateType>("high");
 
   const processFile = useCallback(async (file: File) => {
-    if (!membership?.organizationId) return;
+    const orgId = membership?.organizationId;
+    if (!orgId) return;
 
     setProcessing(true);
     setFileName(file.name);
 
     try {
-      // Call OCR edge function
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("organization_id", membership.organizationId);
+      // 1. Upload file to storage
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const safeName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const filePath = `${orgId}/${year}/${month}/${safeName}`;
 
-      const { data, error } = await supabase.functions.invoke("process-purchase-invoice", {
-        body: formData,
+      const { error: uploadError } = await supabase.storage
+        .from("documents")
+        .upload(filePath, file, { contentType: file.type });
+      if (uploadError) throw uploadError;
+
+      // 2. Create document record
+      const { data: doc, error: docError } = await supabase
+        .from("documents")
+        .insert({
+          organization_id: orgId,
+          file_name: file.name,
+          file_path: filePath,
+          file_type: file.type,
+          file_size: file.size,
+          document_type: "invoice",
+          ocr_status: "pending",
+        })
+        .select()
+        .single();
+      if (docError) throw docError;
+
+      // 3. Trigger OCR and wait for it
+      const { error: ocrError } = await supabase.functions.invoke("process-invoice-ocr", {
+        body: {
+          document_id: doc.id,
+          file_path: filePath,
+          organization_id: orgId,
+        },
       });
+      if (ocrError) throw ocrError;
 
-      if (error) throw error;
+      // 4. Re-fetch document with extracted data
+      const { data: processed } = await supabase
+        .from("documents")
+        .select("*")
+        .eq("id", doc.id)
+        .single();
 
-      const result = data as OcrResult;
+      if (!processed) throw new Error("Document not found after OCR");
+
+      const ocrData = (processed.ocr_data ?? {}) as Record<string, unknown>;
+      const confidence = (ocrData.confidence ?? {}) as Record<string, number>;
+      const vatRateDetected = (processed.vat_rate_type_detected as VatRateType | null) ?? "high";
+      const total = Number(processed.extracted_amount ?? 0);
+      const vat = Number(processed.extracted_vat_amount ?? 0);
+      const sub = total > 0 && vat >= 0 ? Math.max(total - vat, 0) : 0;
+
+      const result: OcrResult = {
+        supplier_name: processed.extracted_supplier_name ?? "",
+        invoice_number: processed.extracted_invoice_number ?? "",
+        invoice_date: processed.extracted_date ?? "",
+        subtotal: sub,
+        vat_amount: vat,
+        total_amount: total,
+        iban: processed.extracted_iban ?? "",
+        vat_number: processed.extracted_vat_number ?? "",
+        currency: processed.extracted_currency ?? "EUR",
+        vat_rate_type: vatRateDetected,
+        matched_contact_id: processed.contact_id,
+        confidence,
+        is_duplicate: !!processed.is_duplicate,
+      };
+
       setOcrResult(result);
-      setSupplierName(result.supplier_name || "");
-      setInvoiceNumber(result.invoice_number || "");
+      setSupplierName(result.supplier_name);
+      setInvoiceNumber(result.invoice_number);
       setInvoiceDate(result.invoice_date || new Date().toISOString().split("T")[0]);
-      setSubtotal(result.subtotal || 0);
-      setVatAmount(result.vat_amount || 0);
-      setTotalAmount(result.total_amount || 0);
+      setSubtotal(result.subtotal);
+      setVatAmount(result.vat_amount);
+      setTotalAmount(result.total_amount);
+      setVatRateType(vatRateDetected);
 
-      // Try to match contact
-      const matchedContact = contacts.find(
-        (c) =>
-          c.name.toLowerCase().includes(result.supplier_name?.toLowerCase() ?? "") ||
-          c.btw_number === result.vat_number
-      );
-      if (matchedContact) setContactId(matchedContact.id);
+      // Prefer AI-matched contact, otherwise fuzzy match locally
+      if (result.matched_contact_id) {
+        setContactId(result.matched_contact_id);
+      } else if (result.supplier_name) {
+        const needle = result.supplier_name.toLowerCase();
+        const matched = contacts.find(
+          (c) =>
+            c.name.toLowerCase().includes(needle) ||
+            needle.includes(c.name.toLowerCase()) ||
+            (result.vat_number && c.btw_number === result.vat_number)
+        );
+        if (matched) setContactId(matched.id);
+      }
+
+      if (result.supplier_name || result.invoice_number) {
+        toast.success("Factuur ingelezen");
+      } else {
+        toast.info("Geen gegevens herkend — vul handmatig in");
+      }
     } catch (err) {
-      // If edge function doesn't exist yet, show manual entry
-      toast.info("OCR niet beschikbaar — vul handmatig in");
+      console.error("OCR error:", err);
+      toast.error("Verwerking mislukt — vul handmatig in");
       setOcrResult(null);
     } finally {
       setProcessing(false);
