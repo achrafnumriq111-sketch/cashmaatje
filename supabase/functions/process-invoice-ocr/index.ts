@@ -50,7 +50,34 @@ Deno.serve(async (req) => {
       );
     }
 
-    const fileUrl = signedData.signedUrl;
+    // Gemini accepts PNG/JPEG/WebP/GIF via URL, but PDFs and other formats must be sent as a data URL.
+    // Always download + base64-encode to be safe (handles PDFs and any image type).
+    let fileUrl = signedData.signedUrl;
+    try {
+      const fileResp = await fetch(signedData.signedUrl);
+      if (!fileResp.ok) throw new Error(`Failed to fetch file: ${fileResp.status}`);
+      const contentType = fileResp.headers.get("content-type")
+        || (file_path.toLowerCase().endsWith(".pdf") ? "application/pdf" : "image/jpeg");
+      const buf = new Uint8Array(await fileResp.arrayBuffer());
+      // Chunked base64 to avoid stack overflow on large files
+      let binary = "";
+      const chunkSize = 0x8000;
+      for (let i = 0; i < buf.length; i += chunkSize) {
+        binary += String.fromCharCode(...buf.subarray(i, i + chunkSize));
+      }
+      const base64 = btoa(binary);
+      fileUrl = `data:${contentType};base64,${base64}`;
+    } catch (e) {
+      console.error("Failed to inline document as data URL:", e);
+      await supabase
+        .from("documents")
+        .update({ ocr_status: "error", processing_status: "inbox" })
+        .eq("id", document_id);
+      return new Response(
+        JSON.stringify({ error: "Failed to read document file" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Check for existing supplier patterns to give AI context
     const { data: patterns } = await supabase
