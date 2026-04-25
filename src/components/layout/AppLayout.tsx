@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { AppSidebar } from "./AppSidebar";
 import { TopHeader } from "./TopHeader";
 import { ChatbotFab } from "./ChatbotFab";
+import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { BroadcastBanner } from "./BroadcastBanner";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -52,6 +53,7 @@ export function AppLayout() {
         </motion.main>
       </div>
       <ChatbotFab />
+      <FeedbackButton />
     </div>
   );
 }

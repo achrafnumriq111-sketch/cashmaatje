@@ -292,6 +292,56 @@ export type Database = {
           },
         ]
       }
+      app_feedback: {
+        Row: {
+          created_at: string
+          feedback_type: string
+          id: string
+          message: string
+          metadata: Json | null
+          organization_id: string | null
+          page_path: string | null
+          rating: number | null
+          status: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          feedback_type?: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          organization_id?: string | null
+          page_path?: string | null
+          rating?: number | null
+          status?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          feedback_type?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          organization_id?: string | null
+          page_path?: string | null
+          rating?: number | null
+          status?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_feedback_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -2555,6 +2605,7 @@ export type Database = {
           id: string
           is_demo: boolean
           is_internal_test_org: boolean
+          is_tester: boolean
           kor_eligible: boolean | null
           kor_threshold_amount: number | null
           kvk_number: string | null
@@ -2583,6 +2634,7 @@ export type Database = {
           id?: string
           is_demo?: boolean
           is_internal_test_org?: boolean
+          is_tester?: boolean
           kor_eligible?: boolean | null
           kor_threshold_amount?: number | null
           kvk_number?: string | null
@@ -2611,6 +2663,7 @@ export type Database = {
           id?: string
           is_demo?: boolean
           is_internal_test_org?: boolean
+          is_tester?: boolean
           kor_eligible?: boolean | null
           kor_threshold_amount?: number | null
           kvk_number?: string | null

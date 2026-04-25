@@ -11,6 +11,7 @@ export interface OrgMembership {
   role: UserRole;
   isOwner: boolean;
   isDemo: boolean;
+  isTester: boolean;
 }
 
 interface OrgContextValue {
@@ -46,7 +47,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     const { data, error } = await supabase
       .from("organization_members")
-      .select("organization_id, role, is_owner, organizations(name, is_demo)")
+      .select("organization_id, role, is_owner, organizations(name, is_demo, is_tester)")
       .eq("user_id", user.id);
 
     if (error) {
@@ -57,13 +58,14 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
     }
 
     const list: OrgMembership[] = (data ?? []).map((d) => {
-      const org = d.organizations as unknown as { name: string; is_demo?: boolean } | null;
+      const org = d.organizations as unknown as { name: string; is_demo?: boolean; is_tester?: boolean } | null;
       return {
         organizationId: d.organization_id,
         organizationName: org?.name ?? "Organisatie",
         role: d.role,
         isOwner: !!d.is_owner,
         isDemo: !!org?.is_demo,
+        isTester: !!org?.is_tester,
       };
     });
     setMemberships(list);
