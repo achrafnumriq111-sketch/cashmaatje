@@ -37,8 +37,8 @@ export function SubscriptionGate({ children }: { children: ReactNode }) {
   // No org yet → onboarding flow handles it
   if (!membership) return <>{children}</>;
 
-  // Demo organisations bypass the paywall entirely
-  if (membership.isDemo) return <>{children}</>;
+  // Demo or tester organisations bypass the paywall entirely
+  if (membership.isDemo || membership.isTester) return <>{children}</>;
 
   // Active subscription → free pass
   if (sub.isActive) return <>{children}</>;
