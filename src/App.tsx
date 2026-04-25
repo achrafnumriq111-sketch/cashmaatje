@@ -7,6 +7,7 @@ import { AuthProvider, ProtectedRoute } from "@/lib/auth";
 import { OrganizationProvider } from "@/hooks/useOrganization";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { TwoFactorGate } from "@/components/auth/TwoFactorGate";
+import { SubscriptionGate } from "@/components/auth/SubscriptionGate";
 import BulkSettings from "./pages/BulkSettings";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
