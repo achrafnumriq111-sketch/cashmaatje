@@ -179,6 +179,37 @@ export default function Pricing() {
               </button>
             </div>
           )}
+
+          {/* Billing toggle */}
+          <div className="mt-6 inline-flex items-center gap-1 rounded-full border border-border bg-card p-1">
+            <button
+              onClick={() => setBilling("monthly")}
+              className={`px-4 py-1.5 text-xs rounded-full transition ${
+                billing === "monthly" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Maandelijks
+            </button>
+            <button
+              onClick={() => setBilling("yearly")}
+              className={`px-4 py-1.5 text-xs rounded-full transition flex items-center gap-1.5 ${
+                billing === "yearly" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Jaarlijks
+              <Badge variant="outline" className="text-[9px] py-0 px-1.5 border-current">2 mnd gratis</Badge>
+            </button>
+          </div>
+
+          {/* Demo button */}
+          {user && !membership?.isDemo && (
+            <div className="mt-4">
+              <Button variant="ghost" size="sm" onClick={startDemo} disabled={demoLoading} className="text-muted-foreground hover:text-foreground">
+                {demoLoading ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <PlayCircle className="h-3.5 w-3.5 mr-2" />}
+                Probeer eerst de app met een Demo BV
+              </Button>
+            </div>
+          )}
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-6">
