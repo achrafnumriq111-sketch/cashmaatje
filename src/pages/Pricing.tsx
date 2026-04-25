@@ -81,12 +81,19 @@ const PLANS: Plan[] = [
   },
 ];
 
+type Billing = "monthly" | "yearly";
+
+const PRICE_ID = (tier: PlanTier, b: Billing) => `${tier}_${b === "yearly" ? "yearly" : "monthly"}`;
+
 export default function Pricing() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const sub = useSubscription();
+  const { membership, refetch: refetchOrg } = useOrganization();
+  const [billing, setBilling] = useState<Billing>("monthly");
   const [checkoutPriceId, setCheckoutPriceId] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
 
   const handleSelect = (tier: PlanTier) => {
     if (!user) {
@@ -98,11 +105,10 @@ export default function Pricing() {
       return;
     }
     if (sub.isActive) {
-      // Open portal voor wijzigingen
       openPortal();
       return;
     }
-    setCheckoutPriceId(PLAN_PRICE_IDS[tier]);
+    setCheckoutPriceId(PRICE_ID(tier, billing));
   };
 
   const openPortal = async () => {
@@ -117,6 +123,27 @@ export default function Pricing() {
       toast.error(e.message);
     } finally {
       setPortalLoading(false);
+    }
+  };
+
+  const startDemo = async () => {
+    if (!user) {
+      navigate("/login?redirect=/pricing");
+      return;
+    }
+    setDemoLoading(true);
+    try {
+      const { data: orgId, error } = await supabase.rpc("create_demo_organization", { p_name: "Demo BV" });
+      if (error) throw error;
+      await refetchOrg();
+      // Switch to the demo org
+      localStorage.setItem("active_organization_id", orgId as string);
+      toast.success("Demo organisatie aangemaakt — je kunt de app verkennen!");
+      window.location.href = "/";
+    } catch (e: any) {
+      toast.error(e.message ?? "Demo aanmaken mislukt");
+    } finally {
+      setDemoLoading(false);
     }
   };
 
