@@ -38,7 +38,7 @@ export function SubscriptionGate({ children }: { children: ReactNode }) {
   if (!membership) return <>{children}</>;
 
   // Demo organisations bypass the paywall entirely
-  if ((membership.organization as any)?.is_demo) return <>{children}</>;
+  if (membership.isDemo) return <>{children}</>;
 
   // Active subscription → free pass
   if (sub.isActive) return <>{children}</>;
