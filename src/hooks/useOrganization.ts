@@ -10,6 +10,7 @@ export interface OrgMembership {
   organizationName: string;
   role: UserRole;
   isOwner: boolean;
+  isDemo: boolean;
 }
 
 interface OrgContextValue {
