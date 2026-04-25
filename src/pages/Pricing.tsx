@@ -1,17 +1,18 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Sparkles, Crown, Zap, Loader2 } from "lucide-react";
+import { Check, Sparkles, Crown, Zap, Loader2, PlayCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth";
 import { useSubscription } from "@/hooks/useSubscription";
-import { PLAN_PRICE_IDS, type PlanTier } from "@/lib/stripe";
+import { type PlanTier } from "@/lib/stripe";
 import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/stripe";
+import { useOrganization } from "@/hooks/useOrganization";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
