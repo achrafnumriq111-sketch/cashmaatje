@@ -1117,3 +1117,147 @@ function ReleasesPanel() {
     </div>
   );
 }
+
+// ─────────────────────────── Testers ───────────────────────────
+function TestersPanel() {
+  const qc = useQueryClient();
+  const [form, setForm] = useState({ email: "", password: "", full_name: "", org_name: "", seed_demo_data: true });
+  const [result, setResult] = useState<null | { email: string; password: string; organization_id: string }>(null);
+
+  const create = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("admin-create-tester", { body: form });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      return data as { email: string; password: string; organization_id: string };
+    },
+    onSuccess: (data) => {
+      setResult(data);
+      toast.success("Tester aangemaakt");
+      qc.invalidateQueries({ queryKey: ["admin_users"] });
+      setForm({ email: "", password: "", full_name: "", org_name: "", seed_demo_data: true });
+    },
+    onError: (e: any) => toast.error(e.message ?? "Fout bij aanmaken"),
+  });
+
+  const generatePassword = () => {
+    const pw = Math.random().toString(36).slice(2, 6) + "-" + Math.random().toString(36).slice(2, 6);
+    setForm((f) => ({ ...f, password: pw }));
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardContent className="space-y-4 p-6">
+          <div className="flex items-center gap-2">
+            <UserPlus className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">Tester-account aanmaken</h2>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Maakt een gebruiker + tester-organisatie. Email is direct geverifieerd, paywall wordt overgeslagen.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-xs text-muted-foreground">Volledige naam</label>
+              <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder="Jan Tester" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs text-muted-foreground">Email *</label>
+              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="tester@bedrijf.nl" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs text-muted-foreground">Wachtwoord *</label>
+              <div className="flex gap-2">
+                <Input value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="min. 8 tekens" />
+                <Button type="button" variant="outline" onClick={generatePassword}>Genereer</Button>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs text-muted-foreground">Organisatienaam</label>
+              <Input value={form.org_name} onChange={(e) => setForm({ ...form, org_name: e.target.value })} placeholder="Tester BV" />
+            </div>
+          </div>
+
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox checked={form.seed_demo_data} onCheckedChange={(v) => setForm({ ...form, seed_demo_data: !!v })} />
+            Demo-data meeladen (facturen, contacten, transacties)
+          </label>
+
+          <Button
+            onClick={() => create.mutate()}
+            disabled={!form.email || form.password.length < 8 || create.isPending}
+          >
+            {create.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            Tester aanmaken
+          </Button>
+        </CardContent>
+      </Card>
+
+      {result && (
+        <Card>
+          <CardContent className="space-y-3 p-6">
+            <h3 className="font-semibold text-foreground">Inloggegevens (deel met tester)</h3>
+            <div className="grid grid-cols-[120px_1fr_auto] gap-2 text-sm items-center">
+              <span className="text-muted-foreground">Email</span>
+              <code className="font-mono bg-secondary px-2 py-1 rounded">{result.email}</code>
+              <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(result.email); toast.success("Gekopieerd"); }}>
+                <Copy className="h-3.5 w-3.5" />
+              </Button>
+              <span className="text-muted-foreground">Wachtwoord</span>
+              <code className="font-mono bg-secondary px-2 py-1 rounded">{result.password}</code>
+              <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(result.password); toast.success("Gekopieerd"); }}>
+                <Copy className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => {
+              navigator.clipboard.writeText(`Login: ${window.location.origin}/login\nEmail: ${result.email}\nWachtwoord: ${result.password}`);
+              toast.success("Volledige inlog gekopieerd");
+            }}>
+              Kopieer volledige instructies
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────── Feedback ───────────────────────────
+function FeedbackPanel() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin_feedback"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_feedback")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>;
+  if (!data?.length) return <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">Nog geen feedback ontvangen.</CardContent></Card>;
+
+  return (
+    <div className="space-y-3">
+      {data.map((f: any) => (
+        <Card key={f.id}>
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">{f.feedback_type}</Badge>
+                {f.page_path && <code className="text-xs text-muted-foreground">{f.page_path}</code>}
+              </div>
+              <span className="text-xs text-muted-foreground">{format(new Date(f.created_at), "d MMM HH:mm", { locale: nl })}</span>
+            </div>
+            <p className="text-sm text-foreground whitespace-pre-wrap">{f.message}</p>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
