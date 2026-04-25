@@ -248,6 +248,29 @@ export default function Onboarding() {
     <StepGereedheid data={data} />,
   ];
 
+  // Validation for each step
+  const canProceed = () => {
+    switch (step) {
+      case 0: // Bedrijfsprofiel
+        return !!data.company.name?.trim();
+      case 1: // Belasting
+        return true;
+      case 2: // Bankrekeningen
+        return true; // Optional step
+      case 3: // Import
+        return true; // Optional step
+      case 4: // Documenten
+        return true;
+      case 5: // AI
+        return true;
+      case 6: // Transacties
+        return true;
+      case 7: // Gereedheid
+        return true;
+      default:
+        return true;
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
