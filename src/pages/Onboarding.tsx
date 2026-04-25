@@ -300,12 +300,12 @@ export default function Onboarding() {
             )}
 
             {step < STEPS.length - 1 ? (
-              <Button onClick={next}>
+              <Button onClick={next} disabled={!canProceed()}>
                 Volgende
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             ) : (
-              <Button onClick={finish} disabled={submitting}>
+              <Button onClick={finish} disabled={submitting || !canProceed()}>
                 {submitting ? "Bezig…" : "Start met Cash Maatje"}
               </Button>
             )}
