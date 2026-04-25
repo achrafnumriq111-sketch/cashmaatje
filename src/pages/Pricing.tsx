@@ -252,8 +252,15 @@ export default function Pricing() {
                     <p className="text-xs text-muted-foreground mb-4">{plan.tagline}</p>
 
                     <div className="mb-5">
-                      <span className="text-4xl font-bold text-foreground">€{plan.price}</span>
+                      <span className="text-4xl font-bold text-foreground">
+                        €{billing === "yearly" ? Math.round((plan.price * 10) / 12) : plan.price}
+                      </span>
                       <span className="text-sm text-muted-foreground ml-1">/maand</span>
+                      {billing === "yearly" && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          €{plan.price * 10}/jaar — bespaar €{plan.price * 2}
+                        </div>
+                      )}
                     </div>
 
                     <Button
