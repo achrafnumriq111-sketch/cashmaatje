@@ -46,7 +46,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     const { data, error } = await supabase
       .from("organization_members")
-      .select("organization_id, role, is_owner, organizations(name)")
+      .select("organization_id, role, is_owner, organizations(name, is_demo)")
       .eq("user_id", user.id);
 
     if (error) {
@@ -57,12 +57,13 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
     }
 
     const list: OrgMembership[] = (data ?? []).map((d) => {
-      const org = d.organizations as unknown as { name: string } | null;
+      const org = d.organizations as unknown as { name: string; is_demo?: boolean } | null;
       return {
         organizationId: d.organization_id,
         organizationName: org?.name ?? "Organisatie",
         role: d.role,
         isOwner: !!d.is_owner,
+        isDemo: !!org?.is_demo,
       };
     });
     setMemberships(list);
