@@ -1,17 +1,18 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Sparkles, Crown, Zap, Loader2 } from "lucide-react";
+import { Check, Sparkles, Crown, Zap, Loader2, PlayCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth";
 import { useSubscription } from "@/hooks/useSubscription";
-import { PLAN_PRICE_IDS, type PlanTier } from "@/lib/stripe";
+import { type PlanTier } from "@/lib/stripe";
 import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/stripe";
+import { useOrganization } from "@/hooks/useOrganization";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
@@ -80,12 +81,19 @@ const PLANS: Plan[] = [
   },
 ];
 
+type Billing = "monthly" | "yearly";
+
+const PRICE_ID = (tier: PlanTier, b: Billing) => `${tier}_${b === "yearly" ? "yearly" : "monthly"}`;
+
 export default function Pricing() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const sub = useSubscription();
+  const { membership, refetch: refetchOrg } = useOrganization();
+  const [billing, setBilling] = useState<Billing>("monthly");
   const [checkoutPriceId, setCheckoutPriceId] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
 
   const handleSelect = (tier: PlanTier) => {
     if (!user) {
@@ -97,11 +105,10 @@ export default function Pricing() {
       return;
     }
     if (sub.isActive) {
-      // Open portal voor wijzigingen
       openPortal();
       return;
     }
-    setCheckoutPriceId(PLAN_PRICE_IDS[tier]);
+    setCheckoutPriceId(PRICE_ID(tier, billing));
   };
 
   const openPortal = async () => {
@@ -116,6 +123,27 @@ export default function Pricing() {
       toast.error(e.message);
     } finally {
       setPortalLoading(false);
+    }
+  };
+
+  const startDemo = async () => {
+    if (!user) {
+      navigate("/login?redirect=/pricing");
+      return;
+    }
+    setDemoLoading(true);
+    try {
+      const { data: orgId, error } = await supabase.rpc("create_demo_organization", { p_name: "Demo BV" });
+      if (error) throw error;
+      await refetchOrg();
+      // Switch to the demo org
+      localStorage.setItem("active_organization_id", orgId as string);
+      toast.success("Demo organisatie aangemaakt — je kunt de app verkennen!");
+      window.location.href = "/";
+    } catch (e: any) {
+      toast.error(e.message ?? "Demo aanmaken mislukt");
+    } finally {
+      setDemoLoading(false);
     }
   };
 
@@ -149,6 +177,37 @@ export default function Pricing() {
               >
                 Beheer abonnement
               </button>
+            </div>
+          )}
+
+          {/* Billing toggle */}
+          <div className="mt-6 inline-flex items-center gap-1 rounded-full border border-border bg-card p-1">
+            <button
+              onClick={() => setBilling("monthly")}
+              className={`px-4 py-1.5 text-xs rounded-full transition ${
+                billing === "monthly" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Maandelijks
+            </button>
+            <button
+              onClick={() => setBilling("yearly")}
+              className={`px-4 py-1.5 text-xs rounded-full transition flex items-center gap-1.5 ${
+                billing === "yearly" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Jaarlijks
+              <Badge variant="outline" className="text-[9px] py-0 px-1.5 border-current">2 mnd gratis</Badge>
+            </button>
+          </div>
+
+          {/* Demo button */}
+          {user && !membership?.isDemo && (
+            <div className="mt-4">
+              <Button variant="ghost" size="sm" onClick={startDemo} disabled={demoLoading} className="text-muted-foreground hover:text-foreground">
+                {demoLoading ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <PlayCircle className="h-3.5 w-3.5 mr-2" />}
+                Probeer eerst de app met een Demo BV
+              </Button>
             </div>
           )}
         </motion.div>
@@ -193,8 +252,15 @@ export default function Pricing() {
                     <p className="text-xs text-muted-foreground mb-4">{plan.tagline}</p>
 
                     <div className="mb-5">
-                      <span className="text-4xl font-bold text-foreground">€{plan.price}</span>
+                      <span className="text-4xl font-bold text-foreground">
+                        €{billing === "yearly" ? Math.round((plan.price * 10) / 12) : plan.price}
+                      </span>
                       <span className="text-sm text-muted-foreground ml-1">/maand</span>
+                      {billing === "yearly" && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          €{plan.price * 10}/jaar — bespaar €{plan.price * 2}
+                        </div>
+                      )}
                     </div>
 
                     <Button

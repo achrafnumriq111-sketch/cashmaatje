@@ -2553,6 +2553,7 @@ export type Database = {
           fiscal_year_start_month: number | null
           iban: string | null
           id: string
+          is_demo: boolean
           is_internal_test_org: boolean
           kor_eligible: boolean | null
           kor_threshold_amount: number | null
@@ -2580,6 +2581,7 @@ export type Database = {
           fiscal_year_start_month?: number | null
           iban?: string | null
           id?: string
+          is_demo?: boolean
           is_internal_test_org?: boolean
           kor_eligible?: boolean | null
           kor_threshold_amount?: number | null
@@ -2607,6 +2609,7 @@ export type Database = {
           fiscal_year_start_month?: number | null
           iban?: string | null
           id?: string
+          is_demo?: boolean
           is_internal_test_org?: boolean
           kor_eligible?: boolean | null
           kor_threshold_amount?: number | null
@@ -4143,6 +4146,7 @@ export type Database = {
         Returns: Json
       }
       can_manage_org_members: { Args: { p_org_id: string }; Returns: boolean }
+      create_demo_organization: { Args: { p_name?: string }; Returns: string }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -4195,6 +4199,7 @@ export type Database = {
         }[]
       }
       seed_chart_of_accounts: { Args: { p_org_id: string }; Returns: undefined }
+      seed_demo_data: { Args: { p_org_id: string }; Returns: undefined }
       seed_vat_rates: { Args: { p_org_id: string }; Returns: undefined }
       setup_new_organization: {
         Args: {

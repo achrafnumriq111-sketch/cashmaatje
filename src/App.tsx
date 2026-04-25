@@ -7,6 +7,7 @@ import { AuthProvider, ProtectedRoute } from "@/lib/auth";
 import { OrganizationProvider } from "@/hooks/useOrganization";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { TwoFactorGate } from "@/components/auth/TwoFactorGate";
+import { SubscriptionGate } from "@/components/auth/SubscriptionGate";
 import BulkSettings from "./pages/BulkSettings";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -86,7 +87,7 @@ const App = () => (
             <Route path="/2fa/verify" element={<ProtectedRoute><TwoFactorVerify /></ProtectedRoute>} />
             <Route path="/2fa/recovery" element={<TwoFactorRecovery />} />
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-            <Route path="/" element={<ProtectedRoute><TwoFactorGate><AppLayout /></TwoFactorGate></ProtectedRoute>}>
+            <Route path="/" element={<ProtectedRoute><TwoFactorGate><SubscriptionGate><AppLayout /></SubscriptionGate></TwoFactorGate></ProtectedRoute>}>
               <Route index element={<Dashboard />} />
               <Route path="transacties" element={<Transactions />} />
               <Route path="facturen/verkoop" element={<SalesInvoices />} />
