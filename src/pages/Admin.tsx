@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Users, CreditCard, Megaphone, MessageSquare, Loader2, Send, Plus, Search, Building2, Flag, Sparkles, Beaker, Shield, ToggleRight } from "lucide-react";
+import { Users, CreditCard, Megaphone, MessageSquare, Loader2, Send, Plus, Search, Building2, Flag, Sparkles, Beaker, Shield, ToggleRight, UserPlus, MessageCircle, Copy } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -67,6 +67,12 @@ export default function Admin() {
           <TabsTrigger value="broadcasts" className="gap-2">
             <Megaphone className="h-3.5 w-3.5" /> Aankondigingen
           </TabsTrigger>
+          <TabsTrigger value="testers" className="gap-2">
+            <UserPlus className="h-3.5 w-3.5" /> Testers
+          </TabsTrigger>
+          <TabsTrigger value="feedback" className="gap-2">
+            <MessageCircle className="h-3.5 w-3.5" /> Feedback
+          </TabsTrigger>
           <TabsTrigger value="support" className="gap-2">
             <MessageSquare className="h-3.5 w-3.5" /> Support inbox
           </TabsTrigger>
@@ -89,6 +95,12 @@ export default function Admin() {
         </TabsContent>
         <TabsContent value="broadcasts" className="mt-4">
           <BroadcastsPanel />
+        </TabsContent>
+        <TabsContent value="testers" className="mt-4">
+          <TestersPanel />
+        </TabsContent>
+        <TabsContent value="feedback" className="mt-4">
+          <FeedbackPanel />
         </TabsContent>
         <TabsContent value="support" className="mt-4">
           <SupportPanel />
