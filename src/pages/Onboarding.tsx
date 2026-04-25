@@ -124,6 +124,30 @@ export default function Onboarding() {
   const next = () => setStep((s) => Math.min(s + 1, STEPS.length - 1));
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
+  // Validation for each step
+  const canProceed = () => {
+    switch (step) {
+      case 0: // Bedrijfsprofiel
+        return !!data.company.name?.trim();
+      case 1: // Belasting
+        return true;
+      case 2: // Bankrekeningen
+        return true; // Optional step
+      case 3: // Import
+        return true; // Optional step
+      case 4: // Documenten
+        return true;
+      case 5: // AI
+        return true;
+      case 6: // Transacties
+        return true;
+      case 7: // Gereedheid
+        return true;
+      default:
+        return true;
+    }
+  };
+
   const finish = async () => {
     if (!user) return;
     setSubmitting(true);
@@ -137,6 +161,11 @@ export default function Onboarding() {
         maatschap: "vof",
         cv: "vof",
       };
+
+      // Validate required fields
+      if (!data.company.name?.trim()) {
+        throw new Error("Bedrijfsnaam is verplicht");
+      }
 
       // Single RPC call that creates org + member + seeds everything
       const { data: orgId, error: setupErr } = await supabase.rpc("setup_new_organization", {
@@ -219,6 +248,7 @@ export default function Onboarding() {
     <StepGereedheid data={data} />,
   ];
 
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
@@ -271,12 +301,12 @@ export default function Onboarding() {
             )}
 
             {step < STEPS.length - 1 ? (
-              <Button onClick={next}>
+              <Button onClick={next} disabled={!canProceed()}>
                 Volgende
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             ) : (
-              <Button onClick={finish} disabled={submitting}>
+              <Button onClick={finish} disabled={submitting || !canProceed()}>
                 {submitting ? "Bezig…" : "Start met Cash Maatje"}
               </Button>
             )}
