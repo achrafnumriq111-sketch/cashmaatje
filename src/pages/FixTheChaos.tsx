@@ -128,13 +128,29 @@ export default function FixTheChaos() {
         </motion.div>
       )}
 
+      {/* Filters */}
+      <motion.div variants={fadeInUp}>
+        <ChaosFilters
+          value={filters}
+          onChange={setFilters}
+          totalCount={open.length}
+          filteredCount={filteredOpen.length}
+        />
+      </motion.div>
+
       {/* Lists with view toggle */}
       <motion.div variants={fadeInUp}>
         <Tabs defaultValue="open" className="space-y-4">
           <div className="flex items-center justify-between">
             <TabsList>
-              <TabsTrigger value="open">Open ({open.length})</TabsTrigger>
-              <TabsTrigger value="done">Afgehandeld ({resolved.length})</TabsTrigger>
+              <TabsTrigger value="open">
+                Open ({filteredOpen.length}
+                {filteredOpen.length !== open.length ? ` van ${open.length}` : ""})
+              </TabsTrigger>
+              <TabsTrigger value="done">
+                Afgehandeld ({filteredResolved.length}
+                {filteredResolved.length !== resolved.length ? ` van ${resolved.length}` : ""})
+              </TabsTrigger>
             </TabsList>
             <div className="flex gap-1 rounded-lg border p-0.5">
               <Button
@@ -171,13 +187,18 @@ export default function FixTheChaos() {
                     : "Goed bezig. Je hebt geen openstaande acties meer."
                 }
               />
+            ) : filteredOpen.length === 0 ? (
+              <EmptyState
+                title="Geen items voor deze filters"
+                hint="Pas de filters aan of wis ze om alles te tonen."
+              />
             ) : view === "lanes" ? (
               <UrgencyLanes
-                lanes={lanes}
+                lanes={filteredLanes}
                 onResolve={(id) => resolveItem.mutate(id)}
               />
             ) : (
-              open.map((item) => (
+              filteredOpen.map((item) => (
                 <ChaosItemCard
                   key={item.id}
                   item={item}
@@ -190,8 +211,13 @@ export default function FixTheChaos() {
           <TabsContent value="done" className="space-y-3 mt-0">
             {resolved.length === 0 ? (
               <EmptyState title="Nog niets afgehandeld" hint="Vink items af zodra je ze hebt geregeld." />
+            ) : filteredResolved.length === 0 ? (
+              <EmptyState
+                title="Geen afgehandelde items voor deze filters"
+                hint="Pas de filters aan of wis ze om alles te tonen."
+              />
             ) : (
-              resolved.map((item) => (
+              filteredResolved.map((item) => (
                 <ChaosItemCard
                   key={item.id}
                   item={item}
@@ -203,6 +229,7 @@ export default function FixTheChaos() {
           </TabsContent>
         </Tabs>
       </motion.div>
+
 
       {/* Recovery plan */}
       <motion.div variants={fadeInUp}>
