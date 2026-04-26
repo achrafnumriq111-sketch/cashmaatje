@@ -290,12 +290,28 @@ export function useChaosData() {
 
   const retryUpload = useMutation({
     mutationFn: async (upload_id: string) => {
-      await supabase.from("chaos_uploads").update({ status: "pending", error_message: null }).eq("id", upload_id);
-      await supabase.functions.invoke("analyze-chaos-document", { body: { upload_id } });
+      const { error: updErr } = await supabase
+        .from("chaos_uploads")
+        .update({ status: "pending", error_message: null })
+        .eq("id", upload_id);
+      if (updErr) throw updErr;
+      const { error: invErr } = await supabase.functions.invoke("analyze-chaos-document", {
+        body: { upload_id },
+      });
+      if (invErr) throw invErr;
+      return upload_id;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["chaos-uploads", orgId] });
+      queryClient.invalidateQueries({ queryKey: ["chaos-items", orgId] });
       toast({ title: "Analyse opnieuw gestart" });
+    },
+    onError: (e: Error) => {
+      toast({
+        title: "Opnieuw proberen mislukt",
+        description: e.message,
+        variant: "destructive",
+      });
     },
   });
 
