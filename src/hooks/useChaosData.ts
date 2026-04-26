@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/hooks/useOrganization";
@@ -212,6 +213,34 @@ export function useChaosData() {
     },
     enabled: !!orgId,
   });
+
+  // Realtime: live status updates for uploads (queued → analyzing → done/failed)
+  // and chaos items as the AI inserts/updates rows. Filtered by org_id at the
+  // database layer; RLS still enforces tenant isolation defensively.
+  useEffect(() => {
+    if (!orgId) return;
+    const channel = supabase
+      .channel(`chaos-${orgId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "chaos_uploads", filter: `organization_id=eq.${orgId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["chaos-uploads", orgId] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "chaos_items", filter: `organization_id=eq.${orgId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["chaos-items", orgId] });
+          queryClient.invalidateQueries({ queryKey: ["chaos-uploads", orgId] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [orgId, queryClient]);
 
   const uploadFiles = useMutation({
     mutationFn: async (files: File[]) => {
