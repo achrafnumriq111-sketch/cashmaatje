@@ -902,6 +902,130 @@ export type Database = {
           },
         ]
       }
+      chaos_action_proofs: {
+        Row: {
+          action_id: string
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          organization_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          action_id: string
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          organization_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          action_id?: string
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          organization_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chaos_action_proofs_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "chaos_actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chaos_actions: {
+        Row: {
+          action_type: string
+          chaos_item_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          organization_id: string
+          performed_at: string | null
+          performed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          action_type: string
+          chaos_item_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          performed_at?: string | null
+          performed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          action_type?: string
+          chaos_item_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          performed_at?: string | null
+          performed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chaos_actions_chaos_item_id_fkey"
+            columns: ["chaos_item_id"]
+            isOneToOne: false
+            referencedRelation: "chaos_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chaos_handover_packs: {
+        Row: {
+          created_at: string
+          file_path: string | null
+          generated_at: string
+          generated_by: string | null
+          id: string
+          organization_id: string
+          payload: Json
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          file_path?: string | null
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          organization_id: string
+          payload?: Json
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          file_path?: string | null
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          organization_id?: string
+          payload?: Json
+          status?: string
+        }
+        Relationships: []
+      }
       chaos_items: {
         Row: {
           action_owner: string | null
@@ -909,14 +1033,19 @@ export type Database = {
           ai_reasoning: string | null
           amount_due: number | null
           category: string
+          confidence_band: string | null
           created_at: string
           currency: string | null
+          daily_anchor: boolean
           document_title: string
           id: string
           is_resolved: boolean
           legal_deadline: string | null
+          missing_documents: Json | null
           notes: string | null
           organization_id: string
+          panic_band: string | null
+          panic_score: number | null
           payment_deadline: string | null
           phone_number: string | null
           phone_script: string | null
@@ -928,10 +1057,12 @@ export type Database = {
           resolved_by: string | null
           risk_if_ignored: string | null
           risk_level: number | null
+          risk_timeline: Json | null
           sender_name: string | null
           summary: string | null
           updated_at: string
           upload_id: string
+          urgency_lane: string | null
         }
         Insert: {
           action_owner?: string | null
@@ -939,14 +1070,19 @@ export type Database = {
           ai_reasoning?: string | null
           amount_due?: number | null
           category: string
+          confidence_band?: string | null
           created_at?: string
           currency?: string | null
+          daily_anchor?: boolean
           document_title: string
           id?: string
           is_resolved?: boolean
           legal_deadline?: string | null
+          missing_documents?: Json | null
           notes?: string | null
           organization_id: string
+          panic_band?: string | null
+          panic_score?: number | null
           payment_deadline?: string | null
           phone_number?: string | null
           phone_script?: string | null
@@ -958,10 +1094,12 @@ export type Database = {
           resolved_by?: string | null
           risk_if_ignored?: string | null
           risk_level?: number | null
+          risk_timeline?: Json | null
           sender_name?: string | null
           summary?: string | null
           updated_at?: string
           upload_id: string
+          urgency_lane?: string | null
         }
         Update: {
           action_owner?: string | null
@@ -969,14 +1107,19 @@ export type Database = {
           ai_reasoning?: string | null
           amount_due?: number | null
           category?: string
+          confidence_band?: string | null
           created_at?: string
           currency?: string | null
+          daily_anchor?: boolean
           document_title?: string
           id?: string
           is_resolved?: boolean
           legal_deadline?: string | null
+          missing_documents?: Json | null
           notes?: string | null
           organization_id?: string
+          panic_band?: string | null
+          panic_score?: number | null
           payment_deadline?: string | null
           phone_number?: string | null
           phone_script?: string | null
@@ -988,10 +1131,12 @@ export type Database = {
           resolved_by?: string | null
           risk_if_ignored?: string | null
           risk_level?: number | null
+          risk_timeline?: Json | null
           sender_name?: string | null
           summary?: string | null
           updated_at?: string
           upload_id?: string
+          urgency_lane?: string | null
         }
         Relationships: [
           {
@@ -1009,6 +1154,81 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      chaos_prevention_rules: {
+        Row: {
+          cadence: string | null
+          channel: string
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string
+          next_due_at: string | null
+          organization_id: string
+          rule_type: string
+          updated_at: string
+        }
+        Insert: {
+          cadence?: string | null
+          channel?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          next_due_at?: string | null
+          organization_id: string
+          rule_type: string
+          updated_at?: string
+        }
+        Update: {
+          cadence?: string | null
+          channel?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          next_due_at?: string | null
+          organization_id?: string
+          rule_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      chaos_recovery_plans: {
+        Row: {
+          created_at: string
+          days: Json
+          generated_at: string
+          generated_by: string | null
+          id: string
+          organization_id: string
+          status: string
+          summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          days?: Json
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          organization_id: string
+          status?: string
+          summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          days?: Json
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          organization_id?: string
+          status?: string
+          summary?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       chaos_uploads: {
         Row: {
