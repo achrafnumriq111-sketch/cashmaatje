@@ -18,6 +18,12 @@ import { NeverAgainPanel } from "@/components/chaos/NeverAgainPanel";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
+import {
+  ChaosFilters,
+  applyChaosFilters,
+  defaultChaosFilters,
+  type ChaosFilterState,
+} from "@/components/chaos/ChaosFilters";
 
 export default function FixTheChaos() {
   const {
