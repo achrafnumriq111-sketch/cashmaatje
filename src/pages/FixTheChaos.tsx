@@ -93,27 +93,19 @@ export default function FixTheChaos() {
 
       {stats.analyzing > 0 && <AnalyzingPlaceholder count={stats.analyzing} />}
 
-      {failedUploads.length > 0 && (
-        <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-4">
-          <div className="text-sm font-medium text-red-500 mb-2">
-            {failedUploads.length} document{failedUploads.length === 1 ? "" : "en"} niet gelukt
-          </div>
-          <ul className="space-y-1.5">
-            {failedUploads.slice(0, 5).map((u) => (
-              <li key={u.id} className="text-xs text-muted-foreground flex justify-between items-center gap-2">
-                <span className="truncate">{u.file_name}</span>
-                <div className="flex gap-2 flex-shrink-0">
-                  <button onClick={() => retryUpload.mutate(u.id)} className="text-primary hover:underline flex items-center gap-1">
-                    <RefreshCw className="w-3 h-3" /> opnieuw
-                  </button>
-                  <button onClick={() => deleteUpload.mutate(u)} className="text-red-500 hover:underline">
-                    verwijder
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
+      {/* Per-document live status with retry */}
+      {allUploads.length > 0 && (
+        <motion.div variants={fadeInUp}>
+          <UploadStatusList
+            uploads={allUploads}
+            isLoading={uploads.isLoading}
+            retryingId={
+              retryUpload.isPending ? (retryUpload.variables as string) : null
+            }
+            onRetry={(id) => retryUpload.mutate(id)}
+            onDelete={(u) => deleteUpload.mutate(u)}
+          />
+        </motion.div>
       )}
 
       {/* Lists with view toggle */}
