@@ -242,6 +242,7 @@ export function useChaosData() {
     };
   }, [orgId, queryClient]);
 
+  const uploadFiles = useMutation({
     mutationFn: async (files: File[]) => {
       if (!orgId) throw new Error("Geen organisatie geselecteerd");
       const created: string[] = [];
