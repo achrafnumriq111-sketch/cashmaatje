@@ -492,7 +492,6 @@ function SubscriptionTab() {
     <Card>
       <CardHeader><CardTitle>Abonnement</CardTitle><CardDescription>Beheer je plan en facturen.</CardDescription></CardHeader>
       <CardContent className="space-y-3">
-        <Button onClick={() => navigate("/pricing")} variant="outline">Bekijk plannen</Button>
         <Button onClick={openPortal} disabled={loading}>{loading && <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />}Beheer abonnement</Button>
       </CardContent>
     </Card>

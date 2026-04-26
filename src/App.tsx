@@ -7,7 +7,7 @@ import { AuthProvider, ProtectedRoute } from "@/lib/auth";
 import { OrganizationProvider } from "@/hooks/useOrganization";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { TwoFactorGate } from "@/components/auth/TwoFactorGate";
-import { SubscriptionGate } from "@/components/auth/SubscriptionGate";
+
 import BulkSettings from "./pages/BulkSettings";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -59,7 +59,7 @@ import FinancialIntelligence from "./pages/FinancialIntelligence";
 import Inventory from "./pages/Inventory";
 import Integrations from "./pages/Integrations";
 import PaymentReminders from "./pages/PaymentReminders";
-import Pricing from "./pages/Pricing";
+
 import CheckoutReturn from "./pages/CheckoutReturn";
 import Inbox from "./pages/Inbox";
 import Admin from "./pages/Admin";
@@ -79,7 +79,7 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/pricing" element={<Pricing />} />
+            
             <Route path="/checkout/return" element={<CheckoutReturn />} />
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -88,7 +88,7 @@ const App = () => (
             <Route path="/2fa/verify" element={<ProtectedRoute><TwoFactorVerify /></ProtectedRoute>} />
             <Route path="/2fa/recovery" element={<TwoFactorRecovery />} />
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-            <Route path="/" element={<ProtectedRoute><TwoFactorGate><SubscriptionGate><AppLayout /></SubscriptionGate></TwoFactorGate></ProtectedRoute>}>
+            <Route path="/" element={<ProtectedRoute><TwoFactorGate><AppLayout /></TwoFactorGate></ProtectedRoute>}>
               <Route index element={<Dashboard />} />
               <Route path="fix-the-chaos" element={<FixTheChaos />} />
               <Route path="transacties" element={<Transactions />} />
