@@ -1,6 +1,7 @@
-// FIX THE CHAOS — document analyzer
+// FIX THE CHAOS — document analyzer (enhanced rescue layer)
 // Reads a chaos_uploads row, downloads the file, sends it to Gemini 2.5 Pro,
-// classifies it and writes one or more chaos_items rows.
+// classifies it, and writes a chaos_items row enriched with panic score,
+// urgency lane, missing-document detection and risk-timeline mapping.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -9,27 +10,41 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const SYSTEM_PROMPT = `Je bent een ervaren Nederlandse boekhouder, fiscalist en debiteurenspecialist.
+const SYSTEM_PROMPT = `Je bent een ervaren Nederlandse boekhouder, fiscalist, debiteurenspecialist en crisismanager.
 Je analyseert ALLEEN documenten gerelateerd aan ondernemerschap, belasting, boekhouding en zakelijke financiën.
 Bron: belastingdienst.nl/ondernemers en officiële Nederlandse wet- en regelgeving.
+
+Je werkt voor een ondernemer die zijn financiële chaos bij jou dropt. Jouw taak is hem of haar ONMIDDELLIJK rust te geven door glashelder te zijn over wat er moet gebeuren.
 
 Je krijgt 1 document (PDF, foto, scan of screenshot). Bepaal:
 1. Wat is dit voor document?
 2. Wie heeft het gestuurd (Belastingdienst, deurwaarder, leverancier, UWV, gemeente, bank, overig)?
 3. Welk bedrag (indien) en welke deadline (indien)?
-4. Hoe URGENT is dit? (red = wettelijke deadline binnen 7 dagen of dwangbevel/incasso, orange = belangrijke actie binnen 30 dagen, green = informatief / bevestiging)
-5. Wat moet de ondernemer NU concreet doen? Geen vage adviezen. Eén heldere actie.
-6. Indien bellen relevant: telefoonnummer + voorbeeld-script in het Nederlands.
-7. Welke documenten heeft de ondernemer nodig om de actie uit te voeren?
+4. Hoe URGENT is dit op de Nederlandse incassoladder:
+   herinnering → aanmaning → naheffingsaanslag/boete → dwangbevel → invordering/beslag → deurwaarder.
+   Plaats dit document op die ladder.
+5. PANIC SCORE 0–100. Bereken concreet:
+   - dwangbevel of beslag aangekondigd → minimaal 85
+   - deurwaarder → minimaal 90
+   - aanmaning Belastingdienst met deadline binnen 7 dagen → 70–85
+   - boete of naheffingsaanslag → 60–80
+   - openstaand bedrag > €5000 met korte deadline → +10
+   - eerste herinnering, deadline > 14 dagen → 20–40
+   - informatief (bevestiging, jaaropgave) → 5–20
+6. URGENCY LANE: today (binnen 24u actie nodig) / this_week / later
+7. RISK TIMELINE: array van vervolgstappen als ondernemer NIETS doet, met realistische termijnen ("over 14 dagen → aanmaning + €7 kosten", enz.). 3–6 stappen.
+8. Welke andere documenten ontbreken waarschijnlijk om dit op te lossen? (bv. bankafschrift Q3, kopie originele factuur, betaalbewijs).
+9. Concreet: één heldere actie. Geen vage adviezen, geen "raadpleeg uw adviseur" tenzij echt onvermijdelijk.
+10. Indien bellen relevant: telefoonnummer + Nederlands telefoonscript (1e zin, kenmerknummer noemen, vraag, gewenst resultaat).
 
-Wees concreet, kort en operationeel. Geen "raadpleeg uw adviseur" tenzij echt onvermijdelijk.
-Als het document NIET zakelijk/fiscaal/boekhoudkundig is, zet category="overig" en priority="green".`;
+Wees direct, kort, operationeel. Schrijf zoals een ervaren accountant tegen een paniekerige klant: kalm, autoritair, concreet.
+Als het document NIET zakelijk/fiscaal/boekhoudkundig is, zet category="overig" en priority="green" en panic_score=0.`;
 
 const TOOL = {
   type: "function",
   function: {
     name: "register_chaos_item",
-    description: "Registreer 1 geanalyseerd chaos-document",
+    description: "Registreer 1 geanalyseerd chaos-document met volledige rescue-data",
     parameters: {
       type: "object",
       properties: {
@@ -61,10 +76,46 @@ const TOOL = {
           description: "YYYY-MM-DD",
         },
         priority: { type: "string", enum: ["red", "orange", "green"] },
+        panic_score: {
+          type: "integer",
+          minimum: 0,
+          maximum: 100,
+          description: "0–100, gebruik kalibratie uit systeem-prompt",
+        },
+        urgency_lane: {
+          type: "string",
+          enum: ["today", "this_week", "later"],
+        },
         risk_level: { type: "integer", minimum: 1, maximum: 10 },
         risk_if_ignored: {
           type: "string",
           description: "Wat gebeurt er als je dit negeert",
+        },
+        risk_timeline: {
+          type: "array",
+          description: "3–6 vervolgstappen als ondernemer niets doet",
+          items: {
+            type: "object",
+            properties: {
+              stage: { type: "string", description: "Naam van de fase, bv 'Aanmaning'" },
+              when: { type: "string", description: "Wanneer, bv 'over 14 dagen'" },
+              consequence: { type: "string", description: "Wat dit concreet betekent" },
+            },
+            required: ["stage", "when", "consequence"],
+          },
+        },
+        missing_documents: {
+          type: "array",
+          description: "Documenten die de ondernemer waarschijnlijk nog moet aanleveren",
+          items: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              why: { type: "string" },
+              severity: { type: "string", enum: ["high", "medium", "low"] },
+            },
+            required: ["name", "why"],
+          },
         },
         recommended_action: {
           type: "string",
@@ -78,6 +129,7 @@ const TOOL = {
         required_documents: {
           type: "array",
           items: { type: "string" },
+          description: "Documenten die je BIJ DE HAND moet hebben voor de actie",
         },
         ai_confidence: { type: "number", minimum: 0, maximum: 1 },
         ai_reasoning: { type: "string" },
@@ -86,6 +138,8 @@ const TOOL = {
         "category",
         "document_title",
         "priority",
+        "panic_score",
+        "urgency_lane",
         "recommended_action",
         "ai_confidence",
         "ai_reasoning",
@@ -94,6 +148,20 @@ const TOOL = {
     },
   },
 };
+
+function bandFromPanic(score: number): string {
+  if (score >= 81) return "immediate";
+  if (score >= 61) return "high";
+  if (score >= 31) return "warning";
+  return "stable";
+}
+
+function bandFromConfidence(c: number | null | undefined): string {
+  if (c == null) return "medium";
+  if (c >= 0.8) return "high";
+  if (c >= 0.5) return "medium";
+  return "low";
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -147,7 +215,6 @@ Deno.serve(async (req) => {
     if (dlErr || !fileBlob) throw new Error("kon bestand niet downloaden: " + dlErr?.message);
 
     const buf = new Uint8Array(await fileBlob.arrayBuffer());
-    // base64
     let binary = "";
     for (let i = 0; i < buf.length; i++) binary += String.fromCharCode(buf[i]);
     const b64 = btoa(binary);
@@ -171,7 +238,6 @@ Deno.serve(async (req) => {
         image_url: { url: `data:application/pdf;base64,${b64}` },
       });
     } else {
-      // try as text
       const text = new TextDecoder().decode(buf).slice(0, 50000);
       userContent.push({ type: "text", text: `\n\n--- BESTANDSINHOUD ---\n${text}` });
     }
@@ -218,29 +284,42 @@ Deno.serve(async (req) => {
     }
 
     const args = JSON.parse(toolCall.function.arguments);
+    const panicScore = Math.min(100, Math.max(0, Number(args.panic_score) || 0));
+    const panicBand = bandFromPanic(panicScore);
+    const confidenceBand = bandFromConfidence(args.ai_confidence);
 
-    const { error: insErr } = await admin.from("chaos_items").insert({
-      organization_id: upload.organization_id,
-      upload_id: upload.id,
-      category: args.category,
-      sender_name: args.sender_name ?? null,
-      document_title: args.document_title,
-      summary: args.summary ?? null,
-      amount_due: args.amount_due ?? null,
-      currency: args.currency ?? "EUR",
-      reference_number: args.reference_number ?? null,
-      payment_deadline: args.payment_deadline ?? null,
-      legal_deadline: args.legal_deadline ?? null,
-      priority: args.priority,
-      risk_level: args.risk_level ?? null,
-      risk_if_ignored: args.risk_if_ignored ?? null,
-      recommended_action: args.recommended_action,
-      phone_number: args.phone_number ?? null,
-      phone_script: args.phone_script ?? null,
-      required_documents: args.required_documents ?? null,
-      ai_confidence: args.ai_confidence,
-      ai_reasoning: args.ai_reasoning,
-    });
+    const { data: inserted, error: insErr } = await admin
+      .from("chaos_items")
+      .insert({
+        organization_id: upload.organization_id,
+        upload_id: upload.id,
+        category: args.category,
+        sender_name: args.sender_name ?? null,
+        document_title: args.document_title,
+        summary: args.summary ?? null,
+        amount_due: args.amount_due ?? null,
+        currency: args.currency ?? "EUR",
+        reference_number: args.reference_number ?? null,
+        payment_deadline: args.payment_deadline ?? null,
+        legal_deadline: args.legal_deadline ?? null,
+        priority: args.priority,
+        panic_score: panicScore,
+        panic_band: panicBand,
+        urgency_lane: args.urgency_lane ?? "later",
+        confidence_band: confidenceBand,
+        risk_timeline: args.risk_timeline ?? null,
+        missing_documents: args.missing_documents ?? null,
+        risk_level: args.risk_level ?? null,
+        risk_if_ignored: args.risk_if_ignored ?? null,
+        recommended_action: args.recommended_action,
+        phone_number: args.phone_number ?? null,
+        phone_script: args.phone_script ?? null,
+        required_documents: args.required_documents ?? null,
+        ai_confidence: args.ai_confidence,
+        ai_reasoning: args.ai_reasoning,
+      })
+      .select("id")
+      .single();
     if (insErr) throw insErr;
 
     await admin
@@ -248,7 +327,28 @@ Deno.serve(async (req) => {
       .update({ status: "analyzed" })
       .eq("id", upload_id);
 
-    return json({ ok: true });
+    // Recompute daily anchor for this org: highest panic score among open items
+    const { data: top } = await admin
+      .from("chaos_items")
+      .select("id, panic_score")
+      .eq("organization_id", upload.organization_id)
+      .eq("is_resolved", false)
+      .order("panic_score", { ascending: false, nullsFirst: false })
+      .limit(1);
+    const newAnchorId = top?.[0]?.id ?? null;
+    if (newAnchorId) {
+      await admin
+        .from("chaos_items")
+        .update({ daily_anchor: false })
+        .eq("organization_id", upload.organization_id)
+        .neq("id", newAnchorId);
+      await admin
+        .from("chaos_items")
+        .update({ daily_anchor: true })
+        .eq("id", newAnchorId);
+    }
+
+    return json({ ok: true, item_id: inserted?.id });
   } catch (e) {
     console.error(e);
     return json({ error: e instanceof Error ? e.message : "unknown" }, 500);

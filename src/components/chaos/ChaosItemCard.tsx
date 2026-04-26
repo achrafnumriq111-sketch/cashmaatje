@@ -19,8 +19,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import type { ChaosItem, ChaosPriority } from "@/hooks/useChaosData";
+import { CallModePanel } from "./CallModePanel";
+import { OneClickTemplates } from "./OneClickTemplates";
+import { ProofVault } from "./ProofVault";
+import { RiskTimelineStrip } from "./RiskTimelineStrip";
+import { MissingDocsPanel } from "./MissingDocsPanel";
+import { ConfidenceChip } from "./ConfidenceChip";
 
 const priorityStyle: Record<
   ChaosPriority,
@@ -265,11 +272,23 @@ export function ChaosItemCard({ item, onResolve, onReopen, onDelete }: Props) {
               </section>
             )}
 
+            <Tabs defaultValue="call" className="pt-2">
+              <TabsList className="w-full">
+                <TabsTrigger value="call" className="flex-1 text-xs">Bel-modus</TabsTrigger>
+                <TabsTrigger value="templates" className="flex-1 text-xs">Templates</TabsTrigger>
+                <TabsTrigger value="proof" className="flex-1 text-xs">Bewijs</TabsTrigger>
+                <TabsTrigger value="risk" className="flex-1 text-xs">Risico</TabsTrigger>
+                <TabsTrigger value="missing" className="flex-1 text-xs">Ontbrekend</TabsTrigger>
+              </TabsList>
+              <TabsContent value="call" className="mt-4"><CallModePanel item={item} /></TabsContent>
+              <TabsContent value="templates" className="mt-4"><OneClickTemplates item={item} /></TabsContent>
+              <TabsContent value="proof" className="mt-4"><ProofVault item={item} /></TabsContent>
+              <TabsContent value="risk" className="mt-4"><RiskTimelineStrip steps={item.risk_timeline} /></TabsContent>
+              <TabsContent value="missing" className="mt-4"><MissingDocsPanel docs={item.missing_documents} /></TabsContent>
+            </Tabs>
+
             <div className="flex items-center justify-between pt-2 border-t">
-              <div className="text-[11px] text-muted-foreground">
-                AI-zekerheid:{" "}
-                {item.ai_confidence != null ? `${Math.round(item.ai_confidence * 100)}%` : "—"}
-              </div>
+              <ConfidenceChip band={item.confidence_band} confidence={item.ai_confidence} />
               <div className="flex gap-2">
                 {onDelete && (
                   <Button variant="ghost" size="sm" onClick={onDelete}>
