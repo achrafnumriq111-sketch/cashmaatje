@@ -1,0 +1,18 @@
+{
+  "name": "Cash Maatje",
+  "short_name": "Cash Maatje",
+  "description": "Belasting & Boekhouding op de automatische piloot",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "/app-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
