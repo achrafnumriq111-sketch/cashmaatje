@@ -37,7 +37,7 @@ export default function FixTheChaos() {
   const list = items.data ?? [];
   const open = useMemo(() => list.filter((i) => !i.is_resolved), [list]);
   const resolved = useMemo(() => list.filter((i) => i.is_resolved), [list]);
-  const failedUploads = (uploads.data ?? []).filter((u) => u.status === "failed");
+  const allUploads = uploads.data ?? [];
 
   return (
     <motion.div
