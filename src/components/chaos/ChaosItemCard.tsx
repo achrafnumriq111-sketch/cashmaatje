@@ -19,8 +19,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import type { ChaosItem, ChaosPriority } from "@/hooks/useChaosData";
+import { CallModePanel } from "./CallModePanel";
+import { OneClickTemplates } from "./OneClickTemplates";
+import { ProofVault } from "./ProofVault";
+import { RiskTimelineStrip } from "./RiskTimelineStrip";
+import { MissingDocsPanel } from "./MissingDocsPanel";
+import { ConfidenceChip } from "./ConfidenceChip";
 
 const priorityStyle: Record<
   ChaosPriority,
