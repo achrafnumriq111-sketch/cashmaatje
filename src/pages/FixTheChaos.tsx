@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { AlertTriangle, Sparkles, Inbox, CheckCircle2, Flame, RefreshCw } from "lucide-react";
+import { AlertTriangle, Sparkles, Inbox, CheckCircle2, Flame } from "lucide-react";
 import { useChaosData } from "@/hooks/useChaosData";
 import { ChaosUploadZone } from "@/components/chaos/ChaosUploadZone";
 import {
@@ -8,6 +8,7 @@ import {
   ChaosItemSkeleton,
   AnalyzingPlaceholder,
 } from "@/components/chaos/ChaosItemCard";
+import { UploadStatusList } from "@/components/chaos/UploadStatusList";
 import { PanicScoreGauge } from "@/components/chaos/PanicScoreGauge";
 import { DailyAnchorCard } from "@/components/chaos/DailyAnchorCard";
 import { UrgencyLanes } from "@/components/chaos/UrgencyLanes";
