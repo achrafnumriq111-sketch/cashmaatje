@@ -18,6 +18,12 @@ import { NeverAgainPanel } from "@/components/chaos/NeverAgainPanel";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
+import {
+  ChaosFilters,
+  applyChaosFilters,
+  defaultChaosFilters,
+  type ChaosFilterState,
+} from "@/components/chaos/ChaosFilters";
 
 export default function FixTheChaos() {
   const {
@@ -33,10 +39,24 @@ export default function FixTheChaos() {
     dailyAnchor,
   } = useChaosData();
   const [view, setView] = useState<"lanes" | "list">("lanes");
+  const [filters, setFilters] = useState<ChaosFilterState>(defaultChaosFilters);
 
   const list = items.data ?? [];
   const open = useMemo(() => list.filter((i) => !i.is_resolved), [list]);
   const resolved = useMemo(() => list.filter((i) => i.is_resolved), [list]);
+  const filteredOpen = useMemo(() => applyChaosFilters(open, filters), [open, filters]);
+  const filteredResolved = useMemo(
+    () => applyChaosFilters(resolved, filters),
+    [resolved, filters]
+  );
+  const filteredLanes = useMemo(
+    () => ({
+      today: filteredOpen.filter((i) => i.urgency_lane === "today"),
+      this_week: filteredOpen.filter((i) => i.urgency_lane === "this_week"),
+      later: filteredOpen.filter((i) => i.urgency_lane === "later" || !i.urgency_lane),
+    }),
+    [filteredOpen]
+  );
   const allUploads = uploads.data ?? [];
 
   return (
@@ -108,13 +128,29 @@ export default function FixTheChaos() {
         </motion.div>
       )}
 
+      {/* Filters */}
+      <motion.div variants={fadeInUp}>
+        <ChaosFilters
+          value={filters}
+          onChange={setFilters}
+          totalCount={open.length}
+          filteredCount={filteredOpen.length}
+        />
+      </motion.div>
+
       {/* Lists with view toggle */}
       <motion.div variants={fadeInUp}>
         <Tabs defaultValue="open" className="space-y-4">
           <div className="flex items-center justify-between">
             <TabsList>
-              <TabsTrigger value="open">Open ({open.length})</TabsTrigger>
-              <TabsTrigger value="done">Afgehandeld ({resolved.length})</TabsTrigger>
+              <TabsTrigger value="open">
+                Open ({filteredOpen.length}
+                {filteredOpen.length !== open.length ? ` van ${open.length}` : ""})
+              </TabsTrigger>
+              <TabsTrigger value="done">
+                Afgehandeld ({filteredResolved.length}
+                {filteredResolved.length !== resolved.length ? ` van ${resolved.length}` : ""})
+              </TabsTrigger>
             </TabsList>
             <div className="flex gap-1 rounded-lg border p-0.5">
               <Button
@@ -151,13 +187,18 @@ export default function FixTheChaos() {
                     : "Goed bezig. Je hebt geen openstaande acties meer."
                 }
               />
+            ) : filteredOpen.length === 0 ? (
+              <EmptyState
+                title="Geen items voor deze filters"
+                hint="Pas de filters aan of wis ze om alles te tonen."
+              />
             ) : view === "lanes" ? (
               <UrgencyLanes
-                lanes={lanes}
+                lanes={filteredLanes}
                 onResolve={(id) => resolveItem.mutate(id)}
               />
             ) : (
-              open.map((item) => (
+              filteredOpen.map((item) => (
                 <ChaosItemCard
                   key={item.id}
                   item={item}
@@ -170,8 +211,13 @@ export default function FixTheChaos() {
           <TabsContent value="done" className="space-y-3 mt-0">
             {resolved.length === 0 ? (
               <EmptyState title="Nog niets afgehandeld" hint="Vink items af zodra je ze hebt geregeld." />
+            ) : filteredResolved.length === 0 ? (
+              <EmptyState
+                title="Geen afgehandelde items voor deze filters"
+                hint="Pas de filters aan of wis ze om alles te tonen."
+              />
             ) : (
-              resolved.map((item) => (
+              filteredResolved.map((item) => (
                 <ChaosItemCard
                   key={item.id}
                   item={item}
@@ -183,6 +229,7 @@ export default function FixTheChaos() {
           </TabsContent>
         </Tabs>
       </motion.div>
+
 
       {/* Recovery plan */}
       <motion.div variants={fadeInUp}>
