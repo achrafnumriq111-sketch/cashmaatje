@@ -10,6 +10,7 @@ import { CashPosition } from "@/components/dashboard/CashPosition";
 import { OpenItems } from "@/components/dashboard/OpenItems";
 import { RecentDocuments } from "@/components/dashboard/RecentDocuments";
 import { IntelligenceWidgets } from "@/components/dashboard/IntelligenceWidgets";
+import { FixTheChaosCta } from "@/components/chaos/FixTheChaosCta";
 import { PeriodSelector, getDefaultPeriod, type DateRange } from "@/components/dashboard/PeriodSelector";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 
@@ -35,6 +36,10 @@ export default function Dashboard() {
           </p>
         </div>
         <PeriodSelector value={period} onChange={setPeriod} />
+      </motion.div>
+
+      <motion.div variants={fadeInUp}>
+        <FixTheChaosCta />
       </motion.div>
 
       <KpiCards
