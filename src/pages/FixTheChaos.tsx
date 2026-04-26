@@ -1,0 +1,205 @@
+import { useMemo } from "react";
+import { motion } from "framer-motion";
+import { AlertTriangle, Sparkles, Inbox, CheckCircle2, Flame } from "lucide-react";
+import { useChaosData } from "@/hooks/useChaosData";
+import { ChaosUploadZone } from "@/components/chaos/ChaosUploadZone";
+import {
+  ChaosItemCard,
+  ChaosItemSkeleton,
+  AnalyzingPlaceholder,
+} from "@/components/chaos/ChaosItemCard";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { fadeInUp, staggerContainer } from "@/lib/animations";
+
+export default function FixTheChaos() {
+  const { items, uploads, uploadFiles, resolveItem, reopenItem, deleteUpload, stats } =
+    useChaosData();
+
+  const list = items.data ?? [];
+  const open = useMemo(() => list.filter((i) => !i.is_resolved), [list]);
+  const resolved = useMemo(() => list.filter((i) => i.is_resolved), [list]);
+  const failedUploads = (uploads.data ?? []).filter((u) => u.status === "failed");
+
+  return (
+    <motion.div
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
+      className="space-y-8 max-w-[1400px]"
+    >
+      {/* Header */}
+      <motion.div variants={fadeInUp} className="flex items-start gap-4">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500/20 to-amber-500/20 border border-red-500/20 flex items-center justify-center">
+          <Flame className="w-6 h-6 text-red-500" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            FIX THE CHAOS
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground max-w-2xl">
+            Gooi alles erin waar je niets mee kunt — brieven, blauwe enveloppen,
+            deurwaarders, onbetaalde facturen. Wij vertellen je per stuk wat je
+            vandaag moet doen.
+          </p>
+        </div>
+      </motion.div>
+
+      {/* Stat band */}
+      <motion.div variants={fadeInUp} className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard
+          icon={<AlertTriangle className="w-4 h-4" />}
+          label="Urgent"
+          value={stats.red}
+          tone="red"
+        />
+        <StatCard
+          icon={<Sparkles className="w-4 h-4" />}
+          label="Belangrijk"
+          value={stats.orange}
+          tone="orange"
+        />
+        <StatCard
+          icon={<Inbox className="w-4 h-4" />}
+          label="Open totaal"
+          value={stats.open}
+          tone="muted"
+        />
+        <StatCard
+          icon={<CheckCircle2 className="w-4 h-4" />}
+          label="Bedrag te regelen"
+          value={`€${stats.totalDue.toLocaleString("nl-NL", { maximumFractionDigits: 0 })}`}
+          tone="muted"
+        />
+      </motion.div>
+
+      {/* Upload */}
+      <motion.div variants={fadeInUp}>
+        <ChaosUploadZone
+          onFiles={(files) => uploadFiles.mutate(files)}
+          isUploading={uploadFiles.isPending}
+        />
+      </motion.div>
+
+      {stats.analyzing > 0 && <AnalyzingPlaceholder count={stats.analyzing} />}
+
+      {failedUploads.length > 0 && (
+        <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-4">
+          <div className="text-sm font-medium text-red-500 mb-2">
+            {failedUploads.length} document{failedUploads.length === 1 ? "" : "en"} niet gelukt
+          </div>
+          <ul className="space-y-1.5">
+            {failedUploads.slice(0, 5).map((u) => (
+              <li
+                key={u.id}
+                className="text-xs text-muted-foreground flex justify-between items-center gap-2"
+              >
+                <span className="truncate">{u.file_name}</span>
+                <button
+                  onClick={() => deleteUpload.mutate(u)}
+                  className="text-red-500 hover:underline flex-shrink-0"
+                >
+                  verwijder
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Lists */}
+      <motion.div variants={fadeInUp}>
+        <Tabs defaultValue="open" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="open">Open ({open.length})</TabsTrigger>
+            <TabsTrigger value="done">Afgehandeld ({resolved.length})</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="open" className="space-y-3 mt-0">
+            {items.isLoading ? (
+              <>
+                <ChaosItemSkeleton />
+                <ChaosItemSkeleton />
+              </>
+            ) : open.length === 0 ? (
+              <EmptyState
+                title={
+                  list.length === 0
+                    ? "Nog niets geüpload"
+                    : "Alles afgehandeld"
+                }
+                hint={
+                  list.length === 0
+                    ? "Begin met het uploaden van die stapel brieven."
+                    : "Goed bezig. Je hebt geen openstaande acties meer."
+                }
+              />
+            ) : (
+              open.map((item) => (
+                <ChaosItemCard
+                  key={item.id}
+                  item={item}
+                  onResolve={(id) => resolveItem.mutate(id)}
+                />
+              ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="done" className="space-y-3 mt-0">
+            {resolved.length === 0 ? (
+              <EmptyState
+                title="Nog niets afgehandeld"
+                hint="Vink items af zodra je ze hebt geregeld."
+              />
+            ) : (
+              resolved.map((item) => (
+                <ChaosItemCard
+                  key={item.id}
+                  item={item}
+                  onResolve={(id) => resolveItem.mutate(id)}
+                  onReopen={(id) => reopenItem.mutate(id)}
+                />
+              ))
+            )}
+          </TabsContent>
+        </Tabs>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function StatCard({
+  icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number | string;
+  tone: "red" | "orange" | "muted";
+}) {
+  const toneClass =
+    tone === "red"
+      ? "text-red-500"
+      : tone === "orange"
+      ? "text-amber-500"
+      : "text-muted-foreground";
+  return (
+    <div className="rounded-xl border bg-card p-4">
+      <div className={`flex items-center gap-1.5 text-[11px] uppercase tracking-wide ${toneClass}`}>
+        {icon}
+        {label}
+      </div>
+      <div className="mt-2 text-2xl font-semibold text-foreground">{value}</div>
+    </div>
+  );
+}
+
+function EmptyState({ title, hint }: { title: string; hint: string }) {
+  return (
+    <div className="rounded-2xl border border-dashed bg-card/30 py-14 text-center">
+      <h4 className="text-sm font-medium text-foreground">{title}</h4>
+      <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+    </div>
+  );
+}

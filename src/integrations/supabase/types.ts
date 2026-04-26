@@ -902,6 +902,164 @@ export type Database = {
           },
         ]
       }
+      chaos_items: {
+        Row: {
+          action_owner: string | null
+          ai_confidence: number | null
+          ai_reasoning: string | null
+          amount_due: number | null
+          category: string
+          created_at: string
+          currency: string | null
+          document_title: string
+          id: string
+          is_resolved: boolean
+          legal_deadline: string | null
+          notes: string | null
+          organization_id: string
+          payment_deadline: string | null
+          phone_number: string | null
+          phone_script: string | null
+          priority: Database["public"]["Enums"]["chaos_priority"]
+          recommended_action: string
+          reference_number: string | null
+          required_documents: string[] | null
+          resolved_at: string | null
+          resolved_by: string | null
+          risk_if_ignored: string | null
+          risk_level: number | null
+          sender_name: string | null
+          summary: string | null
+          updated_at: string
+          upload_id: string
+        }
+        Insert: {
+          action_owner?: string | null
+          ai_confidence?: number | null
+          ai_reasoning?: string | null
+          amount_due?: number | null
+          category: string
+          created_at?: string
+          currency?: string | null
+          document_title: string
+          id?: string
+          is_resolved?: boolean
+          legal_deadline?: string | null
+          notes?: string | null
+          organization_id: string
+          payment_deadline?: string | null
+          phone_number?: string | null
+          phone_script?: string | null
+          priority?: Database["public"]["Enums"]["chaos_priority"]
+          recommended_action: string
+          reference_number?: string | null
+          required_documents?: string[] | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          risk_if_ignored?: string | null
+          risk_level?: number | null
+          sender_name?: string | null
+          summary?: string | null
+          updated_at?: string
+          upload_id: string
+        }
+        Update: {
+          action_owner?: string | null
+          ai_confidence?: number | null
+          ai_reasoning?: string | null
+          amount_due?: number | null
+          category?: string
+          created_at?: string
+          currency?: string | null
+          document_title?: string
+          id?: string
+          is_resolved?: boolean
+          legal_deadline?: string | null
+          notes?: string | null
+          organization_id?: string
+          payment_deadline?: string | null
+          phone_number?: string | null
+          phone_script?: string | null
+          priority?: Database["public"]["Enums"]["chaos_priority"]
+          recommended_action?: string
+          reference_number?: string | null
+          required_documents?: string[] | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          risk_if_ignored?: string | null
+          risk_level?: number | null
+          sender_name?: string | null
+          summary?: string | null
+          updated_at?: string
+          upload_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chaos_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chaos_items_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "chaos_uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chaos_uploads: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          organization_id: string
+          status: Database["public"]["Enums"]["chaos_status"]
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          organization_id: string
+          status?: Database["public"]["Enums"]["chaos_status"]
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          organization_id?: string
+          status?: Database["public"]["Enums"]["chaos_status"]
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chaos_uploads_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_car: {
         Row: {
           addition_percentage: number
@@ -4345,6 +4503,8 @@ export type Database = {
         | "plan_pro"
         | "no_subscription"
       broadcast_kind: "info" | "warning" | "success" | "announcement"
+      chaos_priority: "red" | "orange" | "green"
+      chaos_status: "pending" | "analyzing" | "analyzed" | "failed" | "resolved"
       document_type:
         | "invoice"
         | "receipt"
@@ -4597,6 +4757,8 @@ export const Constants = {
         "no_subscription",
       ],
       broadcast_kind: ["info", "warning", "success", "announcement"],
+      chaos_priority: ["red", "orange", "green"],
+      chaos_status: ["pending", "analyzing", "analyzed", "failed", "resolved"],
       document_type: [
         "invoice",
         "receipt",
