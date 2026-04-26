@@ -39,10 +39,24 @@ export default function FixTheChaos() {
     dailyAnchor,
   } = useChaosData();
   const [view, setView] = useState<"lanes" | "list">("lanes");
+  const [filters, setFilters] = useState<ChaosFilterState>(defaultChaosFilters);
 
   const list = items.data ?? [];
   const open = useMemo(() => list.filter((i) => !i.is_resolved), [list]);
   const resolved = useMemo(() => list.filter((i) => i.is_resolved), [list]);
+  const filteredOpen = useMemo(() => applyChaosFilters(open, filters), [open, filters]);
+  const filteredResolved = useMemo(
+    () => applyChaosFilters(resolved, filters),
+    [resolved, filters]
+  );
+  const filteredLanes = useMemo(
+    () => ({
+      today: filteredOpen.filter((i) => i.urgency_lane === "today"),
+      this_week: filteredOpen.filter((i) => i.urgency_lane === "this_week"),
+      later: filteredOpen.filter((i) => i.urgency_lane === "later" || !i.urgency_lane),
+    }),
+    [filteredOpen]
+  );
   const allUploads = uploads.data ?? [];
 
   return (
