@@ -203,6 +203,10 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (!member) return json({ error: "forbidden" }, 403);
 
+    // Idempotent retry: clear any prior chaos_items linked to this upload
+    // (e.g. from an earlier partial run) and reset status to analyzing.
+    await admin.from("chaos_items").delete().eq("upload_id", upload_id);
+
     await admin
       .from("chaos_uploads")
       .update({ status: "analyzing", error_message: null })
