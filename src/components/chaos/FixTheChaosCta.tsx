@@ -5,7 +5,7 @@ import { useChaosData } from "@/hooks/useChaosData";
 
 export function FixTheChaosCta() {
   const navigate = useNavigate();
-  const { stats, items } = useChaosData();
+  const { stats, items, dailyAnchor } = useChaosData();
   if (items.isLoading) return null;
 
   const hasIssues = stats.open > 0;
@@ -42,16 +42,17 @@ export function FixTheChaosCta() {
             )}
           </div>
           <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
-            {hasIssues
-              ? `${stats.open} open ${stats.open === 1 ? "actie" : "acties"} — ${
-                  stats.totalDue > 0
-                    ? `€${stats.totalDue.toLocaleString("nl-NL", { maximumFractionDigits: 0 })} te regelen`
-                    : "klik om te zien wat je moet doen"
-                }`
-              : "Gooi je administratieve chaos hier en krijg per brief een concrete actie."}
+            {hasIssues && dailyAnchor
+              ? `Vandaag: ${dailyAnchor.recommended_action}`
+              : hasIssues
+              ? `${stats.open} open ${stats.open === 1 ? "actie" : "acties"} — klik om te zien wat je moet doen`
+              : "Je business-reddingssysteem. Gooi je administratieve chaos hier en krijg per stuk een concrete actie."}
           </p>
           {hasIssues && (
             <div className="mt-3 flex items-center gap-3 text-[11px] text-muted-foreground">
+              {stats.totalDue > 0 && (
+                <span>€{stats.totalDue.toLocaleString("nl-NL", { maximumFractionDigits: 0 })} te regelen</span>
+              )}
               {stats.red > 0 && (
                 <span className="flex items-center gap-1 text-red-500">
                   <AlertTriangle className="w-3 h-3" /> {stats.red} urgent

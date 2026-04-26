@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { AlertTriangle, Sparkles, Inbox, CheckCircle2, Flame } from "lucide-react";
+import { AlertTriangle, Sparkles, Inbox, CheckCircle2, Flame, RefreshCw } from "lucide-react";
 import { useChaosData } from "@/hooks/useChaosData";
 import { ChaosUploadZone } from "@/components/chaos/ChaosUploadZone";
 import {
@@ -8,12 +8,30 @@ import {
   ChaosItemSkeleton,
   AnalyzingPlaceholder,
 } from "@/components/chaos/ChaosItemCard";
+import { PanicScoreGauge } from "@/components/chaos/PanicScoreGauge";
+import { DailyAnchorCard } from "@/components/chaos/DailyAnchorCard";
+import { UrgencyLanes } from "@/components/chaos/UrgencyLanes";
+import { SevenDayPlanCard } from "@/components/chaos/SevenDayPlanCard";
+import { BookkeeperHandoverButton } from "@/components/chaos/BookkeeperHandoverButton";
+import { NeverAgainPanel } from "@/components/chaos/NeverAgainPanel";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 
 export default function FixTheChaos() {
-  const { items, uploads, uploadFiles, resolveItem, reopenItem, deleteUpload, stats } =
-    useChaosData();
+  const {
+    items,
+    uploads,
+    uploadFiles,
+    resolveItem,
+    reopenItem,
+    deleteUpload,
+    retryUpload,
+    stats,
+    lanes,
+    dailyAnchor,
+  } = useChaosData();
+  const [view, setView] = useState<"lanes" | "list">("lanes");
 
   const list = items.data ?? [];
   const open = useMemo(() => list.filter((i) => !i.is_resolved), [list]);
@@ -25,7 +43,7 @@ export default function FixTheChaos() {
       variants={staggerContainer}
       initial="initial"
       animate="animate"
-      className="space-y-8 max-w-[1400px]"
+      className="space-y-6 max-w-[1400px]"
     >
       {/* Header */}
       <motion.div variants={fadeInUp} className="flex items-start gap-4">
@@ -37,33 +55,25 @@ export default function FixTheChaos() {
             FIX THE CHAOS
           </h1>
           <p className="mt-1 text-sm text-muted-foreground max-w-2xl">
-            Gooi alles erin waar je niets mee kunt — brieven, blauwe enveloppen,
-            deurwaarders, onbetaalde facturen. Wij vertellen je per stuk wat je
-            vandaag moet doen.
+            Je business-reddingssysteem. Geen administratie — actie. Gooi alles erin
+            waar je niets mee kunt en wij vertellen je precies wat je wanneer moet doen.
           </p>
+        </div>
+      </motion.div>
+
+      {/* Panic gauge + Daily Anchor */}
+      <motion.div variants={fadeInUp} className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <PanicScoreGauge score={stats.topPanic} openCount={stats.open} />
+        <div className="lg:col-span-2">
+          <DailyAnchorCard item={dailyAnchor} onOpen={() => { /* sheet opens via card click below */ }} />
         </div>
       </motion.div>
 
       {/* Stat band */}
       <motion.div variants={fadeInUp} className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard
-          icon={<AlertTriangle className="w-4 h-4" />}
-          label="Urgent"
-          value={stats.red}
-          tone="red"
-        />
-        <StatCard
-          icon={<Sparkles className="w-4 h-4" />}
-          label="Belangrijk"
-          value={stats.orange}
-          tone="orange"
-        />
-        <StatCard
-          icon={<Inbox className="w-4 h-4" />}
-          label="Open totaal"
-          value={stats.open}
-          tone="muted"
-        />
+        <StatCard icon={<AlertTriangle className="w-4 h-4" />} label="Urgent" value={stats.red} tone="red" />
+        <StatCard icon={<Sparkles className="w-4 h-4" />} label="Belangrijk" value={stats.orange} tone="orange" />
+        <StatCard icon={<Inbox className="w-4 h-4" />} label="Open totaal" value={stats.open} tone="muted" />
         <StatCard
           icon={<CheckCircle2 className="w-4 h-4" />}
           label="Bedrag te regelen"
@@ -89,30 +99,49 @@ export default function FixTheChaos() {
           </div>
           <ul className="space-y-1.5">
             {failedUploads.slice(0, 5).map((u) => (
-              <li
-                key={u.id}
-                className="text-xs text-muted-foreground flex justify-between items-center gap-2"
-              >
+              <li key={u.id} className="text-xs text-muted-foreground flex justify-between items-center gap-2">
                 <span className="truncate">{u.file_name}</span>
-                <button
-                  onClick={() => deleteUpload.mutate(u)}
-                  className="text-red-500 hover:underline flex-shrink-0"
-                >
-                  verwijder
-                </button>
+                <div className="flex gap-2 flex-shrink-0">
+                  <button onClick={() => retryUpload.mutate(u.id)} className="text-primary hover:underline flex items-center gap-1">
+                    <RefreshCw className="w-3 h-3" /> opnieuw
+                  </button>
+                  <button onClick={() => deleteUpload.mutate(u)} className="text-red-500 hover:underline">
+                    verwijder
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
         </div>
       )}
 
-      {/* Lists */}
+      {/* Lists with view toggle */}
       <motion.div variants={fadeInUp}>
         <Tabs defaultValue="open" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="open">Open ({open.length})</TabsTrigger>
-            <TabsTrigger value="done">Afgehandeld ({resolved.length})</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center justify-between">
+            <TabsList>
+              <TabsTrigger value="open">Open ({open.length})</TabsTrigger>
+              <TabsTrigger value="done">Afgehandeld ({resolved.length})</TabsTrigger>
+            </TabsList>
+            <div className="flex gap-1 rounded-lg border p-0.5">
+              <Button
+                variant={view === "lanes" ? "secondary" : "ghost"}
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => setView("lanes")}
+              >
+                Banen
+              </Button>
+              <Button
+                variant={view === "list" ? "secondary" : "ghost"}
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => setView("list")}
+              >
+                Lijst
+              </Button>
+            </div>
+          </div>
 
           <TabsContent value="open" className="space-y-3 mt-0">
             {items.isLoading ? (
@@ -122,16 +151,17 @@ export default function FixTheChaos() {
               </>
             ) : open.length === 0 ? (
               <EmptyState
-                title={
-                  list.length === 0
-                    ? "Nog niets geüpload"
-                    : "Alles afgehandeld"
-                }
+                title={list.length === 0 ? "Nog niets geüpload" : "Alles afgehandeld"}
                 hint={
                   list.length === 0
                     ? "Begin met het uploaden van die stapel brieven."
                     : "Goed bezig. Je hebt geen openstaande acties meer."
                 }
+              />
+            ) : view === "lanes" ? (
+              <UrgencyLanes
+                lanes={lanes}
+                onResolve={(id) => resolveItem.mutate(id)}
               />
             ) : (
               open.map((item) => (
@@ -146,10 +176,7 @@ export default function FixTheChaos() {
 
           <TabsContent value="done" className="space-y-3 mt-0">
             {resolved.length === 0 ? (
-              <EmptyState
-                title="Nog niets afgehandeld"
-                hint="Vink items af zodra je ze hebt geregeld."
-              />
+              <EmptyState title="Nog niets afgehandeld" hint="Vink items af zodra je ze hebt geregeld." />
             ) : (
               resolved.map((item) => (
                 <ChaosItemCard
@@ -162,6 +189,21 @@ export default function FixTheChaos() {
             )}
           </TabsContent>
         </Tabs>
+      </motion.div>
+
+      {/* Recovery plan */}
+      <motion.div variants={fadeInUp}>
+        <SevenDayPlanCard />
+      </motion.div>
+
+      {/* Bookkeeper handover */}
+      <motion.div variants={fadeInUp}>
+        <BookkeeperHandoverButton />
+      </motion.div>
+
+      {/* Never again */}
+      <motion.div variants={fadeInUp}>
+        <NeverAgainPanel />
       </motion.div>
     </motion.div>
   );
