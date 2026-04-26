@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ArrowLeftRight, FileText, GitMerge,
   Receipt, BarChart3, Users, BookOpen, ScrollText,
   Settings, Shield, Wallet, ChevronDown, FileCheck, Briefcase,
-  Palette, Building2, Boxes, Plug, Calculator, Lock,
+  Palette, Building2, Boxes, Plug, Calculator, Lock, Flame,
 } from "lucide-react";
 import { staggerContainer, sidebarItemVariant, sidebarSubMenuVariant } from "@/lib/animations";
 import { useI18n } from "@/lib/i18n";
@@ -31,6 +31,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { id: "dashboard", labelKey: "common.dashboard", icon: <LayoutDashboard size={18} />, path: "/" },
+  { id: "fix-the-chaos", labelKey: "FIX THE CHAOS", icon: <Flame size={18} />, path: "/fix-the-chaos" },
   { id: "transacties", labelKey: "nav.transactions", icon: <ArrowLeftRight size={18} />, path: "/transacties" },
   {
     id: "facturen", labelKey: "nav.invoices", icon: <FileText size={18} />,

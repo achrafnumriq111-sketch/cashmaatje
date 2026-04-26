@@ -63,6 +63,7 @@ import Pricing from "./pages/Pricing";
 import CheckoutReturn from "./pages/CheckoutReturn";
 import Inbox from "./pages/Inbox";
 import Admin from "./pages/Admin";
+import FixTheChaos from "./pages/FixTheChaos";
 import { ModuleLockOverlay } from "./components/modules/ModuleLockOverlay";
 
 const queryClient = new QueryClient();
@@ -89,6 +90,7 @@ const App = () => (
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><TwoFactorGate><SubscriptionGate><AppLayout /></SubscriptionGate></TwoFactorGate></ProtectedRoute>}>
               <Route index element={<Dashboard />} />
+              <Route path="fix-the-chaos" element={<FixTheChaos />} />
               <Route path="transacties" element={<Transactions />} />
               <Route path="facturen/verkoop" element={<SalesInvoices />} />
               <Route path="facturen/inkoop" element={<PurchaseInvoices />} />
