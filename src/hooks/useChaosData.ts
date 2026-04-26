@@ -422,7 +422,7 @@ export function useChaosData() {
       const allDone = newDays.every((d) => d.done);
       const { error } = await supabase
         .from("chaos_recovery_plans")
-        .update({ days: newDays, status: allDone ? "completed" : "active" })
+        .update({ days: newDays as unknown as never, status: allDone ? "completed" : "active" })
         .eq("id", input.plan_id);
       if (error) throw error;
     },
