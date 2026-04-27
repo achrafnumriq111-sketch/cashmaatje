@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { AlertTriangle, Sparkles, Inbox, CheckCircle2, Flame } from "lucide-react";
+import { AlertTriangle, Sparkles, Inbox, Euro, Flame } from "lucide-react";
 import { useChaosData } from "@/hooks/useChaosData";
 import { ChaosUploadZone } from "@/components/chaos/ChaosUploadZone";
 import {
@@ -96,8 +96,8 @@ export default function FixTheChaos() {
         <StatCard icon={<Sparkles className="w-4 h-4" />} label="Belangrijk" value={stats.orange} tone="orange" />
         <StatCard icon={<Inbox className="w-4 h-4" />} label="Open totaal" value={stats.open} tone="muted" />
         <StatCard
-          icon={<CheckCircle2 className="w-4 h-4" />}
-          label="Bedrag te regelen"
+          icon={<Euro className="w-4 h-4" />}
+          label="Te betalen"
           value={`€${stats.totalDue.toLocaleString("nl-NL", { maximumFractionDigits: 0 })}`}
           tone="muted"
         />
