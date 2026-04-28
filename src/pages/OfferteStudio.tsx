@@ -55,13 +55,61 @@ const defaultBranding: QuoteBranding = {
   footerText: "Bedankt voor uw vertrouwen.",
 };
 
-const templates = [
-  { id: "accounting", name: "Boekhoudvoorstel", desc: "Standaard boekhoudpakket offerte", lines: 4 },
-  { id: "audit", name: "Controlevoorstel", desc: "Jaarrekeningcontrole offerte", lines: 5 },
-  { id: "consultancy", name: "Adviesvoorstel", desc: "Financieel adviestraject", lines: 3 },
-  { id: "compliance", name: "Compliance voorstel", desc: "Wet DBA / compliance check", lines: 3 },
-  { id: "invoice", name: "Factuur template", desc: "Standaard factuurlayout", lines: 0 },
-  { id: "recurring", name: "Periodieke factuur", desc: "Maandelijks terugkerend", lines: 0 },
+interface QuoteTemplate {
+  id: string;
+  name: string;
+  desc: string;
+  lines: Omit<QuoteLine, "id">[];
+}
+
+const templates: QuoteTemplate[] = [
+  {
+    id: "accounting", name: "Boekhoudvoorstel", desc: "Standaard boekhoudpakket offerte",
+    lines: [
+      { type: "service", description: "Boekhouding (per maand)", quantity: 12, unitPrice: 150, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "BTW-aangifte (per kwartaal)", quantity: 4, unitPrice: 75, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "Jaarrekening", quantity: 1, unitPrice: 650, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "IB-aangifte ondernemer", quantity: 1, unitPrice: 295, vatRate: 21, optional: true, discount: 0 },
+    ],
+  },
+  {
+    id: "audit", name: "Controlevoorstel", desc: "Jaarrekeningcontrole offerte",
+    lines: [
+      { type: "service", description: "Controleverklaring jaarrekening", quantity: 1, unitPrice: 4500, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "Tussentijdse beoordeling", quantity: 2, unitPrice: 850, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "Risico-analyse en planning", quantity: 1, unitPrice: 1250, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "Managementletter", quantity: 1, unitPrice: 750, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "Nazorg en archivering", quantity: 1, unitPrice: 350, vatRate: 21, optional: true, discount: 0 },
+    ],
+  },
+  {
+    id: "consultancy", name: "Adviesvoorstel", desc: "Financieel adviestraject",
+    lines: [
+      { type: "service", description: "Strategie & financiële planning", quantity: 8, unitPrice: 175, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "Cashflow-prognose", quantity: 4, unitPrice: 175, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "Kwartaalreview", quantity: 4, unitPrice: 295, vatRate: 21, optional: false, discount: 0 },
+    ],
+  },
+  {
+    id: "compliance", name: "Compliance voorstel", desc: "Wet DBA / compliance check",
+    lines: [
+      { type: "service", description: "Modelovereenkomst review", quantity: 1, unitPrice: 495, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "Compliance audit", quantity: 1, unitPrice: 950, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "Implementatieplan", quantity: 1, unitPrice: 650, vatRate: 21, optional: false, discount: 0 },
+    ],
+  },
+  {
+    id: "invoice", name: "Factuur template", desc: "Standaard factuurlayout",
+    lines: [
+      { type: "service", description: "Geleverde dienst", quantity: 1, unitPrice: 0, vatRate: 21, optional: false, discount: 0 },
+    ],
+  },
+  {
+    id: "recurring", name: "Periodieke factuur", desc: "Maandelijks terugkerend",
+    lines: [
+      { type: "service", description: "Maandelijkse abonnement", quantity: 1, unitPrice: 99, vatRate: 21, optional: false, discount: 0 },
+    ],
+  },
 ];
 
 const packageOptions = [
