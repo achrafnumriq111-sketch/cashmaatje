@@ -59,6 +59,8 @@ import FinancialIntelligence from "./pages/FinancialIntelligence";
 import Inventory from "./pages/Inventory";
 import Integrations from "./pages/Integrations";
 import PaymentReminders from "./pages/PaymentReminders";
+import CorporateTax from "./pages/CorporateTax";
+import Salary from "./pages/Salary";
 
 import CheckoutReturn from "./pages/CheckoutReturn";
 import Inbox from "./pages/Inbox";
@@ -113,6 +115,8 @@ const App = () => (
               <Route path="salaris/premies" element={<DeductiblePremiums />} />
               <Route path="salaris/auto" element={<CompanyCarPage />} />
               <Route path="salaris/woning" element={<MortgagePage />} />
+              <Route path="salaris/medewerkers" element={<Salary />} />
+              <Route path="belasting/vpb" element={<CorporateTax />} />
               <Route path="relaties" element={<Contacts />} />
               <Route path="grootboek" element={<GeneralLedger />} />
               <Route path="journaalposten" element={<JournalEntries />} />
