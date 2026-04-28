@@ -52,20 +52,7 @@ export function CsvImportModal({ open, onClose, bankAccounts }: Props) {
     const reader = new FileReader();
     reader.onload = (ev) => {
       const text = ev.target?.result as string;
-      const lines = text.split(/\r?\n/).filter((l) => l.trim());
-      const parsed = lines.map((line) => {
-        // Handle quoted CSV
-        const result: string[] = [];
-        let current = "";
-        let inQuotes = false;
-        for (const char of line) {
-          if (char === '"') { inQuotes = !inQuotes; continue; }
-          if ((char === "," || char === ";") && !inQuotes) { result.push(current.trim()); current = ""; continue; }
-          current += char;
-        }
-        result.push(current.trim());
-        return result;
-      });
+      const parsed = parseCsv(text);
       if (parsed.length > 0) {
         setHeaders(parsed[0]);
         setRows(parsed.slice(1, 11));
