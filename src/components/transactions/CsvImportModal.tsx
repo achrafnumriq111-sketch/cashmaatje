@@ -77,7 +77,7 @@ export function CsvImportModal({ open, onClose, bankAccounts }: Props) {
       const allLines = file ? await readAllRows(file) : rows;
       const parsed = allLines.map((row) => {
         const rawAmount = row[mapping.amount] || "0";
-        const amount = parseFloat(rawAmount.replace(/\./g, "").replace(",", ".")) || 0;
+        const amount = parseAmount(rawAmount);
         const rawDate = row[mapping.date] || "";
         const date = parseDate(rawDate);
 
@@ -89,7 +89,12 @@ export function CsvImportModal({ open, onClose, bankAccounts }: Props) {
           payment_reference: row[mapping.reference] || undefined,
           counterparty_iban: row[mapping.iban] || undefined,
         };
-      }).filter((r) => r.transaction_date && !isNaN(r.amount));
+      }).filter((r) => r.transaction_date && !isNaN(r.amount) && r.amount !== 0);
+
+      if (parsed.length === 0) {
+        toast.error("Geen geldige rijen gevonden — controleer de kolommapping en datum-format");
+        return;
+      }
 
       const newIds = await importTx.mutateAsync({ bankAccountId, rows: parsed });
       toast.success(`${newIds.length} transacties geïmporteerd`);
