@@ -24,9 +24,10 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import {
   Building2, Banknote, Sparkles, FileText, Users, CreditCard,
-  Lock, AlertTriangle, Loader2, Plus, Copy, Check, Trash2, Mail,
+  Lock, AlertTriangle, Loader2, Plus, Copy, Check, Trash2, Mail, Palette,
 } from "lucide-react";
 import { EditOrgDialog } from "@/components/layout/EditOrgDialog";
+import BrandingPanel from "@/components/settings/BrandingPanel";
 import type { Database } from "@/integrations/supabase/types";
 
 type UserRole = Database["public"]["Enums"]["user_role"];
@@ -81,6 +82,7 @@ export default function Settings() {
           <TabsTrigger value="team"><Users className="h-3.5 w-3.5 mr-1.5" />Team</TabsTrigger>
           <TabsTrigger value="abonnement"><CreditCard className="h-3.5 w-3.5 mr-1.5" />Abonnement</TabsTrigger>
           <TabsTrigger value="beveiliging"><Lock className="h-3.5 w-3.5 mr-1.5" />Beveiliging</TabsTrigger>
+          <TabsTrigger value="branding"><Palette className="h-3.5 w-3.5 mr-1.5" />Branding</TabsTrigger>
           {isOwner && <TabsTrigger value="danger" className="text-destructive"><AlertTriangle className="h-3.5 w-3.5 mr-1.5" />Gevarenzone</TabsTrigger>}
         </TabsList>
 
@@ -91,6 +93,7 @@ export default function Settings() {
         <TabsContent value="team"><TeamTab isOwner={isOwner} canManage={canManage} /></TabsContent>
         <TabsContent value="abonnement"><SubscriptionTab /></TabsContent>
         <TabsContent value="beveiliging"><SecurityTab /></TabsContent>
+        <TabsContent value="branding"><BrandingPanel /></TabsContent>
         {isOwner && <TabsContent value="danger"><DangerZoneTab onDeleted={() => { refetch(); navigate("/onboarding"); }} /></TabsContent>}
       </Tabs>
     </motion.div>

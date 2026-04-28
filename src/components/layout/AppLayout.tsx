@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppSidebar } from "./AppSidebar";
@@ -9,12 +10,25 @@ import { useOrganization } from "@/hooks/useOrganization";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Loader2 } from "lucide-react";
 import { pageTransition } from "@/lib/animations";
+import { supabase } from "@/integrations/supabase/client";
+import { applyBrandColors } from "@/components/settings/BrandingPanel";
 
 export function AppLayout() {
   const { membership, loading } = useOrganization();
   const { notifications, unreadCount, markAsRead, markAllRead } = useNotifications(
     membership?.organizationId
   );
+
+  // Apply organization brand colors on load
+  useEffect(() => {
+    if (!membership?.organizationId) return;
+    (async () => {
+      const { data } = await supabase
+        .from("organizations").select("settings").eq("id", membership.organizationId).single();
+      const s = (data?.settings as any) ?? {};
+      applyBrandColors({ primary: s.brand_primary, secondary: s.brand_secondary });
+    })();
+  }, [membership?.organizationId]);
 
   if (loading) {
     return (

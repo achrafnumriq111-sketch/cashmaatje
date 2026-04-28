@@ -55,13 +55,61 @@ const defaultBranding: QuoteBranding = {
   footerText: "Bedankt voor uw vertrouwen.",
 };
 
-const templates = [
-  { id: "accounting", name: "Boekhoudvoorstel", desc: "Standaard boekhoudpakket offerte", lines: 4 },
-  { id: "audit", name: "Controlevoorstel", desc: "Jaarrekeningcontrole offerte", lines: 5 },
-  { id: "consultancy", name: "Adviesvoorstel", desc: "Financieel adviestraject", lines: 3 },
-  { id: "compliance", name: "Compliance voorstel", desc: "Wet DBA / compliance check", lines: 3 },
-  { id: "invoice", name: "Factuur template", desc: "Standaard factuurlayout", lines: 0 },
-  { id: "recurring", name: "Periodieke factuur", desc: "Maandelijks terugkerend", lines: 0 },
+interface QuoteTemplate {
+  id: string;
+  name: string;
+  desc: string;
+  lines: Omit<QuoteLine, "id">[];
+}
+
+const templates: QuoteTemplate[] = [
+  {
+    id: "accounting", name: "Boekhoudvoorstel", desc: "Standaard boekhoudpakket offerte",
+    lines: [
+      { type: "service", description: "Boekhouding (per maand)", quantity: 12, unitPrice: 150, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "BTW-aangifte (per kwartaal)", quantity: 4, unitPrice: 75, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "Jaarrekening", quantity: 1, unitPrice: 650, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "IB-aangifte ondernemer", quantity: 1, unitPrice: 295, vatRate: 21, optional: true, discount: 0 },
+    ],
+  },
+  {
+    id: "audit", name: "Controlevoorstel", desc: "Jaarrekeningcontrole offerte",
+    lines: [
+      { type: "service", description: "Controleverklaring jaarrekening", quantity: 1, unitPrice: 4500, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "Tussentijdse beoordeling", quantity: 2, unitPrice: 850, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "Risico-analyse en planning", quantity: 1, unitPrice: 1250, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "Managementletter", quantity: 1, unitPrice: 750, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "Nazorg en archivering", quantity: 1, unitPrice: 350, vatRate: 21, optional: true, discount: 0 },
+    ],
+  },
+  {
+    id: "consultancy", name: "Adviesvoorstel", desc: "Financieel adviestraject",
+    lines: [
+      { type: "service", description: "Strategie & financiële planning", quantity: 8, unitPrice: 175, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "Cashflow-prognose", quantity: 4, unitPrice: 175, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "Kwartaalreview", quantity: 4, unitPrice: 295, vatRate: 21, optional: false, discount: 0 },
+    ],
+  },
+  {
+    id: "compliance", name: "Compliance voorstel", desc: "Wet DBA / compliance check",
+    lines: [
+      { type: "service", description: "Modelovereenkomst review", quantity: 1, unitPrice: 495, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "Compliance audit", quantity: 1, unitPrice: 950, vatRate: 21, optional: false, discount: 0 },
+      { type: "service", description: "Implementatieplan", quantity: 1, unitPrice: 650, vatRate: 21, optional: false, discount: 0 },
+    ],
+  },
+  {
+    id: "invoice", name: "Factuur template", desc: "Standaard factuurlayout",
+    lines: [
+      { type: "service", description: "Geleverde dienst", quantity: 1, unitPrice: 0, vatRate: 21, optional: false, discount: 0 },
+    ],
+  },
+  {
+    id: "recurring", name: "Periodieke factuur", desc: "Maandelijks terugkerend",
+    lines: [
+      { type: "service", description: "Maandelijkse abonnement", quantity: 1, unitPrice: 99, vatRate: 21, optional: false, discount: 0 },
+    ],
+  },
 ];
 
 const packageOptions = [
@@ -122,6 +170,30 @@ export default function OfferteStudio() {
   const handleReject = () => {
     setQuoteStatus("rejected");
     toast.info("Offerte afgewezen");
+  };
+
+  const applyTemplate = (t: QuoteTemplate) => {
+    setLines(t.lines.map((l) => ({ ...l, id: crypto.randomUUID() })));
+    setActiveTab("builder");
+    toast.success(`Template "${t.name}" geladen`);
+  };
+
+  const addPackage = (pkg: typeof packageOptions[number]) => {
+    setLines([
+      ...lines,
+      {
+        id: crypto.randomUUID(),
+        type: "package",
+        description: `Pakket ${pkg.name} — ${pkg.features.join(", ")}`,
+        quantity: 1,
+        unitPrice: pkg.price,
+        vatRate: 21,
+        optional: false,
+        discount: 0,
+      },
+    ]);
+    setActiveTab("builder");
+    toast.success(`Pakket "${pkg.name}" toegevoegd aan offerte`);
   };
 
   return (
@@ -376,10 +448,10 @@ export default function OfferteStudio() {
                     <p className="text-sm font-medium text-foreground">{t.name}</p>
                     <p className="text-xs text-muted-foreground mt-1">{t.desc}</p>
                     <div className="flex gap-2 mt-3">
-                      <Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => toast.success(`Template "${t.name}" geladen`)}>
+                      <Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => applyTemplate(t)}>
                         <Copy className="h-3 w-3" />Gebruik
                       </Button>
-                      <Button variant="ghost" size="sm" className="text-xs">Bewerk</Button>
+                      <Badge variant="outline" className="text-[10px]">{t.lines.length} regels</Badge>
                     </div>
                   </CardContent>
                 </Card>
@@ -408,7 +480,7 @@ export default function OfferteStudio() {
                       </li>
                     ))}
                   </ul>
-                  <Button className="w-full" variant={pkg.popular ? "default" : "outline"} size="sm" onClick={() => toast.success(`Pakket "${pkg.name}" toegevoegd aan offerte`)}>
+                  <Button className="w-full" variant={pkg.popular ? "default" : "outline"} size="sm" onClick={() => addPackage(pkg)}>
                     Toevoegen aan offerte
                   </Button>
                 </CardContent>
