@@ -1,7 +1,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, ArrowLeftRight, Cpu, AlertTriangle, CheckCircle2, Pencil } from "lucide-react";
+import { FileText, ArrowLeftRight, Cpu, AlertTriangle, CheckCircle2, Pencil, BookText } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 function fmtAmount(n: number) {
