@@ -50,17 +50,18 @@ export function FeedbackButton() {
       <button
         onClick={() => setOpen(true)}
         className={cn(
-          "fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-primary-foreground shadow-lg transition-all hover:scale-105",
+          "fixed bottom-7 right-24 z-40 flex items-center gap-1.5 rounded-full border border-border bg-card/90 backdrop-blur px-3 py-2 text-foreground shadow-md transition-all hover:scale-105 hover:bg-card",
           open && "opacity-0 pointer-events-none"
         )}
         aria-label="Feedback geven"
+        title="Feedback geven"
       >
-        <MessageCircle className="h-4 w-4" />
-        <span className="text-sm font-medium">Feedback</span>
+        <MessageCircle className="h-3.5 w-3.5 text-primary" />
+        <span className="text-xs font-medium">Feedback</span>
       </button>
 
       {open && (
-        <div className="fixed bottom-6 right-6 z-50 w-[360px] max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-card shadow-2xl">
+        <div className="fixed bottom-24 right-6 z-50 w-[360px] max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-card shadow-2xl">
           <div className="flex items-center justify-between border-b border-border p-3">
             <h3 className="text-sm font-semibold text-foreground">Stuur feedback</h3>
             <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground" aria-label="Sluiten">
