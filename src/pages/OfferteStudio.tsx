@@ -448,10 +448,10 @@ export default function OfferteStudio() {
                     <p className="text-sm font-medium text-foreground">{t.name}</p>
                     <p className="text-xs text-muted-foreground mt-1">{t.desc}</p>
                     <div className="flex gap-2 mt-3">
-                      <Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => toast.success(`Template "${t.name}" geladen`)}>
+                      <Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => applyTemplate(t)}>
                         <Copy className="h-3 w-3" />Gebruik
                       </Button>
-                      <Button variant="ghost" size="sm" className="text-xs">Bewerk</Button>
+                      <Badge variant="outline" className="text-[10px]">{t.lines.length} regels</Badge>
                     </div>
                   </CardContent>
                 </Card>
@@ -480,7 +480,7 @@ export default function OfferteStudio() {
                       </li>
                     ))}
                   </ul>
-                  <Button className="w-full" variant={pkg.popular ? "default" : "outline"} size="sm" onClick={() => toast.success(`Pakket "${pkg.name}" toegevoegd aan offerte`)}>
+                  <Button className="w-full" variant={pkg.popular ? "default" : "outline"} size="sm" onClick={() => addPackage(pkg)}>
                     Toevoegen aan offerte
                   </Button>
                 </CardContent>
