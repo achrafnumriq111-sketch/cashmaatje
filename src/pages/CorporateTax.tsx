@@ -11,9 +11,11 @@ import { Building2, Calculator, Sparkles, FileText, AlertCircle } from "lucide-r
 import { useVpbReturns, useUpsertVpb, calcVpb } from "@/hooks/useVpb";
 import { useReportData } from "@/hooks/useReportData";
 import { useOrganization } from "@/hooks/useOrganization";
+import { supabase } from "@/integrations/supabase/client";
 import { pageTransition, cardVariant, staggerContainer } from "@/lib/animations";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n);
@@ -22,21 +24,35 @@ const years = Array.from({ length: 6 }, (_, i) => currentYear - i);
 
 export default function CorporateTax() {
   const { membership } = useOrganization();
-  const orgType = (membership?.organization as any)?.org_type;
+  const orgId = membership?.organizationId;
+
+  const { data: orgInfo } = useQuery({
+    queryKey: ["org-type", orgId],
+    enabled: !!orgId,
+    queryFn: async () => {
+      const { data } = await supabase.from("organizations").select("org_type").eq("id", orgId!).single();
+      return data;
+    },
+  });
+  const orgType = (orgInfo as any)?.org_type;
   const isBV = orgType === "bv" || orgType === "nv";
 
   const [year, setYear] = useState(currentYear);
   const { data: returns = [] } = useVpbReturns();
   const upsert = useUpsertVpb();
 
-  // Pull profit from P&L
-  const reportFrom = `${year}-01-01`;
-  const reportTo = `${year}-12-31`;
-  const { profitLoss } = useReportData(reportFrom, reportTo);
+  // Compute profit from accounts
+  const { fetchAccountBalances } = useReportData();
+  const { data: balances = [] } = useQuery({
+    queryKey: ["vpb-pl", orgId, year],
+    enabled: !!orgId,
+    queryFn: () => fetchAccountBalances(`${year}-01-01`, `${year}-12-31`),
+  });
   const computedProfit = useMemo(() => {
-    const result = (profitLoss?.data as any)?.result ?? 0;
-    return Math.max(0, Math.round(Number(result) || 0));
-  }, [profitLoss?.data]);
+    const revenue = balances.filter((b) => b.accountType === "revenue").reduce((s, b) => s - b.balance, 0);
+    const expense = balances.filter((b) => b.accountType === "expense").reduce((s, b) => s + b.balance, 0);
+    return Math.max(0, Math.round(revenue - expense));
+  }, [balances]);
 
   const existing = returns.find((r) => r.fiscal_year === year);
   const [taxableProfit, setTaxableProfit] = useState(0);
