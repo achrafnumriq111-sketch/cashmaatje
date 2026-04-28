@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollText } from "lucide-react";
 import { toast } from "sonner";
 import { pageTransition, cardVariant } from "@/lib/animations";
+import { exportToExcel } from "@/lib/exportUtils";
 
 export default function JournalEntries() {
   const now = new Date();
