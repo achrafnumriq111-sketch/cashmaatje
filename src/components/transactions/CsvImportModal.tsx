@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Upload, FileUp } from "lucide-react";
 import { useState, useCallback } from "react";
 import { useImportTransactions, useCategorizeTransactions } from "@/hooks/useTransactions";
+import { parseCsv, parseAmount } from "@/lib/csvImport";
 import { toast } from "sonner";
 
 type BankFormat = "generic" | "ing" | "rabobank" | "abn_amro";
@@ -51,20 +52,7 @@ export function CsvImportModal({ open, onClose, bankAccounts }: Props) {
     const reader = new FileReader();
     reader.onload = (ev) => {
       const text = ev.target?.result as string;
-      const lines = text.split(/\r?\n/).filter((l) => l.trim());
-      const parsed = lines.map((line) => {
-        // Handle quoted CSV
-        const result: string[] = [];
-        let current = "";
-        let inQuotes = false;
-        for (const char of line) {
-          if (char === '"') { inQuotes = !inQuotes; continue; }
-          if ((char === "," || char === ";") && !inQuotes) { result.push(current.trim()); current = ""; continue; }
-          current += char;
-        }
-        result.push(current.trim());
-        return result;
-      });
+      const parsed = parseCsv(text);
       if (parsed.length > 0) {
         setHeaders(parsed[0]);
         setRows(parsed.slice(1, 11));
@@ -89,7 +77,7 @@ export function CsvImportModal({ open, onClose, bankAccounts }: Props) {
       const allLines = file ? await readAllRows(file) : rows;
       const parsed = allLines.map((row) => {
         const rawAmount = row[mapping.amount] || "0";
-        const amount = parseFloat(rawAmount.replace(/\./g, "").replace(",", ".")) || 0;
+        const amount = parseAmount(rawAmount);
         const rawDate = row[mapping.date] || "";
         const date = parseDate(rawDate);
 
@@ -101,7 +89,12 @@ export function CsvImportModal({ open, onClose, bankAccounts }: Props) {
           payment_reference: row[mapping.reference] || undefined,
           counterparty_iban: row[mapping.iban] || undefined,
         };
-      }).filter((r) => r.transaction_date && !isNaN(r.amount));
+      }).filter((r) => r.transaction_date && !isNaN(r.amount) && r.amount !== 0);
+
+      if (parsed.length === 0) {
+        toast.error("Geen geldige rijen gevonden — controleer de kolommapping en datum-format");
+        return;
+      }
 
       const newIds = await importTx.mutateAsync({ bankAccountId, rows: parsed });
       toast.success(`${newIds.length} transacties geïmporteerd`);
@@ -244,17 +237,6 @@ function parseDate(raw: string): string {
 
 async function readAllRows(file: File): Promise<string[][]> {
   const text = await file.text();
-  const lines = text.split(/\r?\n/).filter((l) => l.trim());
-  return lines.slice(1).map((line) => {
-    const result: string[] = [];
-    let current = "";
-    let inQuotes = false;
-    for (const char of line) {
-      if (char === '"') { inQuotes = !inQuotes; continue; }
-      if ((char === "," || char === ";") && !inQuotes) { result.push(current.trim()); current = ""; continue; }
-      current += char;
-    }
-    result.push(current.trim());
-    return result;
-  });
+  const parsed = parseCsv(text);
+  return parsed.slice(1); // skip header
 }

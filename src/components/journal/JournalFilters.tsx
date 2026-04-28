@@ -51,13 +51,14 @@ export function JournalFilters({ filters, onChange, onExport }: Props) {
       </Select>
 
       <Select value={filters.sourceType} onValueChange={(v) => set({ sourceType: v as JFilters["sourceType"] })}>
-        <SelectTrigger className="w-[130px] bg-card border-border/50">
+        <SelectTrigger className="w-[150px] bg-card border-border/50">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Alle bronnen</SelectItem>
           <SelectItem value="invoice">Factuur</SelectItem>
           <SelectItem value="bank_transaction">Bank</SelectItem>
+          <SelectItem value="memorial">Memoriaalboeking</SelectItem>
           <SelectItem value="system">Systeem</SelectItem>
         </SelectContent>
       </Select>

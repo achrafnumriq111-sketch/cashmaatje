@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollText } from "lucide-react";
 import { toast } from "sonner";
 import { pageTransition, cardVariant } from "@/lib/animations";
+import { exportToExcel } from "@/lib/exportUtils";
 
 export default function JournalEntries() {
   const now = new Date();
@@ -28,12 +29,28 @@ export default function JournalEntries() {
 
   const handleExport = () => {
     if (entries.length === 0) { toast.info("Geen data om te exporteren"); return; }
-    const header = "Nummer,Datum,Omschrijving,Status,Bron,AI\n";
-    const rows = entries.map((e) => `${e.entry_number},"${e.date}","${(e.description ?? "").replace(/"/g, '""')}",${e.status},${e.source_type ?? "system"},${e.ai_confidence != null ? Math.round(e.ai_confidence * 100) + "%" : ""}`).join("\n");
-    const blob = new Blob([header + rows], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = `journaalposten_${filters.dateFrom}_${filters.dateTo}.csv`; a.click();
-    URL.revokeObjectURL(url); toast.success("Export gedownload");
+    const data = entries.map((e) => ({
+      entry_number: e.entry_number,
+      date: e.date,
+      description: e.description ?? "",
+      status: e.status,
+      source_type: e.source_type ?? "system",
+      ai_confidence: e.ai_confidence != null ? Math.round(e.ai_confidence * 100) + "%" : "",
+    }));
+    exportToExcel(
+      data,
+      [
+        { header: "Nummer", key: "entry_number" },
+        { header: "Datum", key: "date", format: "date" },
+        { header: "Omschrijving", key: "description" },
+        { header: "Status", key: "status" },
+        { header: "Bron", key: "source_type" },
+        { header: "AI", key: "ai_confidence" },
+      ],
+      `journaalposten_${filters.dateFrom}_${filters.dateTo}`,
+      "Journaalposten"
+    );
+    toast.success("Excel-export gedownload");
   };
 
   return (
