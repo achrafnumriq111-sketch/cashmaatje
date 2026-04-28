@@ -237,17 +237,6 @@ function parseDate(raw: string): string {
 
 async function readAllRows(file: File): Promise<string[][]> {
   const text = await file.text();
-  const lines = text.split(/\r?\n/).filter((l) => l.trim());
-  return lines.slice(1).map((line) => {
-    const result: string[] = [];
-    let current = "";
-    let inQuotes = false;
-    for (const char of line) {
-      if (char === '"') { inQuotes = !inQuotes; continue; }
-      if ((char === "," || char === ";") && !inQuotes) { result.push(current.trim()); current = ""; continue; }
-      current += char;
-    }
-    result.push(current.trim());
-    return result;
-  });
+  const parsed = parseCsv(text);
+  return parsed.slice(1); // skip header
 }
