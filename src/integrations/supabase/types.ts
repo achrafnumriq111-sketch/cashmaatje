@@ -1893,6 +1893,74 @@ export type Database = {
         }
         Relationships: []
       }
+      employees: {
+        Row: {
+          active: boolean
+          bsn: string | null
+          contract_type: string
+          created_at: string
+          email: string | null
+          end_date: string | null
+          full_name: string
+          gross_monthly: number
+          hours_per_week: number | null
+          iban: string | null
+          id: string
+          organization_id: string
+          payroll_tax_table: string | null
+          position: string | null
+          start_date: string | null
+          updated_at: string
+          vacation_pct: number | null
+        }
+        Insert: {
+          active?: boolean
+          bsn?: string | null
+          contract_type?: string
+          created_at?: string
+          email?: string | null
+          end_date?: string | null
+          full_name: string
+          gross_monthly?: number
+          hours_per_week?: number | null
+          iban?: string | null
+          id?: string
+          organization_id: string
+          payroll_tax_table?: string | null
+          position?: string | null
+          start_date?: string | null
+          updated_at?: string
+          vacation_pct?: number | null
+        }
+        Update: {
+          active?: boolean
+          bsn?: string | null
+          contract_type?: string
+          created_at?: string
+          email?: string | null
+          end_date?: string | null
+          full_name?: string
+          gross_monthly?: number
+          hours_per_week?: number | null
+          iban?: string | null
+          id?: string
+          organization_id?: string
+          payroll_tax_table?: string | null
+          position?: string | null
+          start_date?: string | null
+          updated_at?: string
+          vacation_pct?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feature_flags: {
         Row: {
           created_at: string
@@ -3161,6 +3229,110 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      payroll_run_lines: {
+        Row: {
+          created_at: string
+          employee_id: string
+          gross: number
+          id: string
+          net: number
+          payroll_run_id: string
+          payroll_tax: number
+          social_premiums: number
+          vacation_reserve: number
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          gross?: number
+          id?: string
+          net?: number
+          payroll_run_id: string
+          payroll_tax?: number
+          social_premiums?: number
+          vacation_reserve?: number
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          gross?: number
+          id?: string
+          net?: number
+          payroll_run_id?: string
+          payroll_tax?: number
+          social_premiums?: number
+          vacation_reserve?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_run_lines_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_run_lines_payroll_run_id_fkey"
+            columns: ["payroll_run_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_runs: {
+        Row: {
+          created_at: string
+          finalized_at: string | null
+          id: string
+          organization_id: string
+          period_month: number
+          period_year: number
+          status: string
+          total_gross: number
+          total_net: number
+          total_social: number
+          total_tax: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          finalized_at?: string | null
+          id?: string
+          organization_id: string
+          period_month: number
+          period_year: number
+          status?: string
+          total_gross?: number
+          total_net?: number
+          total_social?: number
+          total_tax?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          finalized_at?: string | null
+          id?: string
+          organization_id?: string
+          period_month?: number
+          period_year?: number
+          status?: string
+          total_gross?: number
+          total_net?: number
+          total_social?: number
+          total_tax?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_runs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       platform_roles: {
         Row: {
@@ -4563,6 +4735,68 @@ export type Database = {
             columns: ["reviewed_by"]
             isOneToOne: false
             referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vpb_returns: {
+        Row: {
+          created_at: string
+          effective_rate: number
+          filed_at: string | null
+          fiscal_year: number
+          id: string
+          innovation_box_amount: number
+          loss_carryforward: number
+          notes: string | null
+          organization_id: string
+          status: string
+          tax_high_bracket: number
+          tax_low_bracket: number
+          taxable_profit: number
+          total_tax: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          effective_rate?: number
+          filed_at?: string | null
+          fiscal_year: number
+          id?: string
+          innovation_box_amount?: number
+          loss_carryforward?: number
+          notes?: string | null
+          organization_id: string
+          status?: string
+          tax_high_bracket?: number
+          tax_low_bracket?: number
+          taxable_profit?: number
+          total_tax?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          effective_rate?: number
+          filed_at?: string | null
+          fiscal_year?: number
+          id?: string
+          innovation_box_amount?: number
+          loss_carryforward?: number
+          notes?: string | null
+          organization_id?: string
+          status?: string
+          tax_high_bracket?: number
+          tax_low_bracket?: number
+          taxable_profit?: number
+          total_tax?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vpb_returns_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
