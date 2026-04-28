@@ -445,7 +445,7 @@ function TeamTab({ isOwner, canManage }: { isOwner: boolean; canManage: boolean 
             <Input placeholder="email@voorbeeld.nl" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} type="email" />
             <Select value={inviteRole} onValueChange={(v) => setInviteRole(v as UserRole)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{roleOptions.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+              <SelectContent>{roleOptions.map((r) => <SelectItem key={r} value={r}>{roleLabels[r]}</SelectItem>)}</SelectContent>
             </Select>
             <Button onClick={invite} disabled={!inviteEmail}><Plus className="h-3.5 w-3.5 mr-1" />Toevoegen</Button>
           </div>
@@ -461,10 +461,10 @@ function TeamTab({ isOwner, canManage }: { isOwner: boolean; canManage: boolean 
                   <TableCell>
                     {canManage && !m.is_owner ? (
                       <Select value={m.role} onValueChange={(v) => changeRole(m, v as UserRole)}>
-                        <SelectTrigger className="w-[140px] h-8"><SelectValue /></SelectTrigger>
-                        <SelectContent>{roleOptions.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                        <SelectTrigger className="w-[160px] h-8"><SelectValue /></SelectTrigger>
+                        <SelectContent>{roleOptions.map((r) => <SelectItem key={r} value={r}>{roleLabels[r]}</SelectItem>)}</SelectContent>
                       </Select>
-                    ) : <Badge variant="outline">{m.role}</Badge>}
+                    ) : <Badge variant="outline">{roleLabels[m.role]}</Badge>}
                   </TableCell>
                   <TableCell className="text-right">
                     {canManage && !m.is_owner && m.user_id !== user?.id && (
