@@ -42,16 +42,22 @@ function statusBadge(status: string, aiGenerated: boolean | null, aiConfidence: 
 
 function sourceIcon(type: string | null) {
   switch (type) {
-    case "invoice": return <FileText className="h-3.5 w-3.5 text-muted-foreground" />;
+    case "invoice":
+    case "sales_invoice":
+    case "purchase_invoice": return <FileText className="h-3.5 w-3.5 text-muted-foreground" />;
     case "bank_transaction": return <ArrowLeftRight className="h-3.5 w-3.5 text-muted-foreground" />;
+    case "memorial": return <BookText className="h-3.5 w-3.5 text-violet-400" />;
     default: return <Cpu className="h-3.5 w-3.5 text-muted-foreground" />;
   }
 }
 
 function sourceLabel(type: string | null) {
   switch (type) {
-    case "invoice": return "Factuur";
+    case "invoice":
+    case "sales_invoice":
+    case "purchase_invoice": return "Factuur";
     case "bank_transaction": return "Bank";
+    case "memorial": return "Memoriaalboeking";
     default: return "Systeem";
   }
 }
