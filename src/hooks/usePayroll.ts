@@ -70,7 +70,7 @@ export function calcPayrollLine(emp: Employee) {
 }
 
 export function useEmployees() {
-  const { membership } = useOrganization(); const orgId = membership?.organization_id;
+  const { membership } = useOrganization(); const orgId = membership?.organizationId;
   return useQuery({
     queryKey: ["employees", orgId],
     enabled: !!orgId,
@@ -88,7 +88,7 @@ export function useEmployees() {
 
 export function useUpsertEmployee() {
   const qc = useQueryClient();
-  const { membership } = useOrganization(); const orgId = membership?.organization_id;
+  const { membership } = useOrganization(); const orgId = membership?.organizationId;
   return useMutation({
     mutationFn: async (e: Partial<Employee> & { full_name: string }) => {
       if (!orgId) throw new Error("No org");
@@ -124,7 +124,7 @@ export function useDeleteEmployee() {
 }
 
 export function usePayrollRuns() {
-  const { membership } = useOrganization(); const orgId = membership?.organization_id;
+  const { membership } = useOrganization(); const orgId = membership?.organizationId;
   return useQuery({
     queryKey: ["payroll_runs", orgId],
     enabled: !!orgId,
@@ -158,7 +158,7 @@ export function usePayrollLines(runId: string | null) {
 
 export function useGeneratePayrollRun() {
   const qc = useQueryClient();
-  const { membership } = useOrganization(); const orgId = membership?.organization_id;
+  const { membership } = useOrganization(); const orgId = membership?.organizationId;
   return useMutation({
     mutationFn: async (input: { year: number; month: number }) => {
       if (!orgId) throw new Error("No org");

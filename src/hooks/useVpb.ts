@@ -50,7 +50,7 @@ export function calcVpb(input: {
 }
 
 export function useVpbReturns() {
-  const { membership } = useOrganization(); const orgId = membership?.organization_id;
+  const { membership } = useOrganization(); const orgId = membership?.organizationId;
   return useQuery({
     queryKey: ["vpb_returns", orgId],
     enabled: !!orgId,
@@ -68,7 +68,7 @@ export function useVpbReturns() {
 
 export function useUpsertVpb() {
   const qc = useQueryClient();
-  const { membership } = useOrganization(); const orgId = membership?.organization_id;
+  const { membership } = useOrganization(); const orgId = membership?.organizationId;
   return useMutation({
     mutationFn: async (input: {
       fiscal_year: number;
