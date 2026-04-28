@@ -51,6 +51,12 @@ interface MemberRow {
 }
 
 const roleOptions: UserRole[] = ["entrepreneur", "bookkeeper", "accountant", "admin"];
+const roleLabels: Record<UserRole, string> = {
+  entrepreneur: "Ondernemer",
+  bookkeeper: "Boekhouder",
+  accountant: "Accountant",
+  admin: "Beheerder",
+};
 
 export default function Settings() {
   const { user } = useAuth();
