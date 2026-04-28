@@ -50,15 +50,15 @@ export function calcVpb(input: {
 }
 
 export function useVpbReturns() {
-  const { organization } = useOrganization();
+  const { membership } = useOrganization(); const orgId = membership?.organization_id;
   return useQuery({
-    queryKey: ["vpb_returns", organization?.id],
-    enabled: !!organization?.id,
+    queryKey: ["vpb_returns", orgId],
+    enabled: !!orgId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("vpb_returns" as any)
         .select("*")
-        .eq("organization_id", organization!.id)
+        .eq("organization_id", orgId!)
         .order("fiscal_year", { ascending: false });
       if (error) throw error;
       return (data ?? []) as unknown as VpbReturn[];
@@ -68,7 +68,7 @@ export function useVpbReturns() {
 
 export function useUpsertVpb() {
   const qc = useQueryClient();
-  const { organization } = useOrganization();
+  const { membership } = useOrganization(); const orgId = membership?.organization_id;
   return useMutation({
     mutationFn: async (input: {
       fiscal_year: number;
@@ -78,13 +78,13 @@ export function useUpsertVpb() {
       notes?: string;
       status?: VpbReturn["status"];
     }) => {
-      if (!organization?.id) throw new Error("No org");
+      if (!orgId) throw new Error("No org");
       const calc = calcVpb(input);
       const { data, error } = await supabase
         .from("vpb_returns" as any)
         .upsert(
           {
-            organization_id: organization.id,
+            organization_id: orgId!,
             fiscal_year: input.fiscal_year,
             taxable_profit: input.taxable_profit,
             loss_carryforward: input.loss_carryforward ?? 0,

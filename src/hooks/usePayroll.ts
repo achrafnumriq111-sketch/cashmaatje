@@ -70,15 +70,15 @@ export function calcPayrollLine(emp: Employee) {
 }
 
 export function useEmployees() {
-  const { organization } = useOrganization();
+  const { membership } = useOrganization(); const orgId = membership?.organization_id;
   return useQuery({
-    queryKey: ["employees", organization?.id],
-    enabled: !!organization?.id,
+    queryKey: ["employees", orgId],
+    enabled: !!orgId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("employees" as any)
         .select("*")
-        .eq("organization_id", organization!.id)
+        .eq("organization_id", orgId!)
         .order("full_name");
       if (error) throw error;
       return (data ?? []) as unknown as Employee[];
@@ -88,11 +88,11 @@ export function useEmployees() {
 
 export function useUpsertEmployee() {
   const qc = useQueryClient();
-  const { organization } = useOrganization();
+  const { membership } = useOrganization(); const orgId = membership?.organization_id;
   return useMutation({
     mutationFn: async (e: Partial<Employee> & { full_name: string }) => {
-      if (!organization?.id) throw new Error("No org");
-      const payload: any = { ...e, organization_id: organization.id };
+      if (!orgId) throw new Error("No org");
+      const payload: any = { ...e, organization_id: orgId! };
       const { data, error } = await supabase
         .from("employees" as any)
         .upsert(payload)
@@ -124,15 +124,15 @@ export function useDeleteEmployee() {
 }
 
 export function usePayrollRuns() {
-  const { organization } = useOrganization();
+  const { membership } = useOrganization(); const orgId = membership?.organization_id;
   return useQuery({
-    queryKey: ["payroll_runs", organization?.id],
-    enabled: !!organization?.id,
+    queryKey: ["payroll_runs", orgId],
+    enabled: !!orgId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payroll_runs" as any)
         .select("*")
-        .eq("organization_id", organization!.id)
+        .eq("organization_id", orgId!)
         .order("period_year", { ascending: false })
         .order("period_month", { ascending: false });
       if (error) throw error;
@@ -158,15 +158,15 @@ export function usePayrollLines(runId: string | null) {
 
 export function useGeneratePayrollRun() {
   const qc = useQueryClient();
-  const { organization } = useOrganization();
+  const { membership } = useOrganization(); const orgId = membership?.organization_id;
   return useMutation({
     mutationFn: async (input: { year: number; month: number }) => {
-      if (!organization?.id) throw new Error("No org");
+      if (!orgId) throw new Error("No org");
       // 1. Get active employees
       const { data: emps, error: ee } = await supabase
         .from("employees" as any)
         .select("*")
-        .eq("organization_id", organization.id)
+        .eq("organization_id", orgId!)
         .eq("active", true);
       if (ee) throw ee;
       const employees = (emps ?? []) as unknown as Employee[];
@@ -184,7 +184,7 @@ export function useGeneratePayrollRun() {
         .from("payroll_runs" as any)
         .upsert(
           {
-            organization_id: organization.id,
+            organization_id: orgId!,
             period_year: input.year,
             period_month: input.month,
             total_gross,
