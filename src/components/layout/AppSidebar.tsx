@@ -48,6 +48,7 @@ const navItems: NavItem[] = [
     children: [
       { id: "btw-aangifte", labelKey: "nav.vat.return", path: "/btw/aangifte" },
       { id: "btw-icp", labelKey: "nav.vat.icp", path: "/btw/icp" },
+      { id: "vpb", labelKey: "nav.vat.vpb", path: "/belasting/vpb" },
     ],
   },
   {
@@ -62,7 +63,11 @@ const navItems: NavItem[] = [
     ],
   },
   {
-    id: "salaris", labelKey: "nav.salary", icon: <Wallet size={18} />, path: "/salaris",
+    id: "salaris", labelKey: "nav.salary", icon: <Wallet size={18} />,
+    children: [
+      { id: "salaris-overzicht", labelKey: "nav.salary.overview", path: "/salaris" },
+      { id: "salaris-medewerkers", labelKey: "nav.salary.employees", path: "/salaris/medewerkers" },
+    ],
   },
   {
     id: "rapporten", labelKey: "nav.reports", icon: <BarChart3 size={18} />,
