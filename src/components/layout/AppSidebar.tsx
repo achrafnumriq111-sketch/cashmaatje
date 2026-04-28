@@ -44,7 +44,7 @@ const navItems: NavItem[] = [
   { id: "reconciliatie", labelKey: "nav.reconciliation", icon: <GitMerge size={18} />, path: "/reconciliatie" },
   { id: "documenten", labelKey: "nav.documents", icon: <FileText size={18} />, path: "/documenten" },
   {
-    id: "btw", labelKey: "nav.vat", icon: <Receipt size={18} />,
+    id: "btw", labelKey: "nav.vatWins", icon: <Receipt size={18} />,
     children: [
       { id: "btw-aangifte", labelKey: "nav.vat.return", path: "/btw/aangifte" },
       { id: "btw-icp", labelKey: "nav.vat.icp", path: "/btw/icp" },
