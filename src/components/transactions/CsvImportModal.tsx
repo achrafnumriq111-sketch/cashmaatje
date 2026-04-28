@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Upload, FileUp } from "lucide-react";
 import { useState, useCallback } from "react";
 import { useImportTransactions, useCategorizeTransactions } from "@/hooks/useTransactions";
+import { parseCsv, parseAmount } from "@/lib/csvImport";
 import { toast } from "sonner";
 
 type BankFormat = "generic" | "ing" | "rabobank" | "abn_amro";
