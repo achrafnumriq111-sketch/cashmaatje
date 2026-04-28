@@ -172,6 +172,30 @@ export default function OfferteStudio() {
     toast.info("Offerte afgewezen");
   };
 
+  const applyTemplate = (t: QuoteTemplate) => {
+    setLines(t.lines.map((l) => ({ ...l, id: crypto.randomUUID() })));
+    setActiveTab("builder");
+    toast.success(`Template "${t.name}" geladen`);
+  };
+
+  const addPackage = (pkg: typeof packageOptions[number]) => {
+    setLines([
+      ...lines,
+      {
+        id: crypto.randomUUID(),
+        type: "package",
+        description: `Pakket ${pkg.name} — ${pkg.features.join(", ")}`,
+        quantity: 1,
+        unitPrice: pkg.price,
+        vatRate: 21,
+        optional: false,
+        discount: 0,
+      },
+    ]);
+    setActiveTab("builder");
+    toast.success(`Pakket "${pkg.name}" toegevoegd aan offerte`);
+  };
+
   return (
     <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-6">
       <motion.div variants={cardVariant} className="flex items-center justify-between">
