@@ -279,66 +279,99 @@ export function AppSidebar({ role }: { role?: UserRole }) {
     );
   };
 
+  const { open, setOpen } = useMobileNav();
+
   return (
-    <aside
-      className="w-[260px] h-screen fixed left-0 top-0 z-40 bg-card border-r border-border flex flex-col overflow-y-auto overflow-x-hidden"
-      style={{ scrollbarWidth: "none" }}
-    >
-      {/* Brand */}
-      <a
-        href="https://cashmaatje.nl"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="px-5 h-16 flex items-center gap-2.5 hover:opacity-80 transition-opacity flex-shrink-0"
-        aria-label="Cashmaatje website"
+    <>
+      {/* Mobile overlay */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="md:hidden fixed inset-0 z-40 bg-background/70 backdrop-blur-sm"
+            onClick={() => setOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <aside
+        className={`
+          w-[280px] md:w-[260px] h-screen fixed left-0 top-0 z-50
+          bg-card border-r border-border flex flex-col overflow-y-auto overflow-x-hidden
+          transition-transform duration-300 ease-out
+          ${open ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
+        `}
+        style={{ scrollbarWidth: "none" }}
       >
-        <div className="w-7 h-7 rounded-lg bg-primary grid place-items-center">
-          <span className="text-primary-foreground text-[13px] font-semibold leading-none">C</span>
-        </div>
-        <span className="text-[15px] font-semibold tracking-tight text-foreground">Cash Maatje</span>
-      </a>
-
-      {/* Nav */}
-      <nav className="flex-1 px-3 pb-4 space-y-5">
-        {navSections.map((section) => (
-          <div key={section.id} className="space-y-0.5">
-            <div className="px-4 mb-1.5">
-              <span className="text-[10.5px] font-medium tracking-[0.08em] uppercase text-muted-foreground/60">
-                {section.label}
-              </span>
+        {/* Brand + mobile close */}
+        <div className="px-5 h-16 flex items-center justify-between gap-2.5 flex-shrink-0">
+          <a
+            href="https://cashmaatje.nl"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+            aria-label="Cashmaatje website"
+          >
+            <div className="w-7 h-7 rounded-lg bg-primary grid place-items-center">
+              <span className="text-primary-foreground text-[13px] font-semibold leading-none">C</span>
             </div>
-            {section.items.map(renderItem)}
-          </div>
-        ))}
-      </nav>
-
-      {/* Footer */}
-      <div className="px-3 py-3 border-t border-border space-y-0.5 flex-shrink-0 bg-card">
-        <button
-          onClick={() => navigate("/instellingen")}
-          className={`w-full flex items-center gap-3 pl-4 pr-3 py-2 rounded-xl text-[13.5px] transition-colors duration-150 ${
-            path === "/instellingen"
-              ? "text-foreground bg-secondary/70 font-medium"
-              : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
-          }`}
-        >
-          <Settings className="w-4 h-4" />
-          <span>{t("nav.settings")}</span>
-        </button>
-        {role === "accountant" && (
+            <span className="text-[15px] font-semibold tracking-tight text-foreground">Cash Maatje</span>
+          </a>
           <button
-            onClick={() => navigate("/audit-log")}
+            onClick={() => setOpen(false)}
+            className="md:hidden -mr-2 w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            aria-label="Close menu"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 px-3 pb-4 space-y-5">
+          {navSections.map((section) => (
+            <div key={section.id} className="space-y-0.5">
+              <div className="px-4 mb-1.5">
+                <span className="text-[10.5px] font-medium tracking-[0.08em] uppercase text-muted-foreground/60">
+                  {section.label}
+                </span>
+              </div>
+              {section.items.map(renderItem)}
+            </div>
+          ))}
+        </nav>
+
+        {/* Footer */}
+        <div className="px-3 py-3 border-t border-border space-y-0.5 flex-shrink-0 bg-card">
+          <button
+            onClick={() => navigate("/instellingen")}
             className={`w-full flex items-center gap-3 pl-4 pr-3 py-2 rounded-xl text-[13.5px] transition-colors duration-150 ${
-              path === "/audit-log"
+              path === "/instellingen"
                 ? "text-foreground bg-secondary/70 font-medium"
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
             }`}
           >
-            <Shield className="w-4 h-4" />
-            <span>{t("nav.auditLog")}</span>
+            <Settings className="w-4 h-4" />
+            <span>{t("nav.settings")}</span>
           </button>
-        )}
-      </div>
-    </aside>
+          {role === "accountant" && (
+            <button
+              onClick={() => navigate("/audit-log")}
+              className={`w-full flex items-center gap-3 pl-4 pr-3 py-2 rounded-xl text-[13.5px] transition-colors duration-150 ${
+                path === "/audit-log"
+                  ? "text-foreground bg-secondary/70 font-medium"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
+              }`}
+            >
+              <Shield className="w-4 h-4" />
+              <span>{t("nav.auditLog")}</span>
+            </button>
+          )}
+        </div>
+      </aside>
+    </>
   );
 }
+
