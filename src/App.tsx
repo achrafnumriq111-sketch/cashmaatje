@@ -71,6 +71,10 @@ import TaxReserve from "./pages/TaxReserve";
 import RecurringInvoices from "./pages/RecurringInvoices";
 import QuarterlyChecklist from "./pages/QuarterlyChecklist";
 import ExportCenter from "./pages/ExportCenter";
+import BankImport from "./pages/BankImport";
+import ScenarioSimulator from "./pages/ScenarioSimulator";
+import FinancialHealth from "./pages/FinancialHealth";
+import AccountantPortal from "./pages/AccountantPortal";
 import { ModuleLockOverlay } from "./components/modules/ModuleLockOverlay";
 
 const queryClient = new QueryClient();
@@ -112,6 +116,10 @@ const App = () => (
               <Route path="belasting/checklist" element={<QuarterlyChecklist />} />
               <Route path="facturen/terugkerend" element={<RecurringInvoices />} />
               <Route path="exports" element={<ExportCenter />} />
+              <Route path="bank/import" element={<BankImport />} />
+              <Route path="insights/scenario" element={<ScenarioSimulator />} />
+              <Route path="insights/health" element={<FinancialHealth />} />
+              <Route path="accountant" element={<AccountantPortal />} />
               <Route path="rapporten/winst-verlies" element={<ProfitLoss />} />
               <Route path="rapporten/balans" element={<BalanceSheet />} />
               <Route path="rapporten/proefbalans" element={<TrialBalance />} />
