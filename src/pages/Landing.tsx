@@ -77,13 +77,16 @@ function Hero() {
               €15,99<sup className="text-primary text-[20px] font-medium ml-0.5">*</sup>
             </span>
             <span className="text-[14px] text-muted-foreground">/month</span>
+            <span className="ml-1 inline-flex items-center px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[11px] font-semibold uppercase tracking-wide">
+              1st month free
+            </span>
           </div>
           <div className="mt-8 flex items-center gap-4">
             <Link
               to="/register"
               className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-primary/90 transition-colors"
             >
-              Start free
+              Try free for 1 month
               <ArrowRight className="w-4 h-4" />
             </Link>
             <a
@@ -94,7 +97,7 @@ function Hero() {
             </a>
           </div>
           <p className="mt-6 text-[12px] text-muted-foreground/80 max-w-md leading-relaxed">
-            <span className="text-primary">*</span> Starting at €25,99/month. Drops by €1 per active referral, down to €15,99/month after 10 referrals. 14-day free trial · no credit card.
+            <span className="text-primary">*</span> First month completely free — no credit card. After the trial: starts at €25,99/month, drops €1 per active referral, down to €15,99/month after 10 referrals. Cancel anytime.
           </p>
         </motion.div>
 
