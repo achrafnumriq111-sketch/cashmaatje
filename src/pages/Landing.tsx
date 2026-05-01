@@ -77,13 +77,16 @@ function Hero() {
               €15,99<sup className="text-primary text-[20px] font-medium ml-0.5">*</sup>
             </span>
             <span className="text-[14px] text-muted-foreground">/month</span>
+            <span className="ml-1 inline-flex items-center px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[11px] font-semibold uppercase tracking-wide">
+              1st month free
+            </span>
           </div>
           <div className="mt-8 flex items-center gap-4">
             <Link
               to="/register"
               className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-primary/90 transition-colors"
             >
-              Start free
+              Try free for 1 month
               <ArrowRight className="w-4 h-4" />
             </Link>
             <a
@@ -94,7 +97,7 @@ function Hero() {
             </a>
           </div>
           <p className="mt-6 text-[12px] text-muted-foreground/80 max-w-md leading-relaxed">
-            <span className="text-primary">*</span> Starting at €25,99/month. Drops by €1 per active referral, down to €15,99/month after 10 referrals. 14-day free trial · no credit card.
+            <span className="text-primary">*</span> First month completely free — no credit card. After the trial: starts at €25,99/month, drops €1 per active referral, down to €15,99/month after 10 referrals. Cancel anytime.
           </p>
         </motion.div>
 
@@ -550,29 +553,34 @@ function PricingSection() {
             One plan. Everything in.
           </h2>
           <p className="mt-5 text-[17px] text-muted-foreground max-w-lg mx-auto">
-            €25.99/month — drops to €15.99 with active referrals. Extra entities are €15.99/month each.
+            First month free — then €25,99/month, dropping to €15,99 with active referrals. Extra entities are €15,99/month each.
           </p>
         </div>
 
         <div className="rounded-[28px] border border-border bg-card p-8 md:p-10 shadow-[0_30px_80px_-30px_rgba(15,123,108,0.18)]">
           <div className="flex items-start justify-between flex-wrap gap-6 mb-8">
             <div>
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[hsl(var(--primary-soft))] text-primary text-[11px] font-medium mb-4">
-                <Sparkles className="w-3 h-3" /> All-in plan
+              <div className="flex items-center gap-2 mb-4">
+                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[hsl(var(--primary-soft))] text-primary text-[11px] font-medium">
+                  <Sparkles className="w-3 h-3" /> All-in plan
+                </div>
+                <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[11px] font-semibold uppercase tracking-wide">
+                  1st month free
+                </div>
               </div>
               <div className="flex items-end gap-3">
-                <span className="text-[56px] font-semibold tracking-[-0.03em] leading-none text-foreground">€25,99</span>
-                <span className="text-[14px] text-muted-foreground pb-2">/month</span>
+                <span className="text-[56px] font-semibold tracking-[-0.03em] leading-none text-foreground">€0</span>
+                <span className="text-[14px] text-muted-foreground pb-2">first month</span>
               </div>
               <p className="mt-3 text-[13px] text-muted-foreground">
-                As low as <span className="text-primary font-medium">€15,99</span> with 10 active referrals.
+                Then <span className="text-foreground font-medium">€25,99/month</span> — as low as <span className="text-primary font-medium">€15,99</span> with 10 active referrals.
               </p>
             </div>
             <Link
               to="/register"
               className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-primary/90 transition-colors self-end"
             >
-              Start free <ArrowRight className="w-4 h-4" />
+              Try free for 1 month <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
@@ -601,7 +609,7 @@ function PricingSection() {
           </div>
 
           <p className="mt-6 text-center text-[12px] text-muted-foreground">
-            14-day free trial · No credit card · Cancel anytime · Excl. VAT
+            First month free · No credit card · Cancel anytime · Excl. VAT
           </p>
         </div>
       </div>
@@ -617,19 +625,19 @@ function FinalCta() {
           Start your business with clarity.
         </h2>
         <p className="mt-5 text-[17px] text-background/70 max-w-md mx-auto">
-          Free for 14 days. Setup in under 2 minutes.
+          First month free. Setup in under 2 minutes.
         </p>
         <div className="mt-10 flex items-center justify-center gap-4">
           <Link
             to="/register"
             className="inline-flex items-center gap-2 bg-background text-foreground px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-background/90 transition-colors"
           >
-            Start free
+            Try free for 1 month
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
         <div className="mt-8 flex items-center justify-center gap-6 text-[13px] text-background/60">
-          {["No credit card", "Cancel anytime", "Dutch tax ready"].map((x) => (
+          {["First month free", "No credit card", "Cancel anytime"].map((x) => (
             <span key={x} className="inline-flex items-center gap-1.5">
               <Check className="w-3.5 h-3.5" />
               {x}
