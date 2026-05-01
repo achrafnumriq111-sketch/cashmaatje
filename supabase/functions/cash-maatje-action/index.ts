@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
         if (!resolvedAccountId) throw new Error("Geen geldige rekening opgegeven");
         const { error } = await admin
           .from("bank_transactions")
-          .update({ account_id: resolvedAccountId, status: "categorized" })
+          .update({ account_id: resolvedAccountId, status: "manually_matched" })
           .eq("id", txId)
           .eq("organization_id", organization_id);
         if (error) throw error;
