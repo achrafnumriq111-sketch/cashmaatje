@@ -5138,6 +5138,10 @@ export type Database = {
         Returns: Json
       }
       can_manage_org_members: { Args: { p_org_id: string }; Returns: boolean }
+      claim_referral: {
+        Args: { p_code: string; p_device_hash?: string; p_ip_hash?: string }
+        Returns: Json
+      }
       create_demo_organization: { Args: { p_name?: string }; Returns: string }
       delete_email: {
         Args: { message_id: number; queue_name: string }
