@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import { useI18n } from "@/lib/i18n";
 import { useOrganization } from "@/hooks/useOrganization";
 import { toast } from "sonner";
+import { ActionConfirmCard, parseActions } from "./ChatActionCard";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -164,25 +165,44 @@ export function ChatbotFab() {
             </div>
 
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5">
-              {messages.map((m, i) => (
-                <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div
-                    className={`max-w-[85%] px-3 py-2 rounded-2xl text-[13px] leading-snug ${
-                      m.role === "user"
-                        ? "bg-primary text-primary-foreground rounded-br-md"
-                        : "bg-secondary text-foreground rounded-bl-md"
-                    }`}
-                  >
-                    {m.role === "assistant" ? (
-                      <div className="prose prose-sm prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_code]:text-[12px] [&_code]:bg-background/50 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded">
-                        <ReactMarkdown>{m.content}</ReactMarkdown>
+              {messages.map((m, i) => {
+                if (m.role === "assistant" && m.content !== t("chat.greeting")) {
+                  const { cleanText, actions } = parseActions(m.content);
+                  return (
+                    <div key={i} className="flex justify-start">
+                      <div className="max-w-[90%] space-y-1">
+                        {cleanText && (
+                          <div className="bg-secondary text-foreground rounded-2xl rounded-bl-md px-3 py-2 text-[13px] leading-snug">
+                            <div className="prose prose-sm prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_code]:text-[12px] [&_code]:bg-background/50 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded">
+                              <ReactMarkdown>{cleanText}</ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
+                        {actions.map((a, ai) => (
+                          <ActionConfirmCard
+                            key={`${i}-${ai}-${a.type}`}
+                            action={a}
+                            organizationId={membership?.organizationId ?? null}
+                          />
+                        ))}
                       </div>
-                    ) : (
-                      m.content
-                    )}
+                    </div>
+                  );
+                }
+                return (
+                  <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <div
+                      className={`max-w-[85%] px-3 py-2 rounded-2xl text-[13px] leading-snug ${
+                        m.role === "user"
+                          ? "bg-primary text-primary-foreground rounded-br-md"
+                          : "bg-secondary text-foreground rounded-bl-md"
+                      }`}
+                    >
+                      {m.content}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               {isLoading && messages[messages.length - 1]?.role === "user" && (
                 <div className="flex justify-start">
                   <div className="bg-secondary text-muted-foreground rounded-2xl rounded-bl-md px-3 py-2">

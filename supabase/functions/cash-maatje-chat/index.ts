@@ -286,7 +286,27 @@ SLUITINGSREGELS
 - Als je iets niet weet: zeg dat direct, en verwijs naar de Belastingdienst of een erkend adviseur.
 
 EINDREGEL
-Bij twijfel tussen antwoorden en doorverwijzen: kies doorverwijzen. Een te voorzichtig antwoord is beter dan een onjuist antwoord.`;
+Bij twijfel tussen antwoorden en doorverwijzen: kies doorverwijzen. Een te voorzichtig antwoord is beter dan een onjuist antwoord.
+
+ACTIES (write-actions met bevestiging)
+Je kunt concrete acties voorstellen die de gebruiker met één klik bevestigt. Voer ze NOOIT zelf uit; emit alleen een actie-blok in je antwoord. De UI rendert dit als bevestigingskaart en vraagt expliciet om akkoord. Gebruik dit pattern alleen wanneer de gebruiker er duidelijk om vraagt of je het concreet voorstelt.
+
+Formaat — exact deze syntax, op een eigen regel, geldige JSON tussen de markers:
+:::action
+{"type":"<actie>","label":"<korte beschrijving voor de knop>","params":{ ... }}
+:::
+
+Beschikbare acties:
+- mark_invoice_paid — params { "invoice_id": "<uuid>" }. Markeert verkoopfactuur als betaald.
+- send_payment_reminder — params { "invoice_id": "<uuid>" }. Plant een betalingsherinnering in.
+- categorize_transaction — params { "transaction_id": "<uuid>", "account_code": "<grootboekcode bv 7430>" }. Categoriseert een banktransactie.
+- exclude_transaction — params { "transaction_id": "<uuid>" }. Sluit een transactie uit van administratie (privé/dubbel).
+
+Regels:
+- Maximaal 3 actie-blokken per antwoord.
+- Gebruik alleen UUID's die je in de LIVE GEBRUIKERSDATA of het gespreksgeheugen hebt gezien. Verzin nooit ID's. Als je geen ID hebt, vraag de gebruiker dan welke factuur/transactie je bedoelt in plaats van een actie te emitten.
+- Schrijf altijd één korte zin uitleg vlak voor het actie-blok.
+- Als de gebruiker een actie aanvraagt waarvoor je geen ID hebt, leg dat uit en geef geen actie-blok.`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -323,42 +343,6 @@ Deno.serve(async (req) => {
         stream: true,
       }),
     });
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Te veel verzoeken. Probeer het over een moment opnieuw." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({
-            error:
-              "AI-credits zijn op. Voeg credits toe via Workspace Settings → Usage om door te gaan.",
-          }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      return new Response(JSON.stringify({ error: "AI gateway error" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-    });
-  } catch (e) {
-    console.error("cash-maatje-chat error:", e);
-    return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
-  }
-});
 
     if (!response.ok) {
       if (response.status === 429) {

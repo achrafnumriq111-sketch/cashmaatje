@@ -10,7 +10,7 @@ import { DocumentGrid } from "@/components/documents/DocumentGrid";
 import { DocumentList } from "@/components/documents/DocumentList";
 import { DocumentDetail } from "@/components/documents/DocumentDetail";
 import { MissingDocuments } from "@/components/documents/MissingDocuments";
-import { ReceiptScanner } from "@/components/documents/ReceiptScanner";
+import { MultiPhotoScanner } from "@/components/documents/MultiPhotoScanner";
 import { SupplierGroupView } from "@/components/receipts/SupplierGroupView";
 import { pageTransition, cardVariant } from "@/lib/animations";
 
@@ -40,7 +40,7 @@ export default function Documents() {
         <DocumentUploadZone onDrop={handleDrop} isUploading={uploadMutation.isPending} onScanClick={() => setScannerOpen(true)} />
       </motion.div>
 
-      <ReceiptScanner open={scannerOpen} onClose={() => setScannerOpen(false)} onCapture={handleDrop} isUploading={uploadMutation.isPending} />
+      <MultiPhotoScanner open={scannerOpen} onClose={() => setScannerOpen(false)} onCapture={handleDrop} isUploading={uploadMutation.isPending} />
 
       <motion.div variants={cardVariant}>
         <Tabs defaultValue="inbox">
