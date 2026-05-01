@@ -219,8 +219,12 @@ export function useChaosData() {
   // database layer; RLS still enforces tenant isolation defensively.
   useEffect(() => {
     if (!orgId) return;
+    // Unique channel name per mount avoids "cannot add postgres_changes
+    // callbacks after subscribe()" when StrictMode (or fast re-renders)
+    // re-run the effect before the previous channel is fully torn down.
+    const channelName = `chaos-${orgId}-${Math.random().toString(36).slice(2, 10)}`;
     const channel = supabase
-      .channel(`chaos-${orgId}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "chaos_uploads", filter: `organization_id=eq.${orgId}` },
