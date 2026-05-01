@@ -1,4 +1,5 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -23,23 +24,43 @@ function Pill({ label, className }: { label: string; className?: string }) {
   );
 }
 
-interface Props {
-  invoices: Array<{
-    id: string;
-    invoice_number: string;
-    invoice_date: string;
-    contact_name: string | null;
-    subtotal: number;
-    total_vat: number;
-    total_amount: number;
-    status: string;
-    due_date: string | null;
-  }>;
-  isLoading: boolean;
-  onSelect?: (id: string) => void;
+interface Invoice {
+  id: string;
+  invoice_number: string;
+  invoice_date: string;
+  contact_name: string | null;
+  subtotal: number;
+  total_vat: number;
+  total_amount: number;
+  status: string;
+  due_date: string | null;
 }
 
-export function InvoicesTable({ invoices, isLoading, onSelect }: Props) {
+interface Props {
+  invoices: Invoice[];
+  isLoading: boolean;
+  onSelect?: (id: string) => void;
+  selectedIds?: Set<string>;
+  onSelectionChange?: (ids: Set<string>) => void;
+}
+
+export function InvoicesTable({ invoices, isLoading, onSelect, selectedIds, onSelectionChange }: Props) {
+  const selectable = !!onSelectionChange;
+  const allSelected = selectable && invoices.length > 0 && invoices.every((i) => selectedIds!.has(i.id));
+
+  const toggleAll = () => {
+    if (!onSelectionChange) return;
+    if (allSelected) onSelectionChange(new Set());
+    else onSelectionChange(new Set(invoices.map((i) => i.id)));
+  };
+
+  const toggleOne = (id: string) => {
+    if (!onSelectionChange || !selectedIds) return;
+    const next = new Set(selectedIds);
+    next.has(id) ? next.delete(id) : next.add(id);
+    onSelectionChange(next);
+  };
+
   if (isLoading) {
     return (
       <div className="rounded-2xl border border-border bg-card p-12 text-center text-sm text-muted-foreground">
@@ -61,6 +82,11 @@ export function InvoicesTable({ invoices, isLoading, onSelect }: Props) {
       <Table>
         <TableHeader>
           <TableRow className="border-border hover:bg-transparent">
+            {selectable && (
+              <TableHead className="w-10">
+                <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
+              </TableHead>
+            )}
             <TableHead className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground font-medium">Nummer</TableHead>
             <TableHead className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground font-medium">Datum</TableHead>
             <TableHead className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground font-medium">Relatie</TableHead>
@@ -94,6 +120,14 @@ export function InvoicesTable({ invoices, isLoading, onSelect }: Props) {
                 className="border-border/60 cursor-pointer hover:bg-muted/40 transition-colors"
                 onClick={() => onSelect?.(inv.id)}
               >
+                {selectable && (
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                      checked={selectedIds!.has(inv.id)}
+                      onCheckedChange={() => toggleOne(inv.id)}
+                    />
+                  </TableCell>
+                )}
                 <TableCell className="font-mono text-xs text-muted-foreground">{inv.invoice_number}</TableCell>
                 <TableCell className="text-sm">{format(new Date(inv.invoice_date), "d MMM yyyy", { locale: nl })}</TableCell>
                 <TableCell className="text-sm font-medium">{inv.contact_name ?? "—"}</TableCell>
