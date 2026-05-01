@@ -67,6 +67,9 @@ import Inbox from "./pages/Inbox";
 import Admin from "./pages/Admin";
 import FixTheChaos from "./pages/FixTheChaos";
 import Landing from "./pages/Landing";
+import TaxReserve from "./pages/TaxReserve";
+import RecurringInvoices from "./pages/RecurringInvoices";
+import QuarterlyChecklist from "./pages/QuarterlyChecklist";
 import { ModuleLockOverlay } from "./components/modules/ModuleLockOverlay";
 
 const queryClient = new QueryClient();
@@ -104,6 +107,9 @@ const App = () => (
               <Route path="documenten" element={<Documents />} />
               <Route path="btw/aangifte" element={<VatReturn />} />
               <Route path="btw/icp" element={<IcpReport />} />
+              <Route path="belasting/reserve" element={<TaxReserve />} />
+              <Route path="belasting/checklist" element={<QuarterlyChecklist />} />
+              <Route path="facturen/terugkerend" element={<RecurringInvoices />} />
               <Route path="rapporten/winst-verlies" element={<ProfitLoss />} />
               <Route path="rapporten/balans" element={<BalanceSheet />} />
               <Route path="rapporten/proefbalans" element={<TrialBalance />} />
