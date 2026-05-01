@@ -101,7 +101,8 @@ const App = () => (
             <Route path="/2fa/recovery" element={<TwoFactorRecovery />} />
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><TwoFactorGate><AppLayout /></TwoFactorGate></ProtectedRoute>}>
-              <Route index element={<Dashboard />} />
+              <Route index element={<CorporateStructure />} />
+              <Route path="dashboard" element={<Dashboard />} />
               <Route path="fix-the-chaos" element={<FixTheChaos />} />
               <Route path="transacties" element={<Transactions />} />
               <Route path="facturen/verkoop" element={<SalesInvoices />} />

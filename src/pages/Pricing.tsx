@@ -195,7 +195,8 @@ export default function Pricing() {
 
         <p className="text-center text-xs text-muted-foreground mt-8 max-w-xl mx-auto">
           Maandelijks opzegbaar. Prijs excl. BTW. Referrals worden automatisch verrekend op je
-          volgende factuur.
+          volgende factuur. Extra entiteiten kosten €15,99 per maand per stuk — referral-korting
+          geldt alleen op het hoofdabonnement, niet op extra entiteiten.
         </p>
       </div>
 

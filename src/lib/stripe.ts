@@ -29,6 +29,10 @@ export const CASHMAATJE_MIN_PRICE_CENTS = 1599;
 export const CASHMAATJE_DISCOUNT_PER_REF_CENTS = 100;
 export const CASHMAATJE_MAX_REFERRALS = 10;
 
+// Entity add-on: vaste prijs €15,99/mnd per extra entiteit. Geen referral korting.
+export const ENTITY_ADDON_PRICE_ID = "entity_addon_monthly" as const;
+export const ENTITY_ADDON_PRICE_CENTS = 1599;
+
 // Backwards-compat alias — alle oude price IDs verwijzen nu naar het nieuwe plan.
 export const PLAN_PRICE_IDS = {
   cashmaatje: CASHMAATJE_PRICE_ID,
