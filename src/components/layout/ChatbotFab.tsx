@@ -3,12 +3,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X, Send, Sparkles, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useI18n } from "@/lib/i18n";
+import { useOrganization } from "@/hooks/useOrganization";
 import { toast } from "sonner";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
 export function ChatbotFab() {
   const { t } = useI18n();
+  const { membership } = useOrganization();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +60,7 @@ export function ChatbotFab() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: apiMessages }),
+        body: JSON.stringify({ messages: apiMessages, organization_id: membership?.organizationId ?? null }),
       });
 
       if (resp.status === 429) {

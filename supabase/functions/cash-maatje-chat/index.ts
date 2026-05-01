@@ -1,9 +1,73 @@
 // Cash Maatje AI assistant - streaming chat via Lovable AI Gateway
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+async function buildOrgContext(orgId: string | null): Promise<string> {
+  if (!orgId) return "";
+  try {
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const today = new Date().toISOString().slice(0, 10);
+    const yearStart = `${new Date().getFullYear()}-01-01`;
+    const qStart = (() => {
+      const m = new Date().getMonth();
+      const qm = Math.floor(m / 3) * 3;
+      return new Date(new Date().getFullYear(), qm, 1).toISOString().slice(0, 10);
+    })();
+
+    const [salesRes, purchaseRes, openRes, bankRes, txRes] = await Promise.all([
+      supabase.from("invoices").select("total_amount, total_vat, status, due_date, amount_paid")
+        .eq("organization_id", orgId).eq("invoice_type", "sales").gte("invoice_date", yearStart),
+      supabase.from("invoices").select("total_amount, total_vat, status")
+        .eq("organization_id", orgId).eq("invoice_type", "purchase").gte("invoice_date", yearStart),
+      supabase.from("invoices").select("contact_name, total_amount, amount_paid, due_date")
+        .eq("organization_id", orgId).eq("invoice_type", "sales").neq("status", "paid").neq("status", "cancelled"),
+      supabase.from("bank_accounts").select("current_balance, name").eq("organization_id", orgId),
+      supabase.from("bank_transactions").select("id", { count: "exact", head: true })
+        .eq("organization_id", orgId).is("journal_entry_id", null).gte("transaction_date", qStart),
+    ]);
+
+    const sales = salesRes.data ?? [];
+    const purchases = purchaseRes.data ?? [];
+    const openInvoices = openRes.data ?? [];
+    const banks = bankRes.data ?? [];
+
+    const ytdRevenue = sales.reduce((s, i: any) => s + Number(i.total_amount || 0), 0);
+    const ytdSpend = purchases.reduce((s, i: any) => s + Number(i.total_amount || 0), 0);
+    const ytdProfit = ytdRevenue - ytdSpend;
+    const vatPayable = sales.reduce((s, i: any) => s + Number(i.total_vat || 0), 0);
+    const vatReceivable = purchases.reduce((s, i: any) => s + Number(i.total_vat || 0), 0);
+    const vatBalance = vatPayable - vatReceivable;
+    const cashTotal = banks.reduce((s, b: any) => s + Number(b.current_balance || 0), 0);
+    const totalOpen = openInvoices.reduce((s, i: any) => s + (Number(i.total_amount || 0) - Number(i.amount_paid || 0)), 0);
+    const overdue = openInvoices.filter((i: any) => i.due_date && new Date(i.due_date) < new Date(today));
+    const totalOverdue = overdue.reduce((s, i: any) => s + (Number(i.total_amount || 0) - Number(i.amount_paid || 0)), 0);
+    const uncatTx = txRes.count ?? 0;
+
+    const fmt = (n: number) => `€${Math.round(n).toLocaleString("nl-NL")}`;
+
+    return `\n\nLIVE GEBRUIKERSDATA (alleen gebruiken als de gebruiker erom vraagt; nooit ongevraagd opsommen):
+- Datum: ${today}
+- Banksaldo (alle rekeningen): ${fmt(cashTotal)}
+- YTD omzet: ${fmt(ytdRevenue)} | YTD kosten: ${fmt(ytdSpend)} | YTD winst (indicatief): ${fmt(ytdProfit)}
+- BTW dit jaar — verschuldigd: ${fmt(vatPayable)} | voorbelasting: ${fmt(vatReceivable)} | saldo: ${fmt(vatBalance)}
+- Openstaande verkoopfacturen: ${openInvoices.length} (totaal ${fmt(totalOpen)})
+- Verlopen facturen: ${overdue.length} (totaal ${fmt(totalOverdue)})
+- Ongecategoriseerde transacties dit kwartaal: ${uncatTx}
+
+Als je een actie suggereert (factuur sturen, herinnering versturen, transactie boeken), beschrijf wat de gebruiker moet doen en bevestig dat zij zelf de actie uitvoeren in de UI. Voer geen actie uit; je kunt alleen informeren en adviseren.`;
+  } catch (e) {
+    console.error("buildOrgContext failed:", e);
+    return "";
+  }
+}
 
 const SYSTEM_PROMPT = `ROLE
 
@@ -228,7 +292,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages } = await req.json();
+    const { messages, organization_id } = await req.json();
     if (!Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "messages must be an array" }), {
         status: 400,
@@ -244,6 +308,9 @@ Deno.serve(async (req) => {
       });
     }
 
+    const orgContext = await buildOrgContext(organization_id ?? null);
+    const systemPromptWithData = SYSTEM_PROMPT + orgContext;
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -252,10 +319,46 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
-        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+        messages: [{ role: "system", content: systemPromptWithData }, ...messages],
         stream: true,
       }),
     });
+
+    if (!response.ok) {
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: "Te veel verzoeken. Probeer het over een moment opnieuw." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({
+            error:
+              "AI-credits zijn op. Voeg credits toe via Workspace Settings → Usage om door te gaan.",
+          }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      const t = await response.text();
+      console.error("AI gateway error:", response.status, t);
+      return new Response(JSON.stringify({ error: "AI gateway error" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(response.body, {
+      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+    });
+  } catch (e) {
+    console.error("cash-maatje-chat error:", e);
+    return new Response(
+      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
+});
 
     if (!response.ok) {
       if (response.status === 429) {

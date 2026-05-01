@@ -6,7 +6,7 @@ import {
   Receipt, BarChart3, Users, BookOpen, ScrollText,
   Settings, Shield, Wallet, ChevronDown, FileCheck, Briefcase,
   Palette, Building2, Boxes, Plug, Calculator, Lock, Flame,
-  Folder,
+  Folder, Download,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useEntitlements } from "@/hooks/useEntitlements";
@@ -115,6 +115,7 @@ const navSections: NavSection[] = [
       { id: "grootboek", labelKey: "nav.ledger", icon: <BookOpen size={16} />, path: "/grootboek" },
       { id: "journaalposten", labelKey: "nav.journal", icon: <ScrollText size={16} />, path: "/journaalposten" },
       { id: "voorraad", labelKey: "nav.inventory", icon: <Boxes size={16} />, path: "/voorraad" },
+      { id: "exports", labelKey: "Export Center", icon: <Download size={16} />, path: "/exports" },
     ],
   },
   {
