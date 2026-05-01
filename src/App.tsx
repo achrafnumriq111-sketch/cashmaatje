@@ -75,6 +75,7 @@ import BankImport from "./pages/BankImport";
 import ScenarioSimulator from "./pages/ScenarioSimulator";
 import FinancialHealth from "./pages/FinancialHealth";
 import AccountantPortal from "./pages/AccountantPortal";
+import Pricing from "./pages/Pricing";
 
 
 const queryClient = new QueryClient();
@@ -89,6 +90,7 @@ const App = () => (
           <OrganizationProvider>
           <Routes>
             <Route path="/landing" element={<Landing />} />
+            <Route path="/pricing" element={<Pricing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             
