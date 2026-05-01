@@ -162,18 +162,19 @@ export async function upsertTaxReserve(
     .is("period_month", null)
     .maybeSingle();
 
+  const detailsJson = details as any;
   if (existing) {
     return supabase
       .from("tax_reserves")
-      .update({ calculated_amount: amount, calculation_details: details, status: "estimated" })
+      .update({ calculated_amount: amount, calculation_details: detailsJson, status: "estimated" })
       .eq("id", existing.id);
   }
-  return supabase.from("tax_reserves").insert({
+  return supabase.from("tax_reserves").insert([{
     organization_id: orgId,
     reserve_type: reserveType,
     period_year: year,
     calculated_amount: amount,
-    calculation_details: details,
+    calculation_details: detailsJson,
     status: "estimated",
-  });
+  }]);
 }
