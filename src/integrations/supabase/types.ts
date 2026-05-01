@@ -2778,50 +2778,6 @@ export type Database = {
           },
         ]
       }
-      module_entitlements: {
-        Row: {
-          created_at: string
-          expires_at: string | null
-          granted_at: string
-          granted_by: string | null
-          id: string
-          metadata: Json | null
-          module_key: string
-          organization_id: string
-          source: string
-        }
-        Insert: {
-          created_at?: string
-          expires_at?: string | null
-          granted_at?: string
-          granted_by?: string | null
-          id?: string
-          metadata?: Json | null
-          module_key: string
-          organization_id: string
-          source?: string
-        }
-        Update: {
-          created_at?: string
-          expires_at?: string | null
-          granted_at?: string
-          granted_by?: string | null
-          id?: string
-          metadata?: Json | null
-          module_key?: string
-          organization_id?: string
-          source?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "module_entitlements_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       mortgage_deduction: {
         Row: {
           created_at: string | null
