@@ -11,6 +11,8 @@ import {
   Calculator,
   Check,
   Star,
+  Gift,
+  Users,
 } from "lucide-react";
 
 /* ──────────────────────────────────────────────────────────────
