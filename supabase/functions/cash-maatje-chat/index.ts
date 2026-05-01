@@ -301,6 +301,7 @@ Beschikbare acties:
 - send_payment_reminder — params { "invoice_id": "<uuid>" }. Plant een betalingsherinnering in.
 - categorize_transaction — params { "transaction_id": "<uuid>", "account_code": "<grootboekcode bv 7430>" }. Categoriseert een banktransactie.
 - exclude_transaction — params { "transaction_id": "<uuid>" }. Sluit een transactie uit van administratie (privé/dubbel).
+- create_draft_invoice — params { "contact_id": "<uuid optioneel>", "contact_name": "<naam indien geen id>", "subtotal": <bedrag excl btw>, "vat_percentage": 21|9|0, "description": "<korte omschrijving>", "due_days": <aantal dagen, default 30> }. Maakt een CONCEPT verkoopfactuur aan (status=draft). Wordt nooit verstuurd; gebruiker moet hem nog openen en versturen.
 
 Regels:
 - Maximaal 3 actie-blokken per antwoord.
