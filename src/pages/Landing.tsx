@@ -625,19 +625,19 @@ function FinalCta() {
           Start your business with clarity.
         </h2>
         <p className="mt-5 text-[17px] text-background/70 max-w-md mx-auto">
-          Free for 14 days. Setup in under 2 minutes.
+          First month free. Setup in under 2 minutes.
         </p>
         <div className="mt-10 flex items-center justify-center gap-4">
           <Link
             to="/register"
             className="inline-flex items-center gap-2 bg-background text-foreground px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-background/90 transition-colors"
           >
-            Start free
+            Try free for 1 month
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
         <div className="mt-8 flex items-center justify-center gap-6 text-[13px] text-background/60">
-          {["No credit card", "Cancel anytime", "Dutch tax ready"].map((x) => (
+          {["First month free", "No credit card", "Cancel anytime"].map((x) => (
             <span key={x} className="inline-flex items-center gap-1.5">
               <Check className="w-3.5 h-3.5" />
               {x}
