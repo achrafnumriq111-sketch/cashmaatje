@@ -72,7 +72,13 @@ function Hero() {
           <p className="mt-6 text-[18px] text-muted-foreground max-w-md leading-relaxed">
             Invoices, expenses and taxes — handled automatically.
           </p>
-          <div className="mt-10 flex items-center gap-4">
+          <div className="mt-8 flex items-baseline gap-3">
+            <span className="text-[44px] font-semibold tracking-[-0.03em] leading-none text-foreground">
+              €15,99<sup className="text-primary text-[20px] font-medium ml-0.5">*</sup>
+            </span>
+            <span className="text-[14px] text-muted-foreground">/month</span>
+          </div>
+          <div className="mt-8 flex items-center gap-4">
             <Link
               to="/register"
               className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-primary/90 transition-colors"
@@ -87,8 +93,8 @@ function Hero() {
               See how it works
             </a>
           </div>
-          <p className="mt-6 text-[13px] text-muted-foreground/80">
-            Free 14-day trial · No credit card · Cancel anytime
+          <p className="mt-6 text-[12px] text-muted-foreground/80 max-w-md leading-relaxed">
+            <span className="text-primary">*</span> Starting at €25,99/month. Drops by €1 per active referral, down to €15,99/month after 10 referrals. 14-day free trial · no credit card.
           </p>
         </motion.div>
 
@@ -480,7 +486,7 @@ function ReferralSection() {
           <span className="text-primary">Pay less every month.</span>
         </h2>
         <p className="mt-5 text-[17px] text-muted-foreground max-w-xl mx-auto">
-          Just like TrainMore — every active referral lowers your monthly bill by €1, down to €15.99/month.
+          Every active referral lowers your monthly bill by €1 — all the way down to €15,99/month.
         </p>
       </div>
       <div className="grid md:grid-cols-3 gap-6 mb-12">
@@ -662,10 +668,10 @@ export default function Landing() {
       <Hero />
       <TrustStrip />
       <Benefits />
+      <PricingSection />
+      <ReferralSection />
       <Features />
       <AiSection />
-      <ReferralSection />
-      <PricingSection />
       <Testimonials />
       <FinalCta />
       <Footer />
