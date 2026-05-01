@@ -9,6 +9,7 @@ import { ActionItems } from "@/components/dashboard/ActionItems";
 import { CashPosition } from "@/components/dashboard/CashPosition";
 import { OpenItems } from "@/components/dashboard/OpenItems";
 import { TaxReserveCard } from "@/components/dashboard/TaxReserveCard";
+import { LiveHealthCard } from "@/components/dashboard/LiveHealthCard";
 import { RecentDocuments } from "@/components/dashboard/RecentDocuments";
 import { IntelligenceWidgets } from "@/components/dashboard/IntelligenceWidgets";
 import { FixTheChaosCta } from "@/components/chaos/FixTheChaosCta";
@@ -82,6 +83,10 @@ export default function Dashboard() {
           vatDeadline={data.vatDeadline.data}
           role={data.role}
         />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <LiveHealthCard />
       </div>
 
       {/* Intelligence Widgets */}
