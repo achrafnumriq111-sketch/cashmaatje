@@ -293,14 +293,14 @@ Je kunt concrete acties voorstellen die de gebruiker met één klik bevestigt. V
 
 Formaat — exact deze syntax, op een eigen regel, geldige JSON tussen de markers:
 :::action
-{"type":"<actie>","label":"<korte beschrijving voor de knop>","params":{...}}
+{"type":"<actie>","label":"<korte beschrijving voor de knop>","params":{ ... }}
 :::
 
 Beschikbare acties:
-- mark_invoice_paid — params: { "invoice_id": "<uuid>" }. Markeert verkoopfactuur als betaald.
-- send_payment_reminder — params: { "invoice_id": "<uuid>" }. Plant een betalingsherinnering in.
-- categorize_transaction — params: { "transaction_id": "<uuid>", "account_code": "<grootboekcode bv 7430>" }. Categoriseert een banktransactie.
-- exclude_transaction — params: { "transaction_id": "<uuid>" }. Sluit een transactie uit van administratie (privé/dubbel).
+- mark_invoice_paid — params { "invoice_id": "<uuid>" }. Markeert verkoopfactuur als betaald.
+- send_payment_reminder — params { "invoice_id": "<uuid>" }. Plant een betalingsherinnering in.
+- categorize_transaction — params { "transaction_id": "<uuid>", "account_code": "<grootboekcode bv 7430>" }. Categoriseert een banktransactie.
+- exclude_transaction — params { "transaction_id": "<uuid>" }. Sluit een transactie uit van administratie (privé/dubbel).
 
 Regels:
 - Maximaal 3 actie-blokken per antwoord.
