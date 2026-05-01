@@ -4,9 +4,11 @@ import { ContactFilters } from "@/components/contacts/ContactFilters";
 import { ContactsTable } from "@/components/contacts/ContactsTable";
 import { ContactDetail } from "@/components/contacts/ContactDetail";
 import { CreateContactDialog } from "@/components/contacts/CreateContactDialog";
+import { ClientIntelligencePanel } from "@/components/contacts/ClientIntelligencePanel";
 import { useContacts, type ContactFilters as CFilters } from "@/hooks/useContacts";
-import { Users, Plus } from "lucide-react";
+import { Users, Plus, Sparkles, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 
 export default function Contacts() {
@@ -60,16 +62,30 @@ export default function Contacts() {
       </motion.div>
 
       <motion.div variants={fadeInUp}>
-        <ContactFilters filters={filters} onChange={setFilters} />
-      </motion.div>
+        <Tabs defaultValue="list">
+          <TabsList>
+            <TabsTrigger value="list" className="gap-1.5">
+              <List className="h-3.5 w-3.5" /> Overzicht
+            </TabsTrigger>
+            <TabsTrigger value="intelligence" className="gap-1.5">
+              <Sparkles className="h-3.5 w-3.5" /> Intelligence
+            </TabsTrigger>
+          </TabsList>
 
-      <motion.div variants={fadeInUp}>
-        <ContactsTable
-          contacts={contacts}
-          isLoading={isLoading}
-          onRowClick={(id) => setDetailId(id)}
-          riskFilter={filters.riskStatus}
-        />
+          <TabsContent value="list" className="space-y-4 mt-4">
+            <ContactFilters filters={filters} onChange={setFilters} />
+            <ContactsTable
+              contacts={contacts}
+              isLoading={isLoading}
+              onRowClick={(id) => setDetailId(id)}
+              riskFilter={filters.riskStatus}
+            />
+          </TabsContent>
+
+          <TabsContent value="intelligence" className="mt-4">
+            <ClientIntelligencePanel onSelectContact={setDetailId} />
+          </TabsContent>
+        </Tabs>
       </motion.div>
 
       <ContactDetail
