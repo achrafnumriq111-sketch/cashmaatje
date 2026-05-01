@@ -464,6 +464,144 @@ function Testimonials() {
   );
 }
 
+function ReferralSection() {
+  const steps = [
+    { n: "01", t: "Share your link", d: "Each account gets a unique referral link." },
+    { n: "02", t: "Friend subscribes", d: "They sign up and start their plan." },
+    { n: "03", t: "You both save", d: "€1 off your monthly price for every active referral." },
+  ];
+  return (
+    <section id="referral" className="mx-auto max-w-6xl px-6 py-28">
+      <div className="text-center mb-16">
+        <p className="text-[12px] uppercase tracking-wider font-medium text-primary mb-4">Referrals</p>
+        <h2 className="text-[40px] md:text-[52px] font-semibold tracking-[-0.025em] leading-[1.05] text-foreground">
+          Bring a friend.<br/>
+          <span className="text-primary">Pay less every month.</span>
+        </h2>
+        <p className="mt-5 text-[17px] text-muted-foreground max-w-xl mx-auto">
+          Just like TrainMore — every active referral lowers your monthly bill by €1, down to €15.99/month.
+        </p>
+      </div>
+      <div className="grid md:grid-cols-3 gap-6 mb-12">
+        {steps.map((s) => (
+          <div key={s.n} className="rounded-3xl border border-border bg-card p-7">
+            <p className="text-[12px] font-mono text-primary mb-4">{s.n}</p>
+            <h3 className="text-[18px] font-semibold tracking-tight text-foreground">{s.t}</h3>
+            <p className="mt-2 text-[14px] text-muted-foreground leading-relaxed">{s.d}</p>
+          </div>
+        ))}
+      </div>
+      <div className="rounded-3xl border border-border bg-card p-8 max-w-2xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
+            <Users className="w-4 h-4" /> Your monthly price
+          </div>
+          <span className="text-[11px] px-2 py-0.5 rounded-full bg-[hsl(var(--primary-soft))] text-primary font-medium">
+            Live example
+          </span>
+        </div>
+        <div className="space-y-2">
+          {[
+            { r: "0 referrals", p: "€ 25,99" },
+            { r: "3 referrals", p: "€ 22,99" },
+            { r: "7 referrals", p: "€ 18,99" },
+            { r: "10+ referrals", p: "€ 15,99", best: true },
+          ].map((row) => (
+            <div key={row.r} className={`flex items-center justify-between py-3 px-4 rounded-2xl ${row.best ? "bg-[hsl(var(--primary-soft))]" : "bg-secondary/50"}`}>
+              <span className="text-[14px] text-foreground">{row.r}</span>
+              <span className={`text-[16px] font-semibold tracking-tight ${row.best ? "text-primary" : "text-foreground"}`}>
+                {row.p}<span className="text-[12px] font-normal text-muted-foreground">/mo</span>
+              </span>
+            </div>
+          ))}
+        </div>
+        <p className="mt-5 text-[12px] text-muted-foreground text-center">
+          Referral counts after their first successful payment. Discount auto-applied to your next invoice.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function PricingSection() {
+  const features = [
+    "Unlimited invoices & expenses",
+    "Bank connections + AI matching",
+    "VAT returns (quarterly/monthly) + ICP",
+    "Full AI bookkeeping autopilot",
+    "Annual report, audit dossier, CIT",
+    "Stakeholder CRM + Corporate Structure",
+    "Automation Center & Process Flows",
+    "Accountant access + API",
+  ];
+  return (
+    <section id="pricing" className="bg-secondary/40 border-y border-border/60">
+      <div className="mx-auto max-w-4xl px-6 py-28">
+        <div className="text-center mb-12">
+          <p className="text-[12px] uppercase tracking-wider font-medium text-primary mb-4">Pricing</p>
+          <h2 className="text-[40px] md:text-[52px] font-semibold tracking-[-0.025em] leading-[1.05] text-foreground">
+            One plan. Everything in.
+          </h2>
+          <p className="mt-5 text-[17px] text-muted-foreground max-w-lg mx-auto">
+            €25.99/month — drops to €15.99 with active referrals. Extra entities are €15.99/month each.
+          </p>
+        </div>
+
+        <div className="rounded-[28px] border border-border bg-card p-8 md:p-10 shadow-[0_30px_80px_-30px_rgba(15,123,108,0.18)]">
+          <div className="flex items-start justify-between flex-wrap gap-6 mb-8">
+            <div>
+              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[hsl(var(--primary-soft))] text-primary text-[11px] font-medium mb-4">
+                <Sparkles className="w-3 h-3" /> All-in plan
+              </div>
+              <div className="flex items-end gap-3">
+                <span className="text-[56px] font-semibold tracking-[-0.03em] leading-none text-foreground">€25,99</span>
+                <span className="text-[14px] text-muted-foreground pb-2">/month</span>
+              </div>
+              <p className="mt-3 text-[13px] text-muted-foreground">
+                As low as <span className="text-primary font-medium">€15,99</span> with 10 active referrals.
+              </p>
+            </div>
+            <Link
+              to="/register"
+              className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-primary/90 transition-colors self-end"
+            >
+              Start free <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-3 mb-8">
+            {features.map((f) => (
+              <div key={f} className="flex items-start gap-2.5 text-[14px] text-foreground">
+                <Check className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+                <span>{f}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-2xl bg-secondary/60 border border-border/60 p-5 grid sm:grid-cols-3 gap-4 text-center">
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Base</p>
+              <p className="text-[18px] font-semibold tracking-tight text-foreground mt-1">€25,99</p>
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Per referral</p>
+              <p className="text-[18px] font-semibold tracking-tight text-primary mt-1">−€1,00</p>
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Floor</p>
+              <p className="text-[18px] font-semibold tracking-tight text-foreground mt-1">€15,99</p>
+            </div>
+          </div>
+
+          <p className="mt-6 text-center text-[12px] text-muted-foreground">
+            14-day free trial · No credit card · Cancel anytime · Excl. VAT
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function FinalCta() {
   return (
     <section className="mx-auto max-w-4xl px-6 pb-32">
