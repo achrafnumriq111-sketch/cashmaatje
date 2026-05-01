@@ -20,6 +20,7 @@ const ACTION_LABELS: Record<string, { verb: string; tone: "primary" | "destructi
   send_payment_reminder: { verb: "Verstuur herinnering", tone: "primary" },
   categorize_transaction: { verb: "Categoriseer transactie", tone: "primary" },
   exclude_transaction: { verb: "Sluit uit", tone: "destructive" },
+  create_draft_invoice: { verb: "Maak concept-factuur", tone: "primary" },
 };
 
 export function ActionConfirmCard({ action, organizationId }: Props) {
