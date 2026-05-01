@@ -100,7 +100,9 @@ export function TopHeader({
             </TooltipContent>
           </Tooltip>
 
-          <LanguageToggle compact />
+          <div className="hidden sm:block">
+            <LanguageToggle compact />
+          </div>
 
           <InboxBell />
 
