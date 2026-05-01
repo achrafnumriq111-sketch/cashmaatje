@@ -175,6 +175,91 @@ Deno.serve(async (req) => {
         });
       }
 
+      case "create_draft_invoice": {
+        // Read-side: validate + lookup contact. Write-side: insert draft invoice only (status=draft, no journal entry, never sent).
+        const contactId = (params.contact_id as string | undefined) ?? null;
+        const contactNameRaw = (params.contact_name as string | undefined) ?? null;
+        const subtotal = Number(params.subtotal ?? 0);
+        const vatPct = Number(params.vat_percentage ?? 21);
+        const description = (params.description as string | undefined) ?? "Concept factuur";
+        const dueDays = Number.isFinite(Number(params.due_days)) ? Number(params.due_days) : 30;
+
+        if (!Number.isFinite(subtotal) || subtotal <= 0) throw new Error("Ongeldig subtotaalbedrag");
+        if (![0, 9, 21].includes(vatPct)) throw new Error("Ongeldig BTW-percentage (0, 9 of 21)");
+        if (!contactId && !contactNameRaw) throw new Error("Contact_id of contact_name vereist");
+
+        let resolvedContactId: string | null = contactId;
+        let resolvedContactName: string | null = contactNameRaw;
+        if (resolvedContactId) {
+          const { data: c, error: cErr } = await admin
+            .from("contacts")
+            .select("id, name")
+            .eq("id", resolvedContactId)
+            .eq("organization_id", organization_id)
+            .maybeSingle();
+          if (cErr) throw cErr;
+          if (!c) throw new Error("Contact niet gevonden in deze organisatie");
+          resolvedContactName = c.name;
+        }
+
+        const total_vat = Math.round(subtotal * vatPct) / 100;
+        const total_amount = Math.round((subtotal + total_vat) * 100) / 100;
+
+        const year = new Date().getFullYear();
+        const { count } = await admin
+          .from("invoices")
+          .select("id", { count: "exact", head: true })
+          .eq("organization_id", organization_id)
+          .eq("invoice_type", "sales")
+          .gte("invoice_date", `${year}-01-01`);
+        const seq = String((count ?? 0) + 1).padStart(3, "0");
+        const invoice_number = `CONCEPT-${year}-${seq}`;
+
+        const today = new Date();
+        const due = new Date(today.getTime() + dueDays * 86400000);
+        const fmt = (d: Date) => d.toISOString().slice(0, 10);
+
+        const { data: inv, error: insErr } = await admin
+          .from("invoices")
+          .insert({
+            organization_id,
+            invoice_type: "sales",
+            invoice_number,
+            status: "draft",
+            invoice_date: fmt(today),
+            due_date: fmt(due),
+            contact_id: resolvedContactId,
+            contact_name: resolvedContactName,
+            subtotal,
+            total_vat,
+            total_amount,
+            amount_due: total_amount,
+            notes: description,
+            created_by: user.id,
+          })
+          .select("id, invoice_number")
+          .single();
+        if (insErr) throw insErr;
+
+        await admin.from("audit_log").insert({
+          organization_id,
+          user_id: user.id,
+          action: "create",
+          entity_type: "invoice",
+          entity_id: inv.id,
+          change_summary: `Concept factuur ${inv.invoice_number} aangemaakt via AI (€${total_amount.toFixed(2)}) — niet verzonden`,
+        });
+
+        return new Response(
+          JSON.stringify({
+            ok: true,
+            message: `Concept ${inv.invoice_number} aangemaakt — open in Verkoop om te versturen`,
+            invoice_id: inv.id,
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
       default:
         return new Response(JSON.stringify({ error: `Onbekende actie: ${action.type}` }), {
           status: 400,
