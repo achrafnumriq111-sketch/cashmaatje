@@ -40,7 +40,8 @@ const navSections: NavSection[] = [
     id: "overview",
     label: "Overview",
     items: [
-      { id: "dashboard", labelKey: "common.dashboard", icon: <LayoutDashboard size={16} />, path: "/" },
+      { id: "structuur", labelKey: "Corporate Structure", icon: <Building2 size={16} />, path: "/" },
+      { id: "dashboard", labelKey: "common.dashboard", icon: <LayoutDashboard size={16} />, path: "/dashboard" },
       { id: "fix-the-chaos", labelKey: "FIX THE CHAOS", icon: <Flame size={16} />, path: "/fix-the-chaos" },
     ],
   },
@@ -142,7 +143,6 @@ const navSections: NavSection[] = [
         children: [
           { id: "stakeholders", labelKey: "nav.platform.stakeholders", path: "/platform/stakeholders", moduleKey: "stakeholder_crm" },
           { id: "automation", labelKey: "nav.platform.automation", path: "/platform/automation", moduleKey: "automation_center" },
-          { id: "corporate", labelKey: "nav.platform.structure", path: "/platform/structuur", moduleKey: "corporate_structure" },
         ],
       },
     ],

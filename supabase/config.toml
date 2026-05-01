@@ -5,6 +5,8 @@ project_id = "mibmftxjhvrxgxypypiy"
     verify_jwt = false
   [functions.create-checkout]
     verify_jwt = false
+  [functions.create-entity-checkout]
+    verify_jwt = false
   [functions.create-portal-session]
     verify_jwt = false
   [functions.payments-webhook]

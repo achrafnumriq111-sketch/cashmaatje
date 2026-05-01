@@ -22,10 +22,97 @@ async function getOrgIdForUser(userId: string): Promise<string | null> {
   return data?.organization_id ?? null;
 }
 
+function isEntityAddon(subscription: any): boolean {
+  return subscription.metadata?.addon_type === "entity";
+}
+
+async function ensureChildOrgForEntityAddon(subscription: any, env: StripeEnv): Promise<string | null> {
+  const md = subscription.metadata ?? {};
+  const parentOrgId = md.parentOrgId;
+  const userId = md.userId;
+  if (!parentOrgId || !userId) {
+    console.error("entity addon missing parentOrgId/userId");
+    return null;
+  }
+
+  // Already exists?
+  const { data: existing } = await supabase
+    .from("entity_addons")
+    .select("child_organization_id")
+    .eq("stripe_subscription_id", subscription.id)
+    .maybeSingle();
+  if (existing?.child_organization_id) return existing.child_organization_id;
+
+  let draft: any = {};
+  try { draft = JSON.parse(md.entityDraft ?? "{}"); } catch { /* ignore */ }
+
+  const orgType = ["eenmanszaak", "vof", "bv", "stichting", "vereniging"].includes(draft.org_type)
+    ? draft.org_type
+    : "bv";
+
+  const { data: childOrg, error: orgErr } = await supabase
+    .from("organizations")
+    .insert({
+      name: draft.name ?? "Nieuwe entiteit",
+      legal_name: draft.legal_name || null,
+      org_type: orgType,
+      kvk_number: draft.kvk_number || null,
+      btw_number: draft.btw_number || null,
+      parent_organization_id: parentOrgId,
+      entity_ownership_pct: typeof draft.ownership_pct === "number" ? draft.ownership_pct : 100,
+    })
+    .select("id")
+    .single();
+  if (orgErr || !childOrg) {
+    console.error("Failed to create child org", orgErr);
+    return null;
+  }
+
+  // Add owner as member of child org too
+  await supabase.from("organization_members").insert({
+    organization_id: childOrg.id,
+    user_id: userId,
+    role: "owner",
+    is_owner: true,
+  });
+
+  return childOrg.id;
+}
+
+async function upsertEntityAddon(subscription: any, env: StripeEnv, childOrgId: string) {
+  const item = subscription.items?.data?.[0];
+  const periodEnd = item?.current_period_end ?? subscription.current_period_end;
+  const md = subscription.metadata ?? {};
+
+  await supabase.from("entity_addons").upsert(
+    {
+      parent_organization_id: md.parentOrgId,
+      child_organization_id: childOrgId,
+      stripe_subscription_id: subscription.id,
+      stripe_subscription_item_id: item?.id ?? null,
+      stripe_customer_id: subscription.customer,
+      status: subscription.status,
+      current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
+      cancel_at_period_end: subscription.cancel_at_period_end || false,
+      environment: env,
+      created_by: md.userId ?? null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "stripe_subscription_id" }
+  );
+}
+
 async function handleSubscriptionCreated(subscription: any, env: StripeEnv) {
   const userId = subscription.metadata?.userId;
   if (!userId) {
     console.error("No userId in subscription metadata");
+    return;
+  }
+
+  // Entity add-on path: create child org + entity_addons row, NIET in subscriptions tabel.
+  if (isEntityAddon(subscription)) {
+    const childOrgId = await ensureChildOrgForEntityAddon(subscription, env);
+    if (childOrgId) await upsertEntityAddon(subscription, env, childOrgId);
     return;
   }
 
@@ -62,6 +149,18 @@ async function handleSubscriptionCreated(subscription: any, env: StripeEnv) {
 }
 
 async function handleSubscriptionUpdated(subscription: any, env: StripeEnv) {
+  if (isEntityAddon(subscription)) {
+    const { data: existing } = await supabase
+      .from("entity_addons")
+      .select("child_organization_id")
+      .eq("stripe_subscription_id", subscription.id)
+      .maybeSingle();
+    if (existing?.child_organization_id) {
+      await upsertEntityAddon(subscription, env, existing.child_organization_id);
+    }
+    return;
+  }
+
   const item = subscription.items?.data?.[0];
   const priceId = item?.price?.metadata?.lovable_external_id || item?.price?.id;
   const productId = item?.price?.product;
@@ -84,6 +183,15 @@ async function handleSubscriptionUpdated(subscription: any, env: StripeEnv) {
 }
 
 async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
+  if (isEntityAddon(subscription)) {
+    await supabase
+      .from("entity_addons")
+      .update({ status: "canceled", updated_at: new Date().toISOString() })
+      .eq("stripe_subscription_id", subscription.id)
+      .eq("environment", env);
+    return;
+  }
+
   await supabase
     .from("subscriptions")
     .update({
