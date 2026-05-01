@@ -1,10 +1,26 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { type StripeEnv, verifyWebhook } from "../_shared/stripe.ts";
+import {
+  activateReferralForCustomer,
+  deactivateReferralForSubscription,
+  recalcAndSyncForOrg,
+} from "../_shared/referral-discount.ts";
 
 const supabase: any = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
+
+async function getOrgIdForUser(userId: string): Promise<string | null> {
+  const { data } = await supabase
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", userId)
+    .eq("is_owner", true)
+    .limit(1)
+    .maybeSingle();
+  return data?.organization_id ?? null;
+}
 
 async function handleSubscriptionCreated(subscription: any, env: StripeEnv) {
   const userId = subscription.metadata?.userId;
@@ -34,6 +50,15 @@ async function handleSubscriptionCreated(subscription: any, env: StripeEnv) {
     },
     { onConflict: "stripe_subscription_id" }
   );
+
+  // Stripe customer id op org bewaren (handig voor referral lookups)
+  const orgId = await getOrgIdForUser(userId);
+  if (orgId) {
+    await supabase
+      .from("organizations")
+      .update({ stripe_customer_id: subscription.customer })
+      .eq("id", orgId);
+  }
 }
 
 async function handleSubscriptionUpdated(subscription: any, env: StripeEnv) {
@@ -67,6 +92,61 @@ async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
     })
     .eq("stripe_subscription_id", subscription.id)
     .eq("environment", env);
+
+  // Referral cancellen + recalc voor referrer
+  const result = await deactivateReferralForSubscription({
+    admin: supabase,
+    stripeSubscriptionId: subscription.id,
+    stripeCustomerId: subscription.customer,
+    newStatus: "cancelled",
+  });
+  if (result.referrerOrgId) {
+    await recalcAndSyncForOrg({
+      admin: supabase,
+      env,
+      organizationId: result.referrerOrgId,
+      reason: "referral_cancelled",
+    });
+  }
+}
+
+async function handleInvoicePaymentSucceeded(invoice: any, env: StripeEnv) {
+  // Eerste succesvolle betaling van de referred customer activeert de referral
+  const customerId: string | undefined = invoice.customer;
+  const subscriptionId: string | undefined = invoice.subscription;
+  if (!customerId) return;
+
+  // userId via subscriptions tabel
+  const { data: sub } = await supabase
+    .from("subscriptions")
+    .select("user_id")
+    .eq("stripe_customer_id", customerId)
+    .eq("environment", env)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const result = await activateReferralForCustomer({
+    admin: supabase,
+    env,
+    stripeCustomerId: customerId,
+    stripeSubscriptionId: subscriptionId ?? null,
+    userId: sub?.user_id ?? null,
+  });
+
+  if (result.activated && result.referrerOrgId) {
+    await recalcAndSyncForOrg({
+      admin: supabase,
+      env,
+      organizationId: result.referrerOrgId,
+      reason: "referral_activated_after_first_payment",
+    });
+  }
+}
+
+async function handleInvoicePaymentFailed(invoice: any, env: StripeEnv) {
+  // Niet direct cancellen — Stripe retried zelf. Recalc gebeurt pas op subscription.deleted.
+  console.log("invoice.payment_failed", invoice.id, invoice.subscription);
 }
 
 async function handleWebhook(req: Request, env: StripeEnv) {
@@ -81,6 +161,15 @@ async function handleWebhook(req: Request, env: StripeEnv) {
       break;
     case "customer.subscription.deleted":
       await handleSubscriptionDeleted(event.data.object, env);
+      break;
+    case "invoice.payment_succeeded":
+      await handleInvoicePaymentSucceeded(event.data.object, env);
+      break;
+    case "invoice.payment_failed":
+      await handleInvoicePaymentFailed(event.data.object, env);
+      break;
+    case "checkout.session.completed":
+      // Subscription create event volgt direct hierna; niets te doen.
       break;
     default:
       console.log("Unhandled event:", event.type);
