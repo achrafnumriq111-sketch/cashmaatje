@@ -47,36 +47,30 @@ export function TopHeader({
 
   return (
     <>
-      <motion.header
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="sticky top-0 z-30 h-14 px-6 flex items-center justify-between bg-card/80 backdrop-blur-xl border-b border-border"
-      >
+      <header className="sticky top-0 z-30 h-16 px-6 flex items-center justify-between bg-background/80 backdrop-blur-md border-b border-border/60">
         {/* LEFT: Search */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/60 border border-border text-muted-foreground">
+          <button className="flex items-center gap-2.5 pl-3 pr-2 py-1.5 rounded-full bg-secondary/60 hover:bg-secondary text-muted-foreground transition-colors">
             <Search className="w-3.5 h-3.5" />
-            <span className="text-[12px]">{t("common.search")}</span>
-            <div className="flex items-center gap-0.5 ml-4">
-              <kbd className="px-1.5 py-0.5 rounded bg-card border border-border text-[10px] font-medium">⌘</kbd>
-              <kbd className="px-1.5 py-0.5 rounded bg-card border border-border text-[10px] font-medium">K</kbd>
-            </div>
-          </div>
+            <span className="text-[13px]">{t("common.search")}</span>
+            <span className="flex items-center gap-0.5 ml-6">
+              <kbd className="px-1.5 py-0.5 rounded-md bg-card border border-border text-[10px] font-medium">⌘</kbd>
+              <kbd className="px-1.5 py-0.5 rounded-md bg-card border border-border text-[10px] font-medium">K</kbd>
+            </span>
+          </button>
         </div>
 
-        {/* RIGHT: Company switcher | Referrals | Lang | Notif | Avatar */}
-        <div className="flex items-center gap-1.5">
+        {/* RIGHT */}
+        <div className="flex items-center gap-1">
           <OrgSwitcher />
 
-          <div className="w-px h-5 bg-border mx-1" />
+          <div className="w-px h-5 bg-border/70 mx-2" />
 
-          {/* Referrals quick action */}
           <Tooltip>
             <TooltipTrigger asChild>
               <button
                 onClick={() => navigate("/platform/referral")}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-medium text-primary bg-primary/10 hover:bg-primary/15 transition-all duration-200"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
               >
                 <Gift className="w-3.5 h-3.5" />
                 <span>{t("header.referrals")}</span>
@@ -91,36 +85,31 @@ export function TopHeader({
 
           <InboxBell />
 
-          {/* Notification bell */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={() => setNotifOpen(true)}
-                className="relative w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
+                className="relative w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
               >
-                <Bell className="w-[18px] h-[18px]" />
+                <Bell className="w-[17px] h-[17px]" />
                 {unreadCount > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground ring-2 ring-background">
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 )}
-              </motion.button>
+              </button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">{t("header.notifications")}</TooltipContent>
           </Tooltip>
 
           {/* User avatar */}
-          <div className="relative">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+          <div className="relative ml-1">
+            <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="w-9 h-9 rounded-xl bg-secondary hover:bg-secondary/80 flex items-center justify-center text-[12px] font-semibold text-muted-foreground transition-all duration-200 border border-border"
+              className="w-9 h-9 rounded-full bg-secondary hover:bg-secondary/80 flex items-center justify-center text-[12px] font-semibold text-foreground transition-colors"
             >
               {initials}
-            </motion.button>
+            </button>
 
             {profileOpen && (
               <>
