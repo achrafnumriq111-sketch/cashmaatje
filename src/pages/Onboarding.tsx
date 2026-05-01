@@ -190,6 +190,16 @@ export default function Onboarding() {
 
       if (setupErr) throw setupErr;
 
+      // Claim pending referral code (if user signed up via ?ref=)
+      try {
+        const { getPendingReferralCode, clearPendingReferralCode } = await import("@/lib/referralCapture");
+        const refCode = getPendingReferralCode();
+        if (refCode) {
+          await supabase.rpc("claim_referral", { p_code: refCode });
+          clearPendingReferralCode();
+        }
+      } catch {/* non-fatal */}
+
       // Create bank accounts and remember the primary id (for queued bank rows)
       let primaryBankId: string | null = null;
       for (const ba of data.bankAccounts) {
