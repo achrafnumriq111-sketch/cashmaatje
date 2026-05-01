@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
     // Reuse existing customer if subscription exists
     const { data: existing } = await supabase
       .from("subscriptions")
-      .select("stripe_customer_id")
+      .select("stripe_customer_id, status")
       .eq("user_id", user.id)
       .eq("environment", env)
       .order("created_at", { ascending: false })
@@ -53,14 +53,26 @@ Deno.serve(async (req) => {
       customerId = customer.id;
     }
 
+    // Eerste maand gratis: alleen voor users die nog NOOIT een subscription hadden
+    // (voorkomt misbruik door uit/in te loggen of opnieuw te subscriben).
+    const { count: priorCount } = await supabase
+      .from("subscriptions")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("environment", env);
+    const isFirstTime = !priorCount || priorCount === 0;
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [{ price: stripePrice.id, quantity: 1 }],
       mode: "subscription",
       ui_mode: "embedded",
       return_url: returnUrl,
-      metadata: { userId: user.id },
-      subscription_data: { metadata: { userId: user.id } },
+      metadata: { userId: user.id, first_month_free: isFirstTime ? "true" : "false" },
+      subscription_data: {
+        metadata: { userId: user.id },
+        ...(isFirstTime && { trial_period_days: 30 }),
+      },
     });
 
     return new Response(
