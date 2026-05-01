@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, LogOut, User, Search, Gift } from "lucide-react";
-import { motion } from "framer-motion";
+
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { NotificationPanel } from "./NotificationPanel";
