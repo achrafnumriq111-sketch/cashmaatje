@@ -1961,6 +1961,69 @@ export type Database = {
           },
         ]
       }
+      entity_addons: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          child_organization_id: string
+          created_at: string | null
+          created_by: string | null
+          current_period_end: string | null
+          environment: string
+          id: string
+          parent_organization_id: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          stripe_subscription_item_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          child_organization_id: string
+          created_at?: string | null
+          created_by?: string | null
+          current_period_end?: string | null
+          environment?: string
+          id?: string
+          parent_organization_id: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          stripe_subscription_item_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          child_organization_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          current_period_end?: string | null
+          environment?: string
+          id?: string
+          parent_organization_id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          stripe_subscription_item_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_addons_child_organization_id_fkey"
+            columns: ["child_organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_addons_parent_organization_id_fkey"
+            columns: ["parent_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feature_flags: {
         Row: {
           created_at: string
@@ -3002,6 +3065,7 @@ export type Database = {
           created_at: string | null
           default_currency: string | null
           email: string | null
+          entity_ownership_pct: number | null
           fiscal_year_start_month: number | null
           iban: string | null
           id: string
@@ -3015,6 +3079,7 @@ export type Database = {
           logo_url: string | null
           name: string
           org_type: Database["public"]["Enums"]["org_type"]
+          parent_organization_id: string | null
           phone: string | null
           settings: Json | null
           stripe_coupon_id: string | null
@@ -3033,6 +3098,7 @@ export type Database = {
           created_at?: string | null
           default_currency?: string | null
           email?: string | null
+          entity_ownership_pct?: number | null
           fiscal_year_start_month?: number | null
           iban?: string | null
           id?: string
@@ -3046,6 +3112,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           org_type?: Database["public"]["Enums"]["org_type"]
+          parent_organization_id?: string | null
           phone?: string | null
           settings?: Json | null
           stripe_coupon_id?: string | null
@@ -3064,6 +3131,7 @@ export type Database = {
           created_at?: string | null
           default_currency?: string | null
           email?: string | null
+          entity_ownership_pct?: number | null
           fiscal_year_start_month?: number | null
           iban?: string | null
           id?: string
@@ -3077,6 +3145,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           org_type?: Database["public"]["Enums"]["org_type"]
+          parent_organization_id?: string | null
           phone?: string | null
           settings?: Json | null
           stripe_coupon_id?: string | null
@@ -3086,7 +3155,15 @@ export type Database = {
           vat_scheme?: Database["public"]["Enums"]["vat_scheme"]
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "organizations_parent_organization_id_fkey"
+            columns: ["parent_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payment_allocations: {
         Row: {
