@@ -35,13 +35,14 @@ export default function Pricing() {
   const navigate = useNavigate();
   const sub = useSubscription();
   const { membership, refetch: refetchOrg } = useOrganization();
-  const { discount } = useReferralProgram();
+  const { summary } = useReferralProgram();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
 
-  const finalPrice = (discount?.final_price_cents ?? 2599) / 100;
-  const activeRefs = discount?.active_referrals ?? 0;
+  const finalPrice = summary.finalMonthlyPriceCents / 100;
+  const activeRefs = summary.activeReferrals;
+  const discountCents = summary.discountCents;
 
   const handleSelect = () => {
     if (!user) {
@@ -153,10 +154,10 @@ export default function Pricing() {
               <div className="mb-6 flex items-end gap-3">
                 <span className="text-5xl font-bold text-foreground">€{finalPrice.toFixed(2).replace(".", ",")}</span>
                 <span className="text-sm text-muted-foreground pb-2">per maand</span>
-                {activeRefs > 0 && finalPrice < 25.99 && (
+                {activeRefs > 0 && discountCents > 0 && (
                   <Badge variant="outline" className="ml-auto gap-1 text-[10px]">
                     <Gift className="h-3 w-3" />
-                    €{((2599 - (discount?.final_price_cents ?? 2599)) / 100).toFixed(2).replace(".", ",")} korting
+                    €{(discountCents / 100).toFixed(2).replace(".", ",")} korting
                   </Badge>
                 )}
               </div>
