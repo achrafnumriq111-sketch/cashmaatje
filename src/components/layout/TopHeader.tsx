@@ -134,7 +134,7 @@ export function TopHeader({
             )}
           </div>
         </div>
-      </motion.header>
+      </header>
 
       <NotificationPanel
         open={notifOpen}
