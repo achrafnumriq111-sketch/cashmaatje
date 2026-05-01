@@ -668,10 +668,10 @@ export default function Landing() {
       <Hero />
       <TrustStrip />
       <Benefits />
+      <PricingSection />
+      <ReferralSection />
       <Features />
       <AiSection />
-      <ReferralSection />
-      <PricingSection />
       <Testimonials />
       <FinalCta />
       <Footer />
