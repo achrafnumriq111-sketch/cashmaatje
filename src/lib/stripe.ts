@@ -22,18 +22,21 @@ export function getStripeEnvironment(): StripeEnv {
   return environment;
 }
 
+// Single plan: €25,99/maand met referral-korting (zie referral_discount logica).
+export const CASHMAATJE_PRICE_ID = "cashmaatje_monthly" as const;
+export const CASHMAATJE_BASE_PRICE_CENTS = 2599;
+export const CASHMAATJE_MIN_PRICE_CENTS = 1599;
+export const CASHMAATJE_DISCOUNT_PER_REF_CENTS = 100;
+export const CASHMAATJE_MAX_REFERRALS = 10;
+
+// Backwards-compat alias — alle oude price IDs verwijzen nu naar het nieuwe plan.
 export const PLAN_PRICE_IDS = {
-  start: "start_monthly",
-  smart: "smart_monthly",
-  pro: "pro_monthly",
+  cashmaatje: CASHMAATJE_PRICE_ID,
 } as const;
 
-export type PlanTier = keyof typeof PLAN_PRICE_IDS;
+export type PlanTier = "cashmaatje";
 
 export function tierFromPriceId(priceId: string | null | undefined): PlanTier | null {
   if (!priceId) return null;
-  if (priceId.startsWith("start")) return "start";
-  if (priceId.startsWith("smart")) return "smart";
-  if (priceId.startsWith("pro")) return "pro";
-  return null;
+  return "cashmaatje";
 }
