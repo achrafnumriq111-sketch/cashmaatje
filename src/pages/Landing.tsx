@@ -486,7 +486,7 @@ function ReferralSection() {
           <span className="text-primary">Pay less every month.</span>
         </h2>
         <p className="mt-5 text-[17px] text-muted-foreground max-w-xl mx-auto">
-          Just like TrainMore — every active referral lowers your monthly bill by €1, down to €15.99/month.
+          Every active referral lowers your monthly bill by €1 — all the way down to €15,99/month.
         </p>
       </div>
       <div className="grid md:grid-cols-3 gap-6 mb-12">
