@@ -6,6 +6,7 @@ import { TopHeader } from "./TopHeader";
 import { ChatbotFab } from "./ChatbotFab";
 import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { BroadcastBanner } from "./BroadcastBanner";
+import { MobileNavProvider } from "./MobileNavContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Loader2 } from "lucide-react";
@@ -45,29 +46,31 @@ export function AppLayout() {
   const role = membership.role;
 
   return (
-    <div className="min-h-screen bg-background">
-      <AppSidebar role={role} />
-      <div className="pl-[260px] min-h-screen flex flex-col">
-        <TopHeader
-          organizationName={membership.organizationName}
-          role={role}
-          notifications={notifications}
-          unreadCount={unreadCount}
-          onMarkRead={markAsRead}
-          onMarkAllRead={markAllRead}
-        />
-        <BroadcastBanner />
-        <motion.main
-          variants={pageTransition}
-          initial="initial"
-          animate="animate"
-          className="flex-1 overflow-auto px-6 py-6"
-        >
-          <Outlet />
-        </motion.main>
+    <MobileNavProvider>
+      <div className="min-h-screen bg-background">
+        <AppSidebar role={role} />
+        <div className="md:pl-[260px] min-h-screen flex flex-col">
+          <TopHeader
+            organizationName={membership.organizationName}
+            role={role}
+            notifications={notifications}
+            unreadCount={unreadCount}
+            onMarkRead={markAsRead}
+            onMarkAllRead={markAllRead}
+          />
+          <BroadcastBanner />
+          <motion.main
+            variants={pageTransition}
+            initial="initial"
+            animate="animate"
+            className="flex-1 overflow-auto px-4 py-4 md:px-6 md:py-6"
+          >
+            <Outlet />
+          </motion.main>
+        </div>
+        <ChatbotFab />
+        <FeedbackButton />
       </div>
-      <ChatbotFab />
-      <FeedbackButton />
-    </div>
+    </MobileNavProvider>
   );
 }
