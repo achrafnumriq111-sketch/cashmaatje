@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ArrowLeftRight, FileText, GitMerge,
   Receipt, BarChart3, Users, BookOpen,
   Settings, Shield, Wallet, ChevronDown, FileCheck, Briefcase,
-  Palette, Building2, Plug, Calculator, Lock, Flame,
+  Building2, Plug, Calculator, Lock, Flame,
   Folder, HeartPulse, FlaskConical, UserCheck, Database as DatabaseIcon,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
