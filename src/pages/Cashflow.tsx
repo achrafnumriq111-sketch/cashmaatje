@@ -1,118 +1,196 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
-import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
-import { useReportData } from "@/hooks/useReportData";
+import { Area, AreaChart, XAxis, YAxis, CartesianGrid, ReferenceLine } from "recharts";
+import { ArrowDownLeft, ArrowUpRight, AlertTriangle, Sparkles, TrendingUp, Wallet, Receipt, Repeat } from "lucide-react";
+import { useCashflowForecast } from "@/hooks/useCashflowForecast";
+import { buildForecastInsight } from "@/lib/cashflowForecast";
+import { Skeleton } from "@/components/ui/skeleton";
+import { SmartEmptyState } from "@/components/ui/smart-empty-state";
 import { pageTransition, staggerContainer, cardVariant } from "@/lib/animations";
 
 const chartConfig = {
-  actual: { label: "Werkelijk", color: "hsl(var(--primary))" },
-  predicted: { label: "Voorspeld", color: "hsl(var(--muted-foreground))" },
+  cumulative: { label: "Cash positie", color: "hsl(var(--primary))" },
 };
 
+const fmtEur = (n: number) =>
+  new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n);
+
+const horizons: Array<{ value: 30 | 60 | 90; label: string }> = [
+  { value: 30, label: "30 dagen" },
+  { value: 60, label: "60 dagen" },
+  { value: 90, label: "90 dagen" },
+];
+
 export default function Cashflow() {
-  const { orgId, fetchCashflow } = useReportData();
-  const [points, setPoints] = useState<any[]>([]);
-  const [upcoming, setUpcoming] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!orgId) return;
-    setLoading(true);
-    fetchCashflow().then(({ points, upcoming }) => {
-      setPoints(points);
-      setUpcoming(upcoming);
-      setLoading(false);
-    });
-  }, [orgId, fetchCashflow]);
-
-  const fmt = (n: number) =>
-    new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(n);
-
-  const receivables = upcoming.filter((u: any) => u.type === "receivable");
-  const payables = upcoming.filter((u: any) => u.type === "payable");
+  const [horizon, setHorizon] = useState<30 | 60 | 90>(30);
+  const { data: forecast, isLoading } = useCashflowForecast(horizon);
 
   return (
-    <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-6">
-      <motion.h1 variants={cardVariant} className="text-2xl font-semibold tracking-tight text-foreground">Kasstroomoverzicht</motion.h1>
+    <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-6 max-w-[1400px]">
+      <motion.div variants={cardVariant} className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-foreground">Cashflow forecast</h1>
+          <p className="mt-1 text-[13.5px] text-muted-foreground">
+            Voorspelling op basis van openstaande facturen, terugkerende kosten en BTW-deadlines.
+          </p>
+        </div>
+        <div className="inline-flex rounded-xl border border-border bg-card p-1">
+          {horizons.map((h) => (
+            <button
+              key={h.value}
+              onClick={() => setHorizon(h.value)}
+              className={`px-3 py-1.5 text-[12.5px] rounded-lg transition-colors ${
+                horizon === h.value
+                  ? "bg-secondary text-foreground font-medium"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {h.label}
+            </button>
+          ))}
+        </div>
+      </motion.div>
 
-      {loading ? (
-        <p className="text-sm text-muted-foreground">Laden...</p>
+      {isLoading ? (
+        <Skeleton className="h-96 w-full rounded-2xl" />
+      ) : !forecast || forecast.points.length === 0 ? (
+        <Card className="arcory-glass">
+          <CardContent>
+            <SmartEmptyState
+              icon={TrendingUp}
+              title="Nog geen forecast beschikbaar"
+              description="Voeg openstaande facturen of een bankrekening toe om een voorspelling te maken."
+              whyItMatters="Een forecast laat tekorten zien vóórdat ze gebeuren — zo kun je op tijd bijsturen."
+              actionLabel="Maak factuur"
+              actionTo="/facturen/verkoop"
+            />
+          </CardContent>
+        </Card>
       ) : (
         <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-6">
+          {/* AI insight */}
           <motion.div variants={cardVariant}>
-            <Card className="arcory-glass">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base font-medium">Kasstroomoverzicht</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {points.length > 0 ? (
-                  <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                    <LineChart data={points}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" />
-                      <XAxis dataKey="date" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
-                      <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Line type="monotone" dataKey="actual" stroke="var(--color-actual)" strokeWidth={2} dot={false} connectNulls />
-                      <Line type="monotone" dataKey="predicted" stroke="var(--color-predicted)" strokeWidth={2} strokeDasharray="5 5" dot={false} connectNulls />
-                    </LineChart>
-                  </ChartContainer>
+            <Card
+              className={`arcory-glass border ${
+                forecast.riskOfShortage ? "border-red-400/30" : "border-primary/20"
+              }`}
+            >
+              <CardContent className="flex items-start gap-3 p-4">
+                {forecast.riskOfShortage ? (
+                  <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-400" />
                 ) : (
-                  <p className="py-8 text-center text-sm text-muted-foreground">
-                    Nog geen cashflow-gegevens beschikbaar. Importeer banktransacties om te starten.
-                  </p>
+                  <Sparkles className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
                 )}
+                <p className="text-[13.5px] text-foreground/90">{buildForecastInsight(forecast)}</p>
               </CardContent>
             </Card>
           </motion.div>
 
-          <div className="grid gap-6 lg:grid-cols-2">
+          {/* KPI strip */}
+          <motion.div variants={cardVariant} className="grid gap-3 grid-cols-2 lg:grid-cols-4">
             {[
-              { title: "Verwachte ontvangsten", icon: <ArrowDownLeft className="h-4 w-4 text-primary" />, items: receivables, emptyMsg: "Geen openstaande vorderingen", amountClass: "text-primary" },
-              { title: "Verwachte betalingen", icon: <ArrowUpRight className="h-4 w-4 text-destructive" />, items: payables, emptyMsg: "Geen openstaande schulden", amountClass: "text-destructive" },
-            ].map((section, i) => (
-              <motion.div key={i} variants={cardVariant}>
-                <Card className="arcory-glass">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="flex items-center gap-2 text-base font-medium">
-                      {section.icon} {section.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Factuur</TableHead>
-                          <TableHead>Relatie</TableHead>
-                          <TableHead className="text-right">Bedrag</TableHead>
-                          <TableHead className="text-right">Vervaldatum</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {section.items.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={4} className="text-center text-muted-foreground">{section.emptyMsg}</TableCell>
-                          </TableRow>
-                        ) : (
-                          section.items.map((r: any) => (
-                            <TableRow key={r.id}>
-                              <TableCell className="font-mono text-xs">{r.invoiceNumber}</TableCell>
-                              <TableCell>{r.contactName ?? "—"}</TableCell>
-                              <TableCell className={`text-right tabular-nums ${section.amountClass}`}>{fmt(r.amount)}</TableCell>
-                              <TableCell className="text-right text-sm text-muted-foreground">{r.dueDate}</TableCell>
-                            </TableRow>
-                          ))
-                        )}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              </motion.div>
+              { label: "Start", value: forecast.startBalance, icon: Wallet, color: "text-foreground" },
+              { label: "Eind (verwacht)", value: forecast.endBalance, icon: TrendingUp, color: forecast.endBalance >= forecast.startBalance ? "text-emerald-400" : "text-amber-400" },
+              { label: "Ontvangsten", value: forecast.totalInflow, icon: ArrowDownLeft, color: "text-emerald-400" },
+              { label: "Uitgaven", value: forecast.totalOutflow, icon: ArrowUpRight, color: "text-red-400" },
+            ].map((k) => (
+              <div key={k.label} className="arcory-glass rounded-2xl p-4">
+                <div className="flex items-center gap-2">
+                  <k.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-micro text-muted-foreground">{k.label}</span>
+                </div>
+                <p className={`mt-2 text-[20px] font-semibold tracking-tight tabular-nums ${k.color}`}>
+                  {fmtEur(k.value)}
+                </p>
+              </div>
             ))}
-          </div>
+          </motion.div>
+
+          {/* Forecast chart */}
+          <motion.div variants={cardVariant}>
+            <Card className="arcory-glass">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-medium">Verwachte cashpositie · komende {horizon} dagen</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={chartConfig} className="h-[320px] w-full">
+                  <AreaChart data={forecast.points}>
+                    <defs>
+                      <linearGradient id="cashGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 11 }}
+                      className="fill-muted-foreground"
+                      tickFormatter={(d) => d.slice(5)}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11 }}
+                      className="fill-muted-foreground"
+                      tickFormatter={(v) => `€${(v / 1000).toFixed(0)}k`}
+                    />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <ReferenceLine y={0} stroke="hsl(var(--destructive))" strokeDasharray="3 3" />
+                    <Area
+                      type="monotone"
+                      dataKey="cumulative"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth={2}
+                      fill="url(#cashGradient)"
+                    />
+                  </AreaChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Component breakdown */}
+          <motion.div variants={cardVariant} className="grid gap-4 md:grid-cols-3">
+            <Card className="arcory-glass">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2">
+                  <ArrowDownLeft className="h-3.5 w-3.5 text-emerald-400" />
+                  <span className="text-micro text-muted-foreground">Verwachte ontvangsten</span>
+                </div>
+                <p className="mt-2 text-[18px] font-semibold tabular-nums text-emerald-400">
+                  {fmtEur(forecast.expectedReceivables)}
+                </p>
+                <p className="mt-1 text-[12px] text-muted-foreground">Uit openstaande verkoopfacturen</p>
+              </CardContent>
+            </Card>
+            <Card className="arcory-glass">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2">
+                  <Repeat className="h-3.5 w-3.5 text-amber-400" />
+                  <span className="text-micro text-muted-foreground">Terugkerende kosten</span>
+                </div>
+                <p className="mt-2 text-[18px] font-semibold tabular-nums text-amber-400">
+                  {fmtEur(forecast.recurringExpenses)}
+                </p>
+                <p className="mt-1 text-[12px] text-muted-foreground">Software, abonnementen, vaste lasten</p>
+              </CardContent>
+            </Card>
+            <Card className="arcory-glass">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2">
+                  <Receipt className="h-3.5 w-3.5 text-blue-400" />
+                  <span className="text-micro text-muted-foreground">BTW-afdracht</span>
+                </div>
+                <p className="mt-2 text-[18px] font-semibold tabular-nums text-blue-400">
+                  {fmtEur(forecast.vatObligation)}
+                </p>
+                <p className="mt-1 text-[12px] text-muted-foreground">
+                  {forecast.vatObligation > 0 ? "Valt binnen forecast-periode" : "Geen deadline binnen periode"}
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
         </motion.div>
       )}
     </motion.div>
