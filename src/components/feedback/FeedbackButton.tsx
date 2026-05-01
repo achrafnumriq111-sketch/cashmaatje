@@ -50,7 +50,7 @@ export function FeedbackButton() {
       <button
         onClick={() => setOpen(true)}
         className={cn(
-          "fixed bottom-7 right-24 z-40 flex items-center gap-1.5 rounded-full border border-border bg-card/90 backdrop-blur px-3 py-2 text-foreground shadow-md transition-all hover:scale-105 hover:bg-card",
+          "fixed bottom-7 right-24 z-40 hidden md:flex items-center gap-1.5 rounded-full border border-border bg-card/90 backdrop-blur px-3 py-2 text-foreground shadow-md transition-all hover:scale-105 hover:bg-card",
           open && "opacity-0 pointer-events-none"
         )}
         aria-label="Feedback geven"
