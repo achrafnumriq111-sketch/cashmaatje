@@ -78,7 +78,7 @@ export default function BankImport() {
 
       {bankAccounts.length === 0 ? (
         <SmartEmptyState
-          icon={<FileSpreadsheet className="h-10 w-10" />}
+          icon={FileSpreadsheet}
           title="Eerst een bankrekening instellen"
           description="Voeg in Instellingen je bankrekening toe voordat je transacties importeert."
           action={{ label: "Naar instellingen", to: "/instellingen" }}
