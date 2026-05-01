@@ -5,9 +5,10 @@ import {
   LayoutDashboard, ArrowLeftRight, FileText, GitMerge,
   Receipt, BarChart3, Users, BookOpen,
   Settings, Shield, Wallet, ChevronDown, FileCheck, Briefcase,
-  Building2, Plug, Calculator, Lock, Flame,
+  Building2, Plug, Calculator, Lock, Flame, X,
   Folder, HeartPulse, FlaskConical, UserCheck, Database as DatabaseIcon,
 } from "lucide-react";
+import { useMobileNav } from "./MobileNavContext";
 import { useI18n } from "@/lib/i18n";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import type { Database } from "@/integrations/supabase/types";
