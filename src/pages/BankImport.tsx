@@ -81,7 +81,8 @@ export default function BankImport() {
           icon={FileSpreadsheet}
           title="Eerst een bankrekening instellen"
           description="Voeg in Instellingen je bankrekening toe voordat je transacties importeert."
-          action={{ label: "Naar instellingen", to: "/instellingen" }}
+          actionLabel="Naar instellingen"
+          actionTo="/instellingen"
         />
       ) : (
         <>
