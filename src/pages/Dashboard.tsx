@@ -8,6 +8,7 @@ import { RecentTransactions } from "@/components/dashboard/RecentTransactions";
 import { ActionItems } from "@/components/dashboard/ActionItems";
 import { CashPosition } from "@/components/dashboard/CashPosition";
 import { OpenItems } from "@/components/dashboard/OpenItems";
+import { TaxReserveCard } from "@/components/dashboard/TaxReserveCard";
 import { RecentDocuments } from "@/components/dashboard/RecentDocuments";
 import { IntelligenceWidgets } from "@/components/dashboard/IntelligenceWidgets";
 import { FixTheChaosCta } from "@/components/chaos/FixTheChaosCta";
@@ -62,6 +63,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <TaxReserveCard />
         <CashPosition accounts={data.bankBalances.data ?? []} isLoading={data.bankBalances.isLoading} />
         <OpenItems
           receivable={openInv?.receivable ?? 0}
@@ -70,6 +72,8 @@ export default function Dashboard() {
           overduePayable={openInv?.overduePayable ?? 0}
           isLoading={data.openInvoices.isLoading}
         />
+      </div>
+      <div>
         <ActionItems
           unreconciledCount={data.unreconciledCount.data ?? 0}
           missingDocsCount={data.missingDocsCount.data ?? 0}

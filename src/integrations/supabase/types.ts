@@ -3429,6 +3429,63 @@ export type Database = {
           },
         ]
       }
+      quarterly_checklist_items: {
+        Row: {
+          checked_at: string | null
+          checked_by: string | null
+          created_at: string
+          id: string
+          is_checked: boolean
+          item_key: string
+          notes: string | null
+          organization_id: string
+          quarter: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          checked_at?: string | null
+          checked_by?: string | null
+          created_at?: string
+          id?: string
+          is_checked?: boolean
+          item_key: string
+          notes?: string | null
+          organization_id: string
+          quarter: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          checked_at?: string | null
+          checked_by?: string | null
+          created_at?: string
+          id?: string
+          is_checked?: boolean
+          item_key?: string
+          notes?: string | null
+          organization_id?: string
+          quarter?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quarterly_checklist_items_checked_by_fkey"
+            columns: ["checked_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quarterly_checklist_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reconciliation_rules: {
         Row: {
           assign_account_id: string | null
@@ -3526,6 +3583,109 @@ export type Database = {
           },
           {
             foreignKeyName: "reconciliation_rules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recurring_invoice_templates: {
+        Row: {
+          auto_send: boolean
+          contact_id: string | null
+          contact_name: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          day_of_month: number
+          description: string | null
+          end_date: string | null
+          frequency: string
+          id: string
+          invoice_type: Database["public"]["Enums"]["invoice_type"]
+          is_active: boolean
+          last_generated_date: string | null
+          name: string
+          next_run_date: string
+          notes: string | null
+          organization_id: string
+          start_date: string
+          subtotal: number
+          total_amount: number
+          updated_at: string
+          vat_amount: number
+          vat_rate_type: Database["public"]["Enums"]["vat_rate_type"]
+        }
+        Insert: {
+          auto_send?: boolean
+          contact_id?: string | null
+          contact_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          day_of_month?: number
+          description?: string | null
+          end_date?: string | null
+          frequency: string
+          id?: string
+          invoice_type?: Database["public"]["Enums"]["invoice_type"]
+          is_active?: boolean
+          last_generated_date?: string | null
+          name: string
+          next_run_date: string
+          notes?: string | null
+          organization_id: string
+          start_date: string
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+          vat_rate_type?: Database["public"]["Enums"]["vat_rate_type"]
+        }
+        Update: {
+          auto_send?: boolean
+          contact_id?: string | null
+          contact_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          day_of_month?: number
+          description?: string | null
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          invoice_type?: Database["public"]["Enums"]["invoice_type"]
+          is_active?: boolean
+          last_generated_date?: string | null
+          name?: string
+          next_run_date?: string
+          notes?: string | null
+          organization_id?: string
+          start_date?: string
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+          vat_rate_type?: Database["public"]["Enums"]["vat_rate_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_invoice_templates_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_invoice_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_invoice_templates_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
