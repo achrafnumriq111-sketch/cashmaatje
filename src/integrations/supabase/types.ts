@@ -3061,6 +3061,8 @@ export type Database = {
           org_type: Database["public"]["Enums"]["org_type"]
           phone: string | null
           settings: Json | null
+          stripe_coupon_id: string | null
+          stripe_customer_id: string | null
           updated_at: string | null
           vat_frequency: Database["public"]["Enums"]["vat_frequency"]
           vat_scheme: Database["public"]["Enums"]["vat_scheme"]
@@ -3090,6 +3092,8 @@ export type Database = {
           org_type?: Database["public"]["Enums"]["org_type"]
           phone?: string | null
           settings?: Json | null
+          stripe_coupon_id?: string | null
+          stripe_customer_id?: string | null
           updated_at?: string | null
           vat_frequency?: Database["public"]["Enums"]["vat_frequency"]
           vat_scheme?: Database["public"]["Enums"]["vat_scheme"]
@@ -3119,6 +3123,8 @@ export type Database = {
           org_type?: Database["public"]["Enums"]["org_type"]
           phone?: string | null
           settings?: Json | null
+          stripe_coupon_id?: string | null
+          stripe_customer_id?: string | null
           updated_at?: string | null
           vat_frequency?: Database["public"]["Enums"]["vat_frequency"]
           vat_scheme?: Database["public"]["Enums"]["vat_scheme"]
@@ -3817,6 +3823,56 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_discount_snapshots: {
+        Row: {
+          active_referrals_count: number
+          base_price_cents: number
+          calculated_at: string
+          counted_referrals_count: number
+          discount_cents: number
+          final_price_cents: number
+          id: string
+          notes: string | null
+          organization_id: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+        }
+        Insert: {
+          active_referrals_count?: number
+          base_price_cents?: number
+          calculated_at?: string
+          counted_referrals_count?: number
+          discount_cents?: number
+          final_price_cents?: number
+          id?: string
+          notes?: string | null
+          organization_id: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+        }
+        Update: {
+          active_referrals_count?: number
+          base_price_cents?: number
+          calculated_at?: string
+          counted_referrals_count?: number
+          discount_cents?: number
+          final_price_cents?: number
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_discount_snapshots_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referral_invites: {
         Row: {
           converted_at: string | null
@@ -3867,6 +3923,116 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      referral_links: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          organization_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          organization_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_links_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          activated_at: string | null
+          cancelled_at: string | null
+          created_at: string
+          device_hash: string | null
+          first_payment_at: string | null
+          id: string
+          ip_hash: string | null
+          payment_fingerprint_hash: string | null
+          referral_code: string
+          referred_organization_id: string | null
+          referred_user_id: string | null
+          referrer_organization_id: string
+          rejection_reason: string | null
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          activated_at?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          device_hash?: string | null
+          first_payment_at?: string | null
+          id?: string
+          ip_hash?: string | null
+          payment_fingerprint_hash?: string | null
+          referral_code: string
+          referred_organization_id?: string | null
+          referred_user_id?: string | null
+          referrer_organization_id: string
+          rejection_reason?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activated_at?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          device_hash?: string | null
+          first_payment_at?: string | null
+          id?: string
+          ip_hash?: string | null
+          payment_fingerprint_hash?: string | null
+          referral_code?: string
+          referred_organization_id?: string | null
+          referred_user_id?: string | null
+          referrer_organization_id?: string
+          rejection_reason?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referred_organization_id_fkey"
+            columns: ["referred_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_organization_id_fkey"
+            columns: ["referrer_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       release_notes: {
         Row: {
@@ -4966,6 +5132,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_referral_discount: { Args: { p_org_id: string }; Returns: Json }
       calculate_vat_return: {
         Args: { p_end_date: string; p_org_id: string; p_start_date: string }
         Returns: Json
@@ -4979,6 +5146,24 @@ export type Database = {
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
+      }
+      generate_referral_code: { Args: never; Returns: string }
+      get_or_create_referral_link: {
+        Args: { p_org_id: string }
+        Returns: {
+          code: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          organization_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "referral_links"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       get_org_inbox_address: { Args: { p_org_id: string }; Returns: string }
       get_user_org_ids: { Args: never; Returns: string[] }
