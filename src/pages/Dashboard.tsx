@@ -8,6 +8,7 @@ import { RecentTransactions } from "@/components/dashboard/RecentTransactions";
 import { ActionItems } from "@/components/dashboard/ActionItems";
 import { CashPosition } from "@/components/dashboard/CashPosition";
 import { OpenItems } from "@/components/dashboard/OpenItems";
+import { TaxReserveCard } from "@/components/dashboard/TaxReserveCard";
 import { RecentDocuments } from "@/components/dashboard/RecentDocuments";
 import { IntelligenceWidgets } from "@/components/dashboard/IntelligenceWidgets";
 import { FixTheChaosCta } from "@/components/chaos/FixTheChaosCta";

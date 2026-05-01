@@ -54,6 +54,7 @@ const navSections: NavSection[] = [
         children: [
           { id: "verkoop", labelKey: "nav.invoices.sales", path: "/facturen/verkoop" },
           { id: "inkoop", labelKey: "nav.invoices.purchase", path: "/facturen/inkoop" },
+          { id: "terugkerend", labelKey: "Terugkerend", path: "/facturen/terugkerend" },
           { id: "herinneringen", labelKey: "nav.invoices.reminders", path: "/facturen/herinneringen" },
         ],
       },
@@ -70,6 +71,8 @@ const navSections: NavSection[] = [
         children: [
           { id: "btw-aangifte", labelKey: "nav.vat.return", path: "/btw/aangifte" },
           { id: "btw-icp", labelKey: "nav.vat.icp", path: "/btw/icp" },
+          { id: "belasting-reserve", labelKey: "Belastingreserve", path: "/belasting/reserve" },
+          { id: "belasting-checklist", labelKey: "Kwartaal-checklist", path: "/belasting/checklist" },
           { id: "vpb", labelKey: "nav.vat.vpb", path: "/belasting/vpb" },
         ],
       },
