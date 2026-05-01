@@ -28,10 +28,10 @@ export default function Dashboard() {
       animate="animate"
       className="space-y-6 max-w-[1400px]"
     >
-      <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+      <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 pb-2">
         <div>
-          <h1 className="text-heading text-foreground">Dashboard</h1>
-          <p className="mt-1 text-[13px] text-muted-foreground/60">
+          <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-foreground leading-tight">Dashboard</h1>
+          <p className="mt-1 text-[13.5px] text-muted-foreground">
             {data.role === "entrepreneur" ? "Overzicht van je bedrijf" : "Financieel overzicht"}
           </p>
         </div>
