@@ -33,7 +33,8 @@ function Nav() {
         <nav className="hidden md:flex items-center gap-8 text-[14px] text-muted-foreground">
           <a href="#features" className="hover:text-foreground transition-colors">Features</a>
           <a href="#ai" className="hover:text-foreground transition-colors">AI</a>
-          <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
+          <a href="#referral" className="hover:text-foreground transition-colors">Referral</a>
+          <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
         </nav>
         <div className="flex items-center gap-2">
           <Link to="/login" className="text-[14px] text-muted-foreground hover:text-foreground px-3 py-2">
@@ -663,6 +664,8 @@ export default function Landing() {
       <Benefits />
       <Features />
       <AiSection />
+      <ReferralSection />
+      <PricingSection />
       <Testimonials />
       <FinalCta />
       <Footer />
