@@ -314,17 +314,6 @@ export function AppSidebar({ role }: { role?: UserRole }) {
       {/* Footer */}
       <div className="px-3 py-3 border-t border-border space-y-0.5 flex-shrink-0 bg-card">
         <button
-          onClick={() => navigate("/platform/themas")}
-          className={`w-full flex items-center gap-3 pl-4 pr-3 py-2 rounded-xl text-[13.5px] transition-colors duration-150 ${
-            path === "/platform/themas"
-              ? "text-foreground bg-secondary/70 font-medium"
-              : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
-          }`}
-        >
-          <Palette className="w-4 h-4" />
-          <span>{t("nav.platform.themes")}</span>
-        </button>
-        <button
           onClick={() => navigate("/instellingen")}
           className={`w-full flex items-center gap-3 pl-4 pr-3 py-2 rounded-xl text-[13.5px] transition-colors duration-150 ${
             path === "/instellingen"
