@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SubmittedReturnsList } from "@/components/vat/SubmittedReturnsList";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { exportVatReturnPDF, type VatBoxRow } from "@/lib/pdfExport";
 
 const fmt = (v: number) =>
   new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(v);
@@ -277,7 +279,23 @@ export default function VatReturn() {
           {vatReturn && statusBadge(vatReturn.status)}
           <Button variant="outline" size="sm" onClick={handleExportJson} className="rounded-xl">
             <Download className="h-4 w-4 mr-1.5" />
-            Export
+            JSON
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => {
+            const rows: VatBoxRow[] = [
+              ...rubriek1.map(r => ({ code: r.code, label: r.label, base: r.baseKey ? boxes[r.baseKey] : undefined, vat: r.vatKey ? boxes[r.vatKey] : undefined })),
+              ...rubriek2.map(r => ({ code: r.code, label: r.label, base: r.baseKey ? boxes[r.baseKey] : undefined, vat: r.vatKey ? boxes[r.vatKey] : undefined })),
+              ...rubriek3.map(r => ({ code: r.code, label: r.label, base: r.baseKey ? boxes[r.baseKey] : undefined })),
+              ...rubriek4.map(r => ({ code: r.code, label: r.label, base: r.baseKey ? boxes[r.baseKey] : undefined, vat: r.vatKey ? boxes[r.vatKey] : undefined })),
+              ...rubriek5.map(r => ({ code: r.code, label: r.label, vat: r.vatKey ? boxes[r.vatKey] : undefined, highlight: r.highlight })),
+            ];
+            exportVatReturnPDF({
+              periodLabel, status: vatReturn?.status ?? "draft", rows,
+              outputVat, inputVat, netVat, warnings,
+            });
+          }} className="rounded-xl">
+            <Download className="h-4 w-4 mr-1.5" />
+            PDF
           </Button>
         </div>
       </div>
@@ -546,51 +564,77 @@ export default function VatReturn() {
                 </Card>
               )}
 
-              {/* Drill-down */}
-              {drillBox && (
-                <Card>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm flex items-center gap-1.5">
-                        <Eye className="h-3.5 w-3.5" />
-                        Detail rubriek <span className="font-mono">{drillBox}</span>
-                      </CardTitle>
-                      <Button variant="ghost" size="sm" onClick={() => setDrillBox(null)}>Sluiten</Button>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground">
-                      {drillLines.length} journaalpost{drillLines.length !== 1 ? "en" : ""} gevonden
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    {drillLines.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">Geen boekingen gevonden voor deze rubriek.</p>
-                    ) : (
-                      <div className="max-h-80 overflow-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="text-xs">Omschrijving</TableHead>
-                              <TableHead className="text-xs text-right">Grondslag</TableHead>
-                              <TableHead className="text-xs text-right">BTW</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {drillLines.map((l) => (
-                              <TableRow key={l.id}>
-                                <TableCell className="text-xs py-1.5">{l.description || "—"}</TableCell>
-                                <TableCell className="text-xs text-right py-1.5 font-mono">{fmtPlain(l.base_amount)}</TableCell>
-                                <TableCell className="text-xs text-right py-1.5 font-mono">{fmtPlain(l.vat_amount)}</TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
             </div>
           </div>
+
+          {/* Drill-down sheet */}
+          <Sheet open={!!drillBox} onOpenChange={(o) => !o && setDrillBox(null)}>
+            <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-primary" />
+                  Rubriek <span className="font-mono text-primary">{drillBox}</span> — detailmodus
+                </SheetTitle>
+                <SheetDescription>
+                  {drillLines.length} journaalpost{drillLines.length !== 1 ? "en" : ""} dragen bij aan deze rubriek voor {periodLabel}.
+                </SheetDescription>
+              </SheetHeader>
+
+              <div className="mt-6 space-y-4">
+                {/* Totals summary */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-xl border border-border bg-muted/30 p-4">
+                    <span className="text-[11px] uppercase tracking-[0.08em] font-medium text-muted-foreground">Totaal grondslag</span>
+                    <p className="mt-1 text-xl font-semibold tabular-nums">
+                      {fmt(drillLines.reduce((s, l) => s + Number(l.base_amount || 0), 0))}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-muted/30 p-4">
+                    <span className="text-[11px] uppercase tracking-[0.08em] font-medium text-muted-foreground">Totaal BTW</span>
+                    <p className="mt-1 text-xl font-semibold tabular-nums text-primary">
+                      {fmt(drillLines.reduce((s, l) => s + Number(l.vat_amount || 0), 0))}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Lines */}
+                {drillLines.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+                    Geen boekingen gevonden voor rubriek {drillBox} in deze periode.
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-border bg-card overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-border hover:bg-transparent">
+                          <TableHead className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground font-medium">Omschrijving</TableHead>
+                          <TableHead className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground font-medium text-right">%</TableHead>
+                          <TableHead className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground font-medium text-right">Grondslag</TableHead>
+                          <TableHead className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground font-medium text-right">BTW</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {drillLines.map((l) => (
+                          <TableRow key={l.id} className="border-border/60 hover:bg-muted/40">
+                            <TableCell className="text-sm py-2 max-w-[260px] truncate">{l.description || "—"}</TableCell>
+                            <TableCell className="text-xs py-2 text-right text-muted-foreground tabular-nums">
+                              {l.vat_percentage ? `${l.vat_percentage}%` : "—"}
+                            </TableCell>
+                            <TableCell className="text-sm py-2 text-right tabular-nums">{fmtPlain(l.base_amount)}</TableCell>
+                            <TableCell className="text-sm py-2 text-right tabular-nums font-medium text-primary">{fmtPlain(l.vat_amount)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+
+                <p className="text-xs text-muted-foreground px-1">
+                  Klik op een andere rubriek in de aangifte om hier direct in te zoomen.
+                </p>
+              </div>
+            </SheetContent>
+          </Sheet>
 
           {/* Submitted returns with payment tracking */}
           <SubmittedReturnsList />
