@@ -266,17 +266,17 @@ export default function VatReturn() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">BTW-aangifte</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-2xl font-semibold tracking-[-0.02em] text-foreground">BTW-aangifte</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             {periodLabel} · Omzetbelasting
           </p>
         </div>
         <div className="flex items-center gap-2">
           {vatReturn && statusBadge(vatReturn.status)}
-          <Button variant="outline" size="sm" onClick={handleExportJson}>
-            <Download className="h-4 w-4 mr-1" />
+          <Button variant="outline" size="sm" onClick={handleExportJson} className="rounded-xl">
+            <Download className="h-4 w-4 mr-1.5" />
             Export
           </Button>
         </div>
@@ -325,63 +325,42 @@ export default function VatReturn() {
         <>
           {/* Summary bridge cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Card>
-              <CardContent className="pt-4 pb-3 px-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Verschuldigde BTW</p>
-                    <p className="text-xl font-bold font-mono mt-1">{fmt(outputVat)}</p>
-                  </div>
-                  <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center">
-                    <ArrowUp className="h-5 w-5 text-destructive" />
-                  </div>
-                </div>
-                <p className="text-[10px] text-muted-foreground mt-2">Rubrieken 1 + 2 + 4</p>
-              </CardContent>
-            </Card>
+            <div className="rounded-2xl border border-border bg-card p-5">
+              <span className="text-[11px] uppercase tracking-[0.08em] font-medium text-muted-foreground">Verschuldigde BTW</span>
+              <div className="mt-2 flex items-center justify-between">
+                <p className="text-[26px] font-semibold tracking-[-0.02em] tabular-nums text-foreground">{fmt(outputVat)}</p>
+                <ArrowUp className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">Rubrieken 1 + 2 + 4</p>
+            </div>
 
-            <Card>
-              <CardContent className="pt-4 pb-3 px-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Voorbelasting</p>
-                    <p className="text-xl font-bold font-mono mt-1">{fmt(inputVat)}</p>
-                  </div>
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <ArrowDown className="h-5 w-5 text-primary" />
-                  </div>
-                </div>
-                <p className="text-[10px] text-muted-foreground mt-2">Rubriek 5b</p>
-              </CardContent>
-            </Card>
+            <div className="rounded-2xl border border-border bg-card p-5">
+              <span className="text-[11px] uppercase tracking-[0.08em] font-medium text-muted-foreground">Voorbelasting</span>
+              <div className="mt-2 flex items-center justify-between">
+                <p className="text-[26px] font-semibold tracking-[-0.02em] tabular-nums text-foreground">{fmt(inputVat)}</p>
+                <ArrowDown className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">Rubriek 5b</p>
+            </div>
 
-            <Card className={cn(
-              "border-2",
+            <div className={cn(
+              "rounded-2xl border bg-card p-5",
               netVat > 0 ? "border-destructive/30" : netVat < 0 ? "border-primary/30" : "border-border"
             )}>
-              <CardContent className="pt-4 pb-3 px-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                      {netVat >= 0 ? "Te betalen" : "Te ontvangen"}
-                    </p>
-                    <p className={cn(
-                      "text-xl font-bold font-mono mt-1",
-                      netVat > 0 ? "text-destructive" : netVat < 0 ? "text-primary" : ""
-                    )}>
-                      {fmt(Math.abs(netVat))}
-                    </p>
-                  </div>
-                  <div className={cn(
-                    "h-10 w-10 rounded-full flex items-center justify-center",
-                    netVat > 0 ? "bg-destructive/10" : "bg-primary/10"
-                  )}>
-                    <Minus className={cn("h-5 w-5", netVat > 0 ? "text-destructive" : "text-primary")} />
-                  </div>
-                </div>
-                <p className="text-[10px] text-muted-foreground mt-2">5a − 5b − KOR − correcties</p>
-              </CardContent>
-            </Card>
+              <span className="text-[11px] uppercase tracking-[0.08em] font-medium text-muted-foreground">
+                {netVat >= 0 ? "Te betalen" : "Te ontvangen"}
+              </span>
+              <div className="mt-2 flex items-center justify-between">
+                <p className={cn(
+                  "text-[26px] font-semibold tracking-[-0.02em] tabular-nums",
+                  netVat > 0 ? "text-destructive" : "text-primary"
+                )}>
+                  {fmt(Math.abs(netVat))}
+                </p>
+                <Minus className={cn("h-4 w-4", netVat > 0 ? "text-destructive" : "text-primary")} />
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">5a − 5b − KOR − correcties</p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

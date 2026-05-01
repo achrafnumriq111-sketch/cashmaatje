@@ -15,13 +15,16 @@ export default function SalesInvoices() {
   const { data: invoices = [], isLoading } = useInvoices("sales", filters);
 
   return (
-    <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-4 sm:space-y-6">
-      <motion.div variants={cardVariant} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="text-xl sm:text-2xl font-semibold">Verkoopfacturen</h1>
-        <Button onClick={() => setFormOpen(true)} className="w-full sm:w-auto"><Plus className="h-4 w-4 mr-2" /> Nieuwe factuur</Button>
+    <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-6">
+      <motion.div variants={cardVariant} className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-[-0.02em] text-foreground">Verkoopfacturen</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{invoices.length} {invoices.length === 1 ? "factuur" : "facturen"}</p>
+        </div>
+        <Button onClick={() => setFormOpen(true)} className="rounded-xl"><Plus className="h-4 w-4 mr-2" /> Nieuwe factuur</Button>
       </motion.div>
       <motion.div variants={cardVariant}><InvoiceFilters filters={filters} onChange={setFilters} /></motion.div>
-      <motion.div variants={cardVariant} className="bg-card border border-border rounded-lg overflow-x-auto"><InvoicesTable invoices={invoices} isLoading={isLoading} /></motion.div>
+      <motion.div variants={cardVariant}><InvoicesTable invoices={invoices} isLoading={isLoading} /></motion.div>
       <SalesInvoiceForm open={formOpen} onClose={() => setFormOpen(false)} />
     </motion.div>
   );

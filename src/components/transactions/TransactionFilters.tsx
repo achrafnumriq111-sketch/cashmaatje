@@ -19,39 +19,35 @@ interface Props {
 
 export function TransactionFilters({ filters, onChange, bankAccounts, onImport }: Props) {
   return (
-    <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
+    <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 rounded-2xl border border-border bg-card p-2">
       <Select
         value={filters.bankAccountId ?? "all"}
         onValueChange={(v) => onChange({ ...filters, bankAccountId: v === "all" ? null : v })}
       >
-        <SelectTrigger className="w-full sm:w-[200px] bg-card border-border/50">
+        <SelectTrigger className="w-full sm:w-[200px] h-9 rounded-xl border-border/60 bg-background">
           <SelectValue placeholder="Alle rekeningen" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Alle rekeningen</SelectItem>
           {bankAccounts.map((ba) => (
-            <SelectItem key={ba.id} value={ba.id}>
-              {ba.name}
-            </SelectItem>
+            <SelectItem key={ba.id} value={ba.id}>{ba.name}</SelectItem>
           ))}
         </SelectContent>
       </Select>
 
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="w-full sm:w-[220px] justify-start bg-card border-border/50">
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {format(new Date(filters.dateFrom), "d MMM", { locale: nl })} –{" "}
-            {format(new Date(filters.dateTo), "d MMM yyyy", { locale: nl })}
+          <Button variant="outline" className="w-full sm:w-[220px] justify-start h-9 rounded-xl border-border/60 bg-background font-normal">
+            <CalendarIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-sm">
+              {format(new Date(filters.dateFrom), "d MMM", { locale: nl })} – {format(new Date(filters.dateTo), "d MMM yyyy", { locale: nl })}
+            </span>
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="range"
-            selected={{
-              from: new Date(filters.dateFrom),
-              to: new Date(filters.dateTo),
-            }}
+            selected={{ from: new Date(filters.dateFrom), to: new Date(filters.dateTo) }}
             onSelect={(range) => {
               if (range?.from) {
                 onChange({
@@ -67,11 +63,8 @@ export function TransactionFilters({ filters, onChange, bankAccounts, onImport }
         </PopoverContent>
       </Popover>
 
-      <Select
-        value={filters.status}
-        onValueChange={(v) => onChange({ ...filters, status: v as any })}
-      >
-        <SelectTrigger className="w-full sm:w-[150px] bg-card border-border/50">
+      <Select value={filters.status} onValueChange={(v) => onChange({ ...filters, status: v as any })}>
+        <SelectTrigger className="w-full sm:w-[150px] h-9 rounded-xl border-border/60 bg-background">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -85,18 +78,18 @@ export function TransactionFilters({ filters, onChange, bankAccounts, onImport }
       </Select>
 
       <div className="relative flex-1 min-w-0">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
         <Input
           placeholder="Zoek op naam of omschrijving..."
           value={filters.search}
           onChange={(e) => onChange({ ...filters, search: e.target.value })}
-          className="pl-9 bg-card border-border/50"
+          className="pl-9 h-9 rounded-xl border-border/60 bg-background"
         />
       </div>
 
-      <Button variant="outline" onClick={onImport} className="w-full sm:w-auto bg-card border-border/50">
-        <Upload className="mr-2 h-4 w-4" />
-        Import CSV
+      <Button variant="outline" onClick={onImport} className="w-full sm:w-auto h-9 rounded-xl border-border/60 bg-background">
+        <Upload className="mr-2 h-3.5 w-3.5" />
+        Import
       </Button>
     </div>
   );
