@@ -66,6 +66,7 @@ import CheckoutReturn from "./pages/CheckoutReturn";
 import Inbox from "./pages/Inbox";
 import Admin from "./pages/Admin";
 import FixTheChaos from "./pages/FixTheChaos";
+import Landing from "./pages/Landing";
 import { ModuleLockOverlay } from "./components/modules/ModuleLockOverlay";
 
 const queryClient = new QueryClient();
@@ -79,6 +80,7 @@ const App = () => (
         <AuthProvider>
           <OrganizationProvider>
           <Routes>
+            <Route path="/landing" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             
