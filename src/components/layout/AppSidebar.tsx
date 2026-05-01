@@ -6,7 +6,7 @@ import {
   Receipt, BarChart3, Users, BookOpen, ScrollText,
   Settings, Shield, Wallet, ChevronDown, FileCheck, Briefcase,
   Palette, Building2, Boxes, Plug, Calculator, Lock, Flame,
-  Folder, Download,
+  Folder, Download, Landmark, HeartPulse, FlaskConical, UserCheck,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useEntitlements } from "@/hooks/useEntitlements";
@@ -59,6 +59,7 @@ const navSections: NavSection[] = [
         ],
       },
       { id: "reconciliatie", labelKey: "nav.reconciliation", icon: <GitMerge size={16} />, path: "/reconciliatie" },
+      { id: "bank-import", labelKey: "Bank import", icon: <Landmark size={16} />, path: "/bank/import" },
       { id: "documenten", labelKey: "nav.documents", icon: <Folder size={16} />, path: "/documenten" },
     ],
   },
@@ -116,6 +117,9 @@ const navSections: NavSection[] = [
       { id: "journaalposten", labelKey: "nav.journal", icon: <ScrollText size={16} />, path: "/journaalposten" },
       { id: "voorraad", labelKey: "nav.inventory", icon: <Boxes size={16} />, path: "/voorraad" },
       { id: "exports", labelKey: "Export Center", icon: <Download size={16} />, path: "/exports" },
+      { id: "health-score", labelKey: "Financiële gezondheid", icon: <HeartPulse size={16} />, path: "/insights/health" },
+      { id: "scenario", labelKey: "Scenario simulator", icon: <FlaskConical size={16} />, path: "/insights/scenario" },
+      { id: "accountant-portal", labelKey: "Accountant portal", icon: <UserCheck size={16} />, path: "/accountant" },
     ],
   },
   {
