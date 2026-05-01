@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, LogOut, User, Search, Gift } from "lucide-react";
+import { Bell, LogOut, User, Search, Gift, Menu } from "lucide-react";
 
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
@@ -8,6 +8,7 @@ import { NotificationPanel } from "./NotificationPanel";
 import { LanguageToggle } from "./LanguageToggle";
 import { OrgSwitcher } from "./OrgSwitcher";
 import { InboxBell } from "./InboxBell";
+import { useMobileNav } from "./MobileNavContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Database } from "@/integrations/supabase/types";
 
