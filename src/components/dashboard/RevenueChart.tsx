@@ -1,9 +1,7 @@
-import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { useMemo } from "react";
-import { cardVariant } from "@/lib/animations";
 
 interface JournalLine {
   credit_amount: number | null;
@@ -12,8 +10,8 @@ interface JournalLine {
 }
 
 const chartConfig = {
-  revenue: { label: "Omzet", color: "hsl(160 84% 39%)" },
-  expenses: { label: "Kosten", color: "hsl(0 84% 60%)" },
+  revenue: { label: "Omzet", color: "hsl(var(--primary))" },
+  expenses: { label: "Kosten", color: "hsl(220 9% 46%)" },
 };
 
 export function RevenueChart({ data, isLoading }: { data?: JournalLine[] | null; isLoading: boolean }) {
@@ -41,35 +39,78 @@ export function RevenueChart({ data, isLoading }: { data?: JournalLine[] | null;
     }));
   }, [data]);
 
+  const total = chartData.reduce((s, d) => s + d.revenue, 0);
+
   return (
-    <motion.div variants={cardVariant} className="arcory-glass rounded-2xl p-5 sm:p-6 h-full">
-      <div className="mb-4">
-        <span className="text-micro text-muted-foreground">Omzet & Kosten (12 maanden)</span>
+    <div className="rounded-2xl bg-card border border-border p-6 h-full">
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.08em] font-medium text-muted-foreground">
+            Omzet & kosten
+          </p>
+          <p className="text-[24px] font-semibold tracking-[-0.02em] text-foreground mt-1.5">
+            {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(total)}
+          </p>
+          <p className="text-[12px] text-muted-foreground mt-0.5">Laatste 12 maanden</p>
+        </div>
+        <div className="flex items-center gap-4 text-[12px]">
+          <span className="flex items-center gap-1.5 text-muted-foreground">
+            <span className="w-2 h-2 rounded-full bg-primary" /> Omzet
+          </span>
+          <span className="flex items-center gap-1.5 text-muted-foreground">
+            <span className="w-2 h-2 rounded-full bg-foreground/30" /> Kosten
+          </span>
+        </div>
       </div>
+
       {isLoading ? (
         <Skeleton className="h-[260px] w-full rounded-xl" />
       ) : (
         <ChartContainer config={chartConfig} className="h-[260px] w-full">
-          <AreaChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+          <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(160 84% 39%)" stopOpacity={0.3} />
-                <stop offset="100%" stopColor="hsl(160 84% 39%)" stopOpacity={0} />
-              </linearGradient>
-              <linearGradient id="fillExpenses" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(0 84% 60%)" stopOpacity={0.15} />
-                <stop offset="100%" stopColor="hsl(0 84% 60%)" stopOpacity={0} />
+                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.18} />
+                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-            <XAxis dataKey="month" tick={{ fill: "rgba(255,255,255,0.25)", fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: "rgba(255,255,255,0.25)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `€${(v / 1000).toFixed(0)}k`} />
+            <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--border))" vertical={false} />
+            <XAxis
+              dataKey="month"
+              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+              dy={6}
+            />
+            <YAxis
+              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(v) => `€${(v / 1000).toFixed(0)}k`}
+              width={48}
+            />
             <ChartTooltip content={<ChartTooltipContent />} />
-            <Area type="monotone" dataKey="revenue" stroke="hsl(160 84% 39%)" fill="url(#fillRevenue)" strokeWidth={2} />
-            <Area type="monotone" dataKey="expenses" stroke="hsl(0 84% 60%)" fill="url(#fillExpenses)" strokeWidth={2} />
+            <Area
+              type="monotone"
+              dataKey="expenses"
+              stroke="hsl(var(--muted-foreground))"
+              strokeWidth={1.5}
+              strokeDasharray="3 3"
+              fill="transparent"
+              dot={false}
+            />
+            <Area
+              type="monotone"
+              dataKey="revenue"
+              stroke="hsl(var(--primary))"
+              strokeWidth={2}
+              fill="url(#fillRevenue)"
+              dot={false}
+              activeDot={{ r: 4, strokeWidth: 0, fill: "hsl(var(--primary))" }}
+            />
           </AreaChart>
         </ChartContainer>
       )}
-    </motion.div>
+    </div>
   );
 }
