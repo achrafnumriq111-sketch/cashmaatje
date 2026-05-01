@@ -3,10 +3,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, ArrowLeftRight, FileText, GitMerge,
-  Receipt, BarChart3, Users, BookOpen, ScrollText,
+  Receipt, BarChart3, Users, BookOpen,
   Settings, Shield, Wallet, ChevronDown, FileCheck, Briefcase,
-  Palette, Building2, Boxes, Plug, Calculator, Lock, Flame,
-  Folder, Download, Landmark, HeartPulse, FlaskConical, UserCheck,
+  Palette, Building2, Plug, Calculator, Lock, Flame,
+  Folder, HeartPulse, FlaskConical, UserCheck, Database as DatabaseIcon,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useEntitlements } from "@/hooks/useEntitlements";
@@ -34,7 +34,7 @@ interface NavSection {
   items: NavItem[];
 }
 
-/* Grouped, calm navigation — Apple × Linear feel */
+/* Clean, deduplicated navigation — 5 sections, max collapse, related items grouped */
 const navSections: NavSection[] = [
   {
     id: "overview",
@@ -42,7 +42,7 @@ const navSections: NavSection[] = [
     items: [
       { id: "structuur", labelKey: "Corporate Structure", icon: <Building2 size={16} />, path: "/" },
       { id: "dashboard", labelKey: "common.dashboard", icon: <LayoutDashboard size={16} />, path: "/dashboard" },
-      { id: "fix-the-chaos", labelKey: "FIX THE CHAOS", icon: <Flame size={16} />, path: "/fix-the-chaos" },
+      { id: "fix-the-chaos", labelKey: "Fix the chaos", icon: <Flame size={16} />, path: "/fix-the-chaos" },
     ],
   },
   {
@@ -57,43 +57,60 @@ const navSections: NavSection[] = [
           { id: "inkoop", labelKey: "nav.invoices.purchase", path: "/facturen/inkoop" },
           { id: "terugkerend", labelKey: "Terugkerend", path: "/facturen/terugkerend" },
           { id: "herinneringen", labelKey: "nav.invoices.reminders", path: "/facturen/herinneringen" },
+          { id: "offerte-studio", labelKey: "nav.quotes", path: "/offerte-studio" },
         ],
       },
-      { id: "reconciliatie", labelKey: "nav.reconciliation", icon: <GitMerge size={16} />, path: "/reconciliatie" },
-      { id: "bank-import", labelKey: "Bank import", icon: <Landmark size={16} />, path: "/bank/import" },
-      { id: "documenten", labelKey: "nav.documents", icon: <Folder size={16} />, path: "/documenten" },
+      {
+        id: "reconciliatie", labelKey: "nav.reconciliation", icon: <GitMerge size={16} />,
+        children: [
+          { id: "reconciliatie-overzicht", labelKey: "Overzicht", path: "/reconciliatie" },
+          { id: "bank-import", labelKey: "Bank import", path: "/bank/import" },
+        ],
+      },
+      {
+        id: "documenten", labelKey: "nav.documents", icon: <Folder size={16} />,
+        children: [
+          { id: "documenten-overzicht", labelKey: "Documenten", path: "/documenten" },
+          { id: "inbox", labelKey: "Inbox", path: "/inbox" },
+        ],
+      },
     ],
   },
   {
-    id: "tax",
-    label: "Tax & costs",
+    id: "belasting",
+    label: "Belasting",
     items: [
       {
-        id: "btw", labelKey: "nav.vatWins", icon: <Receipt size={16} />,
+        id: "btw", labelKey: "BTW", icon: <Receipt size={16} />,
         children: [
           { id: "btw-aangifte", labelKey: "nav.vat.return", path: "/btw/aangifte" },
           { id: "btw-icp", labelKey: "nav.vat.icp", path: "/btw/icp" },
-          { id: "belasting-reserve", labelKey: "Belastingreserve", path: "/belasting/reserve" },
-          { id: "belasting-checklist", labelKey: "Kwartaal-checklist", path: "/belasting/checklist" },
-          { id: "vpb", labelKey: "nav.vat.vpb", path: "/belasting/vpb" },
         ],
       },
       {
-        id: "kosten-activa", labelKey: "nav.costs", icon: <Calculator size={16} />,
+        id: "vpb", labelKey: "Vennootschapsbelasting", icon: <Calculator size={16} />,
         children: [
-          { id: "bedrijfskosten", labelKey: "nav.businessExpenses", path: "/salaris/bedrijfskosten" },
-          { id: "afschrijvingen", labelKey: "nav.depreciations", path: "/salaris/afschrijvingen" },
-          { id: "premies", labelKey: "nav.premiums", path: "/salaris/premies" },
-          { id: "auto", labelKey: "nav.companyCar", path: "/salaris/auto" },
-          { id: "woning", labelKey: "nav.mortgage", path: "/salaris/woning" },
+          { id: "vpb-aangifte", labelKey: "VPB-aangifte", path: "/belasting/vpb" },
+          { id: "belasting-reserve", labelKey: "Belastingreserve", path: "/belasting/reserve" },
+          { id: "belasting-checklist", labelKey: "Kwartaal-checklist", path: "/belasting/checklist" },
           { id: "ondernemersaftrek", labelKey: "nav.taxDeductions", path: "/belasting/ondernemersaftrek" },
         ],
       },
       {
-        id: "salaris", labelKey: "nav.salary", icon: <Wallet size={16} />,
+        id: "kosten-activa", labelKey: "Kosten & afschrijvingen", icon: <Wallet size={16} />,
+        children: [
+          { id: "bedrijfskosten", labelKey: "nav.businessExpenses", path: "/salaris/bedrijfskosten" },
+          { id: "afschrijvingen", labelKey: "nav.depreciations", path: "/salaris/afschrijvingen" },
+          { id: "auto", labelKey: "nav.companyCar", path: "/salaris/auto" },
+          { id: "woning", labelKey: "nav.mortgage", path: "/salaris/woning" },
+        ],
+      },
+      {
+        id: "salaris", labelKey: "Salaris & personeel", icon: <Users size={16} />,
         children: [
           { id: "salaris-overzicht", labelKey: "nav.salary.overview", path: "/salaris" },
           { id: "salaris-medewerkers", labelKey: "nav.salary.employees", path: "/salaris/medewerkers" },
+          { id: "premies", labelKey: "nav.premiums", path: "/salaris/premies" },
         ],
       },
     ],
@@ -113,11 +130,6 @@ const navSections: NavSection[] = [
           { id: "intelligence", labelKey: "nav.intelligence", path: "/rapporten/intelligence", moduleKey: "financial_intelligence" },
         ],
       },
-      { id: "relaties", labelKey: "nav.contacts", icon: <Users size={16} />, path: "/relaties" },
-      { id: "grootboek", labelKey: "nav.ledger", icon: <BookOpen size={16} />, path: "/grootboek" },
-      { id: "journaalposten", labelKey: "nav.journal", icon: <ScrollText size={16} />, path: "/journaalposten" },
-      { id: "voorraad", labelKey: "nav.inventory", icon: <Boxes size={16} />, path: "/voorraad" },
-      { id: "exports", labelKey: "Export Center", icon: <Download size={16} />, path: "/exports" },
       { id: "health-score", labelKey: "Financiële gezondheid", icon: <HeartPulse size={16} />, path: "/insights/health" },
       { id: "scenario", labelKey: "Scenario simulator", icon: <FlaskConical size={16} />, path: "/insights/scenario" },
       { id: "accountant-portal", labelKey: "Accountant portal", icon: <UserCheck size={16} />, path: "/accountant" },
@@ -127,8 +139,16 @@ const navSections: NavSection[] = [
     id: "workspace",
     label: "Workspace",
     items: [
-      { id: "integraties", labelKey: "nav.integrations", icon: <Plug size={16} />, path: "/integraties" },
-      { id: "offerte-studio", labelKey: "nav.quotes", icon: <Briefcase size={16} />, path: "/offerte-studio" },
+      {
+        id: "data", labelKey: "Data", icon: <DatabaseIcon size={16} />,
+        children: [
+          { id: "relaties", labelKey: "nav.contacts", path: "/relaties" },
+          { id: "grootboek", labelKey: "nav.ledger", path: "/grootboek" },
+          { id: "journaalposten", labelKey: "nav.journal", path: "/journaalposten" },
+          { id: "voorraad", labelKey: "nav.inventory", path: "/voorraad" },
+          { id: "exports", labelKey: "Export Center", path: "/exports" },
+        ],
+      },
       {
         id: "audit", labelKey: "nav.audit", icon: <FileCheck size={16} />,
         children: [
@@ -139,12 +159,15 @@ const navSections: NavSection[] = [
         ],
       },
       {
-        id: "platform", labelKey: "nav.platform", icon: <Building2 size={16} />,
+        id: "platform", labelKey: "nav.platform", icon: <Briefcase size={16} />,
         children: [
           { id: "stakeholders", labelKey: "nav.platform.stakeholders", path: "/platform/stakeholders", moduleKey: "stakeholder_crm" },
           { id: "automation", labelKey: "nav.platform.automation", path: "/platform/automation", moduleKey: "automation_center" },
+          { id: "themas", labelKey: "nav.platform.themes", path: "/platform/themas" },
         ],
       },
+      { id: "integraties", labelKey: "nav.integrations", icon: <Plug size={16} />, path: "/integraties" },
+      { id: "boekhoudregels", labelKey: "Boekhoudregels", icon: <BookOpen size={16} />, path: "/instellingen/bulk" },
     ],
   },
 ];
