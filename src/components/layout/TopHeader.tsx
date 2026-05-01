@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, LogOut, User, Search, Gift } from "lucide-react";
+import { Bell, LogOut, User, Search, Gift, Menu } from "lucide-react";
 
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
@@ -8,6 +8,7 @@ import { NotificationPanel } from "./NotificationPanel";
 import { LanguageToggle } from "./LanguageToggle";
 import { OrgSwitcher } from "./OrgSwitcher";
 import { InboxBell } from "./InboxBell";
+import { useMobileNav } from "./MobileNavContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -40,6 +41,7 @@ export function TopHeader({
   const { user, signOut } = useAuth();
   const { t, lang } = useI18n();
   const navigate = useNavigate();
+  const { toggle: toggleMobileNav } = useMobileNav();
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -47,10 +49,25 @@ export function TopHeader({
 
   return (
     <>
-      <header className="sticky top-0 z-30 h-16 px-6 flex items-center justify-between bg-background/80 backdrop-blur-md border-b border-border/60">
-        {/* LEFT: Search */}
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2.5 pl-3 pr-2 py-1.5 rounded-full bg-secondary/60 hover:bg-secondary text-muted-foreground transition-colors">
+      <header className="sticky top-0 z-30 h-16 px-4 md:px-6 flex items-center justify-between gap-2 bg-background/80 backdrop-blur-md border-b border-border/60">
+        {/* LEFT: Mobile hamburger + Search */}
+        <div className="flex items-center gap-2 min-w-0">
+          <button
+            onClick={toggleMobileNav}
+            className="md:hidden -ml-1 w-9 h-9 rounded-full flex items-center justify-center text-foreground hover:bg-secondary transition-colors flex-shrink-0"
+            aria-label="Open menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+
+          {/* Mobile: icon-only search; Desktop: full search pill */}
+          <button
+            className="md:hidden w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            aria-label={t("common.search")}
+          >
+            <Search className="w-4 h-4" />
+          </button>
+          <button className="hidden md:flex items-center gap-2.5 pl-3 pr-2 py-1.5 rounded-full bg-secondary/60 hover:bg-secondary text-muted-foreground transition-colors">
             <Search className="w-3.5 h-3.5" />
             <span className="text-[13px]">{t("common.search")}</span>
             <span className="flex items-center gap-0.5 ml-6">
@@ -62,15 +79,17 @@ export function TopHeader({
 
         {/* RIGHT */}
         <div className="flex items-center gap-1">
-          <OrgSwitcher />
+          <div className="hidden sm:block">
+            <OrgSwitcher />
+          </div>
 
-          <div className="w-px h-5 bg-border/70 mx-2" />
+          <div className="hidden md:block w-px h-5 bg-border/70 mx-2" />
 
           <Tooltip>
             <TooltipTrigger asChild>
               <button
                 onClick={() => navigate("/platform/referral")}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
               >
                 <Gift className="w-3.5 h-3.5" />
                 <span>{t("header.referrals")}</span>
@@ -81,7 +100,9 @@ export function TopHeader({
             </TooltipContent>
           </Tooltip>
 
-          <LanguageToggle compact />
+          <div className="hidden sm:block">
+            <LanguageToggle compact />
+          </div>
 
           <InboxBell />
 
