@@ -11,6 +11,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useOrganization } from "@/hooks/useOrganization";
 import { supabase } from "@/integrations/supabase/client";
 import { parseBankCsv, importBankTransactions, type ParseResult, type ImportResult } from "@/lib/bankCsvImport";
+import { parseCamt053, parseMt940, detectStatementFormat } from "@/lib/bankStatementParsers";
 import { toast } from "sonner";
 import { SmartEmptyState } from "@/components/ui/smart-empty-state";
 
@@ -40,8 +41,23 @@ export default function BankImport() {
   const handleFile = async (file: File) => {
     setImportResult(null);
     const text = await file.text();
-    const result = parseBankCsv(text);
+    const ext = file.name.toLowerCase().split(".").pop();
+    let format = detectStatementFormat(text);
+    if (format === "unknown") {
+      if (ext === "xml") format = "camt053";
+      else if (ext === "sta" || ext === "mt940" || ext === "txt") format = "mt940";
+      else format = "csv";
+    }
+    let result: ParseResult;
+    if (format === "camt053") result = parseCamt053(text);
+    else if (format === "mt940") result = parseMt940(text);
+    else result = parseBankCsv(text);
     setParsed(result);
+    if (result.transactions.length === 0 && result.errors.length === 0) {
+      toast.error("Geen transacties gevonden in dit bestand");
+    } else {
+      toast.success(`${result.transactions.length} transacties uit ${format.toUpperCase()} gelezen`);
+    }
     if (bankAccounts.length === 1) setAccountId(bankAccounts[0].id);
     else if (bankAccounts.find((b) => b.is_primary)) setAccountId(bankAccounts.find((b) => b.is_primary)!.id);
   };
@@ -70,9 +86,9 @@ export default function BankImport() {
   return (
     <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-6">
       <motion.div variants={cardVariant}>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Bank CSV Import</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Bankafschriften importeren</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Upload een CSV-export van je bank — wij lezen het uit en matchen automatisch tegen openstaande facturen.
+          Upload CSV, CAMT.053 of MT940 — wij lezen het uit en matchen automatisch tegen openstaande facturen.
         </p>
       </motion.div>
 
@@ -89,8 +105,8 @@ export default function BankImport() {
           <motion.div variants={cardVariant}>
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">1. Upload CSV</CardTitle>
-                <CardDescription>ING, Rabobank, ABN, Bunq, Knab, Triodos en generieke CSV worden ondersteund.</CardDescription>
+                <CardTitle className="text-base">1. Upload bestand</CardTitle>
+                <CardDescription>CSV (ING, Rabobank, ABN, Bunq, Knab, Triodos), CAMT.053 (XML) of MT940 (.sta/.txt) — formaat wordt automatisch gedetecteerd.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div
@@ -106,18 +122,18 @@ export default function BankImport() {
                 >
                   <Upload className="h-8 w-8 text-muted-foreground" />
                   <div className="text-center">
-                    <p className="text-sm font-medium text-foreground">Sleep een CSV-bestand hierheen</p>
-                    <p className="text-xs text-muted-foreground mt-1">Of klik om te kiezen</p>
+                    <p className="text-sm font-medium text-foreground">Sleep een bankafschrift hierheen</p>
+                    <p className="text-xs text-muted-foreground mt-1">CSV · CAMT.053 (.xml) · MT940 (.sta/.txt)</p>
                   </div>
                   <label className="cursor-pointer">
                     <input
                       type="file"
-                      accept=".csv,text/csv"
+                      accept=".csv,.xml,.sta,.mt940,.txt,text/csv,application/xml,text/xml,text/plain"
                       className="hidden"
                       onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
                     />
                     <span className="inline-flex items-center gap-1 rounded-md bg-secondary px-3 py-1.5 text-xs font-medium text-foreground hover:bg-secondary/80">
-                      Kies CSV
+                      Kies bestand
                     </span>
                   </label>
                 </div>
