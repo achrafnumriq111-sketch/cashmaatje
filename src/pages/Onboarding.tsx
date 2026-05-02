@@ -192,6 +192,18 @@ export default function Onboarding() {
 
       if (setupErr) throw setupErr;
 
+      // Apply industry preset (extra accounts) if industry was chosen
+      if (data.company.industry) {
+        try {
+          await supabase.rpc("apply_industry_preset" as any, {
+            p_org_id: orgId,
+            p_industry: data.company.industry,
+          });
+        } catch (e) {
+          console.warn("industry preset failed", e);
+        }
+      }
+
       // Claim pending referral code (if user signed up via ?ref=)
       try {
         const { getPendingReferralCode, clearPendingReferralCode } = await import("@/lib/referralCapture");
