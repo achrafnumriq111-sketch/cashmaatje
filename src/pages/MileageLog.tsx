@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,8 +12,11 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, MapPin, Trash2, Route as RouteIcon, Crosshair, Car, Briefcase, Home as HomeIcon, User, Download } from "lucide-react";
+import { Plus, MapPin, Trash2, Route as RouteIcon, Crosshair, Car, Briefcase, Home as HomeIcon, User, Download, Radio, Sparkles, Square } from "lucide-react";
 import { useMileageTrips, KM_RATE_BUSINESS, type MileageTrip, type TripType, type MileageRoute } from "@/hooks/useMileageTrips";
+import { useContacts } from "@/hooks/useContacts";
+import { useGpsTracker, type DetectedTrip } from "@/hooks/useGpsTracker";
+import { classifyTrip, type ContactAddress } from "@/lib/mileage/classify";
 import { pageTransition, staggerContainer, cardVariant } from "@/lib/animations";
 
 const currentYear = new Date().getFullYear();
@@ -49,10 +52,23 @@ function emptyRoute(): MileageRoute {
   return { name: "", from_address: "", to_address: "", km: 0, default_trip_type: "business" };
 }
 
+async function reverseGeocode(lat: number, lng: number): Promise<string> {
+  const fallback = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+    const j = await r.json();
+    return j.display_name ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export default function MileageLog() {
   const [year, setYear] = useState(currentYear);
   const { trips, routes, loading, saveTrip, deleteTrip, saveRoute, deleteRoute, totals, businessDeduction } =
     useMileageTrips(year);
+  const { data: contactsData } = useContacts({ search: "", type: "all", country: "all", riskStatus: "all" });
+  const contacts: ContactAddress[] = useMemo(() => (contactsData ?? []) as any, [contactsData]);
   const { toast } = useToast();
 
   const [tripOpen, setTripOpen] = useState(false);
@@ -60,6 +76,67 @@ export default function MileageLog() {
   const [trip, setTrip] = useState<MileageTrip>(emptyTrip());
   const [route, setRoute] = useState<MileageRoute>(emptyRoute());
   const [gpsLoading, setGpsLoading] = useState<"from" | "to" | null>(null);
+  const [autoClassify, setAutoClassify] = useState(true);
+  const [classification, setClassification] = useState<{ reason: string; confidence: number } | null>(null);
+
+  // Always-on GPS tracker
+  const handleDetectedTrip = async (detected: DetectedTrip) => {
+    const [from_address, to_address] = await Promise.all([
+      reverseGeocode(detected.startLat, detected.startLng),
+      reverseGeocode(detected.endLat, detected.endLng),
+    ]);
+    const newTrip: MileageTrip = {
+      trip_date: new Date(detected.startedAt).toISOString().slice(0, 10),
+      from_address,
+      to_address,
+      from_lat: detected.startLat,
+      from_lng: detected.startLng,
+      to_lat: detected.endLat,
+      to_lng: detected.endLng,
+      km: detected.km,
+      return_trip: false,
+      trip_type: "private",
+      purpose: "Automatisch gedetecteerd via GPS",
+      source: "gps-auto",
+    };
+    const result = classifyTrip({
+      fromAddress: from_address,
+      toAddress: to_address,
+      contacts,
+      routes,
+    });
+    newTrip.trip_type = result.tripType;
+    if (result.matchedContact) newTrip.contact_id = result.matchedContact.id;
+    if (result.matchedRoute) newTrip.route_id = result.matchedRoute.id ?? null;
+    await saveTrip(newTrip);
+    toast({
+      title: `Rit geregistreerd · ${detected.km.toFixed(1)} km`,
+      description: `${result.reason} (${Math.round(result.confidence * 100)}% zeker)`,
+    });
+  };
+  const tracker = useGpsTracker(handleDetectedTrip);
+
+  // Auto-classificeer wanneer adressen veranderen in dialoog
+  useEffect(() => {
+    if (!autoClassify || !tripOpen || !trip.from_address || !trip.to_address) {
+      setClassification(null);
+      return;
+    }
+    const result = classifyTrip({
+      fromAddress: trip.from_address,
+      toAddress: trip.to_address,
+      contacts,
+      routes,
+    });
+    setClassification({ reason: result.reason, confidence: result.confidence });
+    setTrip((prev) => ({
+      ...prev,
+      trip_type: result.tripType,
+      contact_id: result.matchedContact?.id ?? prev.contact_id ?? null,
+      route_id: result.matchedRoute?.id ?? prev.route_id ?? null,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trip.from_address, trip.to_address, autoClassify, tripOpen]);
 
   const captureGps = async (which: "from" | "to") => {
     if (!navigator.geolocation) {
@@ -220,6 +297,19 @@ export default function MileageLog() {
                   <Label>Doel / omschrijving</Label>
                   <Textarea rows={2} value={trip.purpose ?? ""} onChange={(e) => setTrip({ ...trip, purpose: e.target.value })} placeholder="Klantbezoek, levering, …" />
                 </div>
+                <div className="flex items-center justify-between rounded-lg border border-border/60 bg-secondary/30 px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                    <Label className="text-xs font-normal cursor-pointer">Auto-classificeer op basis van contacten & routes</Label>
+                  </div>
+                  <Switch checked={autoClassify} onCheckedChange={setAutoClassify} />
+                </div>
+                {classification && autoClassify && (
+                  <div className="text-xs text-muted-foreground flex items-center gap-2 -mt-2">
+                    <Badge variant="secondary" className="text-[10px]">{Math.round(classification.confidence * 100)}%</Badge>
+                    <span className="truncate">{classification.reason}</span>
+                  </div>
+                )}
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setTripOpen(false)}>Annuleren</Button>
@@ -251,6 +341,54 @@ export default function MileageLog() {
             </Card>
           </motion.div>
         ))}
+      </motion.div>
+
+      <motion.div variants={cardVariant} initial="initial" animate="animate">
+        <Card className={`arcory-glass border-2 transition-colors ${tracker.active ? "border-primary/60" : "border-border/50"}`}>
+          <CardContent className="pt-5 pb-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${tracker.active ? "bg-primary/15" : "bg-secondary"}`}>
+                  <Radio className={`h-5 w-5 ${tracker.active ? "text-primary" : "text-muted-foreground"} ${tracker.status === "moving" ? "animate-pulse" : ""}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Always-on GPS-tracking</p>
+                  <p className="text-xs text-muted-foreground">
+                    {tracker.active
+                      ? tracker.status === "moving"
+                        ? `In beweging · ${tracker.currentSpeed.toFixed(0)} km/u · ${tracker.currentKm.toFixed(1)} km onderweg`
+                        : "Wachten op beweging — rit start automatisch bij > 8 km/u"
+                      : "Detecteert ritten zolang dit tabblad open is. Stopt 3 min na laatste beweging."}
+                  </p>
+                  {tracker.error && <p className="text-xs text-destructive mt-1">{tracker.error}</p>}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                {!tracker.active ? (
+                  <Button size="sm" onClick={tracker.start}>
+                    <Radio className="h-4 w-4 mr-1.5" /> Start tracking
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="outline" onClick={tracker.stop}>
+                    <Square className="h-4 w-4 mr-1.5" /> Stop
+                  </Button>
+                )}
+              </div>
+            </div>
+            <AnimatePresence>
+              {tracker.status === "moving" && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-3 pt-3 border-t border-border/40 text-xs text-muted-foreground"
+                >
+                  Bij stilstand wordt deze rit automatisch opgeslagen en geclassificeerd op basis van je contacten ({contacts.length}) en routes ({routes.length}).
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </CardContent>
+        </Card>
       </motion.div>
 
       <Tabs defaultValue="trips" className="space-y-4">
