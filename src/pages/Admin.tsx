@@ -150,21 +150,21 @@ function UsersPanel() {
         {isLoading ? (
           <Loader2 className="h-5 w-5 animate-spin text-primary" />
         ) : (
-          <div className="border border-border rounded-lg overflow-hidden">
+          <div className="border border-border rounded-lg overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Naam</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Aangemeld</TableHead>
+                  <TableHead className="hidden sm:table-cell">Aangemeld</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((u) => (
                   <TableRow key={u.id}>
                     <TableCell className="font-medium">{u.full_name || "—"}</TableCell>
-                    <TableCell className="text-muted-foreground">{u.email}</TableCell>
-                    <TableCell className="text-muted-foreground text-xs">
+                    <TableCell className="text-muted-foreground break-all">{u.email}</TableCell>
+                    <TableCell className="hidden sm:table-cell text-muted-foreground text-xs">
                       {u.created_at ? format(new Date(u.created_at), "d MMM yyyy", { locale: nl }) : "—"}
                     </TableCell>
                   </TableRow>
