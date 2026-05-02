@@ -128,8 +128,8 @@ const App = () => (
             <Route path="/2fa/verify" element={<ProtectedRoute><TwoFactorVerify /></ProtectedRoute>} />
             <Route path="/2fa/recovery" element={<TwoFactorRecovery />} />
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-            <Route path="/" element={<RootRoute />}>
-              <Route index element={<CorporateStructure />} />
+            <Route path="/" element={<RootIndex />} />
+            <Route element={<AuthedLayout />}>
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="fix-the-chaos" element={<FixTheChaos />} />
               <Route path="transacties" element={<Transactions />} />
