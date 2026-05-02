@@ -19,6 +19,8 @@ interface OrgRow {
   vat_frequency: string;
   vat_scheme: string;
   org_type: string;
+  fiscal_year_start_month?: number;
+  kor_eligible?: boolean;
 }
 
 export default function BulkSettings() {
@@ -28,6 +30,8 @@ export default function BulkSettings() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [vatFreq, setVatFreq] = useState<string>("");
   const [vatScheme, setVatScheme] = useState<string>("");
+  const [fiscalMonth, setFiscalMonth] = useState<string>("");
+  const [korEligible, setKorEligible] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -36,7 +40,7 @@ export default function BulkSettings() {
     setLoading(true);
     supabase
       .from("organizations")
-      .select("id, name, vat_frequency, vat_scheme, org_type")
+      .select("id, name, vat_frequency, vat_scheme, org_type, fiscal_year_start_month, kor_eligible")
       .in("id", ids)
       .then(({ data, error }) => {
         if (error) toast.error("Kon entiteiten niet laden");
@@ -60,11 +64,15 @@ export default function BulkSettings() {
 
   const handleApply = async () => {
     if (!selected.size) { toast.info("Selecteer minimaal 1 entiteit"); return; }
-    if (!vatFreq && !vatScheme) { toast.info("Kies minimaal 1 instelling om toe te passen"); return; }
+    if (!vatFreq && !vatScheme && !fiscalMonth && !korEligible) {
+      toast.info("Kies minimaal 1 instelling om toe te passen"); return;
+    }
     setSaving(true);
-    const updates: Record<string, string> = {};
+    const updates: Record<string, any> = {};
     if (vatFreq) updates.vat_frequency = vatFreq;
     if (vatScheme) updates.vat_scheme = vatScheme;
+    if (fiscalMonth) updates.fiscal_year_start_month = Number(fiscalMonth);
+    if (korEligible) updates.kor_eligible = korEligible === "true";
     const { error } = await supabase
       .from("organizations")
       .update(updates as never)
@@ -74,11 +82,10 @@ export default function BulkSettings() {
     toast.success(`Toegepast op ${selected.size} entiteiten`);
     // Refetch
     const ids = memberships.map((m) => m.organizationId);
-    const { data } = await supabase.from("organizations").select("id, name, vat_frequency, vat_scheme, org_type").in("id", ids);
+    const { data } = await supabase.from("organizations").select("id, name, vat_frequency, vat_scheme, org_type, fiscal_year_start_month, kor_eligible").in("id", ids);
     setOrgs((data as OrgRow[]) ?? []);
     setSelected(new Set());
-    setVatFreq("");
-    setVatScheme("");
+    setVatFreq(""); setVatScheme(""); setFiscalMonth(""); setKorEligible("");
   };
 
   const freqLabel = (f: string) => ({ monthly: "Maandelijks", quarterly: "Kwartaal", yearly: "Jaarlijks" }[f] ?? f);
