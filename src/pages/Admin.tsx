@@ -204,7 +204,7 @@ function SubscriptionsPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2 md:gap-3">
         <StatCard label="Actief" value={stats.active} tone="primary" />
         <StatCard label="Achterstallig" value={stats.pastDue} tone="warning" />
         <StatCard label="Geannuleerd" value={stats.canceled} tone="muted" />
