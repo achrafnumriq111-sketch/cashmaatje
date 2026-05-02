@@ -144,7 +144,13 @@ export default function TwoFactorRecovery() {
                 <Label htmlFor="email">E-mailadres</Label>
                 <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>{loading ? "Versturen..." : "Stuur herstel-link"}</Button>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading
+                  ? attempt > 1
+                    ? `Opnieuw proberen (${attempt}/${MAX_ATTEMPTS})...`
+                    : "Versturen..."
+                  : "Stuur herstel-link"}
+              </Button>
               <Link to="/login" className="block text-center text-sm text-muted-foreground hover:text-foreground">Terug naar login</Link>
             </form>
           )}
