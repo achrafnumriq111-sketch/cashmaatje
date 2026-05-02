@@ -2,12 +2,12 @@ import { motion } from "framer-motion";
 import { pageTransition, cardVariant } from "@/lib/animations";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Briefcase, Download, FileText, Receipt, BookOpen, ScrollText, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { AccountantSharesCard } from "@/components/accountant/AccountantSharesCard";
 
 /**
  * Accountant Portal — read-only werkdossier voor de boekhouder/accountant.
@@ -109,15 +109,7 @@ export default function AccountantPortal() {
       </motion.div>
 
       <motion.div variants={cardVariant}>
-        <Card className="bg-muted/30">
-          <CardHeader>
-            <CardTitle className="text-sm">Tip — Toegang voor je accountant</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            Nodig je accountant uit via <Link to="/instellingen" className="text-primary hover:underline">Instellingen → Team</Link> met de rol{" "}
-            <Badge variant="outline" className="mx-1">accountant</Badge>. Hij of zij krijgt dan deze portal als startscherm.
-          </CardContent>
-        </Card>
+        <AccountantSharesCard />
       </motion.div>
     </motion.div>
   );
