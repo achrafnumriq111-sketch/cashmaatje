@@ -6013,6 +6013,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_industry_preset: {
+        Args: { p_industry: string; p_org_id: string }
+        Returns: undefined
+      }
       calculate_referral_discount: { Args: { p_org_id: string }; Returns: Json }
       calculate_vat_return: {
         Args: { p_end_date: string; p_org_id: string; p_start_date: string }
