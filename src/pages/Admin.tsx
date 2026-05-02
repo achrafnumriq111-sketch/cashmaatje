@@ -41,42 +41,44 @@ export default function Admin() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Admin paneel</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-foreground">Admin paneel</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Beheer gebruikers, abonnementen en communicatie
         </p>
       </div>
 
       <Tabs defaultValue="users">
-        <TabsList className="flex-wrap h-auto">
-          <TabsTrigger value="users" className="gap-2">
-            <Users className="h-3.5 w-3.5" /> Gebruikers
-          </TabsTrigger>
-          <TabsTrigger value="organizations" className="gap-2">
-            <Building2 className="h-3.5 w-3.5" /> Organisaties
-          </TabsTrigger>
-          <TabsTrigger value="flags" className="gap-2">
-            <Flag className="h-3.5 w-3.5" /> Feature flags
-          </TabsTrigger>
-          <TabsTrigger value="releases" className="gap-2">
-            <Sparkles className="h-3.5 w-3.5" /> Releases
-          </TabsTrigger>
-          <TabsTrigger value="subscriptions" className="gap-2">
-            <CreditCard className="h-3.5 w-3.5" /> Abonnementen
-          </TabsTrigger>
-          <TabsTrigger value="broadcasts" className="gap-2">
-            <Megaphone className="h-3.5 w-3.5" /> Aankondigingen
-          </TabsTrigger>
-          <TabsTrigger value="testers" className="gap-2">
-            <UserPlus className="h-3.5 w-3.5" /> Testers
-          </TabsTrigger>
-          <TabsTrigger value="feedback" className="gap-2">
-            <MessageCircle className="h-3.5 w-3.5" /> Feedback
-          </TabsTrigger>
-          <TabsTrigger value="support" className="gap-2">
-            <MessageSquare className="h-3.5 w-3.5" /> Support inbox
-          </TabsTrigger>
-        </TabsList>
+        <div className="-mx-4 md:mx-0 overflow-x-auto scrollbar-none">
+          <TabsList className="flex w-max md:w-full md:flex-wrap h-auto px-4 md:px-0 gap-1">
+            <TabsTrigger value="users" className="gap-1.5 text-xs md:text-sm whitespace-nowrap">
+              <Users className="h-3.5 w-3.5" /> Gebruikers
+            </TabsTrigger>
+            <TabsTrigger value="organizations" className="gap-1.5 text-xs md:text-sm whitespace-nowrap">
+              <Building2 className="h-3.5 w-3.5" /> Organisaties
+            </TabsTrigger>
+            <TabsTrigger value="flags" className="gap-1.5 text-xs md:text-sm whitespace-nowrap">
+              <Flag className="h-3.5 w-3.5" /> Flags
+            </TabsTrigger>
+            <TabsTrigger value="releases" className="gap-1.5 text-xs md:text-sm whitespace-nowrap">
+              <Sparkles className="h-3.5 w-3.5" /> Releases
+            </TabsTrigger>
+            <TabsTrigger value="subscriptions" className="gap-1.5 text-xs md:text-sm whitespace-nowrap">
+              <CreditCard className="h-3.5 w-3.5" /> Abonnementen
+            </TabsTrigger>
+            <TabsTrigger value="broadcasts" className="gap-1.5 text-xs md:text-sm whitespace-nowrap">
+              <Megaphone className="h-3.5 w-3.5" /> Aankondigingen
+            </TabsTrigger>
+            <TabsTrigger value="testers" className="gap-1.5 text-xs md:text-sm whitespace-nowrap">
+              <UserPlus className="h-3.5 w-3.5" /> Testers
+            </TabsTrigger>
+            <TabsTrigger value="feedback" className="gap-1.5 text-xs md:text-sm whitespace-nowrap">
+              <MessageCircle className="h-3.5 w-3.5" /> Feedback
+            </TabsTrigger>
+            <TabsTrigger value="support" className="gap-1.5 text-xs md:text-sm whitespace-nowrap">
+              <MessageSquare className="h-3.5 w-3.5" /> Support
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="users" className="mt-4">
           <UsersPanel />
@@ -134,35 +136,35 @@ function UsersPanel() {
 
   return (
     <Card>
-      <CardContent className="p-5 space-y-4">
-        <div className="flex items-center gap-2">
+      <CardContent className="p-4 md:p-5 space-y-4">
+        <div className="flex flex-wrap items-center gap-2">
           <Search className="h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Zoek op email of naam..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="max-w-sm"
+            className="flex-1 min-w-[200px] max-w-sm"
           />
-          <Badge variant="outline" className="ml-auto">{filtered.length} gebruikers</Badge>
+          <Badge variant="outline" className="ml-auto">{filtered.length}</Badge>
         </div>
         {isLoading ? (
           <Loader2 className="h-5 w-5 animate-spin text-primary" />
         ) : (
-          <div className="border border-border rounded-lg overflow-hidden">
+          <div className="border border-border rounded-lg overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Naam</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Aangemeld</TableHead>
+                  <TableHead className="hidden sm:table-cell">Aangemeld</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((u) => (
                   <TableRow key={u.id}>
                     <TableCell className="font-medium">{u.full_name || "—"}</TableCell>
-                    <TableCell className="text-muted-foreground">{u.email}</TableCell>
-                    <TableCell className="text-muted-foreground text-xs">
+                    <TableCell className="text-muted-foreground break-all">{u.email}</TableCell>
+                    <TableCell className="hidden sm:table-cell text-muted-foreground text-xs">
                       {u.created_at ? format(new Date(u.created_at), "d MMM yyyy", { locale: nl }) : "—"}
                     </TableCell>
                   </TableRow>
@@ -202,32 +204,32 @@ function SubscriptionsPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2 md:gap-3">
         <StatCard label="Actief" value={stats.active} tone="primary" />
         <StatCard label="Achterstallig" value={stats.pastDue} tone="warning" />
         <StatCard label="Geannuleerd" value={stats.canceled} tone="muted" />
       </div>
       <Card>
-        <CardContent className="p-5">
+        <CardContent className="p-4 md:p-5">
           {isLoading ? (
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
           ) : (
-            <div className="border border-border rounded-lg overflow-hidden">
+            <div className="border border-border rounded-lg overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>User ID</TableHead>
-                    <TableHead>Plan</TableHead>
+                    <TableHead>User</TableHead>
+                    <TableHead className="hidden sm:table-cell">Plan</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Env</TableHead>
-                    <TableHead>Periode tot</TableHead>
+                    <TableHead className="hidden md:table-cell">Env</TableHead>
+                    <TableHead className="hidden md:table-cell">Periode tot</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {(data ?? []).map((s: any) => (
                     <TableRow key={s.id}>
                       <TableCell className="font-mono text-xs">{s.user_id?.slice(0, 8)}...</TableCell>
-                      <TableCell className="capitalize">{s.price_id ?? "—"}</TableCell>
+                      <TableCell className="hidden sm:table-cell capitalize">{s.price_id ?? "—"}</TableCell>
                       <TableCell>
                         <Badge
                           variant="outline"
@@ -241,8 +243,8 @@ function SubscriptionsPanel() {
                           {s.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{s.environment}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
+                      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{s.environment}</TableCell>
+                      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
                         {s.current_period_end
                           ? format(new Date(s.current_period_end), "d MMM yyyy", { locale: nl })
                           : "—"}
@@ -262,11 +264,11 @@ function SubscriptionsPanel() {
 function StatCard({ label, value, tone }: { label: string; value: number; tone: "primary" | "warning" | "muted" }) {
   return (
     <Card>
-      <CardContent className="p-5">
+      <CardContent className="p-3 md:p-5">
         <p className="text-xs text-muted-foreground mb-1">{label}</p>
         <p
           className={cn(
-            "text-3xl font-bold",
+            "text-2xl md:text-3xl font-bold",
             tone === "primary" && "text-primary",
             tone === "warning" && "text-yellow-200",
             tone === "muted" && "text-foreground"
@@ -454,7 +456,7 @@ function SupportPanel() {
   return (
     <div className="grid md:grid-cols-[300px_1fr] gap-4">
       <Card>
-        <CardContent className="p-3 space-y-2 max-h-[70vh] overflow-auto">
+        <CardContent className="p-3 space-y-2 max-h-[40vh] md:max-h-[70vh] overflow-auto">
           {isLoading && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
           {threads.map((t) => (
             <button
@@ -484,7 +486,7 @@ function SupportPanel() {
         </CardContent>
       </Card>
 
-      <Card className="h-[70vh] flex flex-col">
+      <Card className="h-[60vh] md:h-[70vh] flex flex-col">
         {activeId ? (
           <>
             <CardContent className="flex-1 overflow-auto p-5 space-y-3">
@@ -606,30 +608,30 @@ function OrganizationsPanel() {
 
   return (
     <Card>
-      <CardContent className="p-5 space-y-4">
-        <div className="flex items-center gap-2">
+      <CardContent className="p-4 md:p-5 space-y-4">
+        <div className="flex flex-wrap items-center gap-2">
           <Search className="h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Zoek op naam, KVK, BTW of email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="max-w-md"
+            className="flex-1 min-w-[200px] max-w-md"
           />
-          <Badge variant="outline" className="ml-auto">{filtered.length} organisaties</Badge>
+          <Badge variant="outline" className="ml-auto">{filtered.length}</Badge>
         </div>
         {isLoading ? (
           <Loader2 className="h-5 w-5 animate-spin text-primary" />
         ) : (
-          <div className="border border-border rounded-lg overflow-hidden">
+          <div className="border border-border rounded-lg overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Naam</TableHead>
-                  <TableHead>KVK / BTW</TableHead>
-                  <TableHead>Leden</TableHead>
-                  <TableHead>Aangemaakt</TableHead>
-                  <TableHead className="text-right gap-1 inline-flex items-center">
-                    <Beaker className="h-3.5 w-3.5" /> Test sandbox
+                  <TableHead className="hidden sm:table-cell">KVK / BTW</TableHead>
+                  <TableHead className="hidden md:table-cell">Leden</TableHead>
+                  <TableHead className="hidden md:table-cell">Aangemaakt</TableHead>
+                  <TableHead className="text-right">
+                    <span className="inline-flex items-center gap-1"><Beaker className="h-3.5 w-3.5" /> Test</span>
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -638,13 +640,16 @@ function OrganizationsPanel() {
                   <TableRow key={o.id}>
                     <TableCell>
                       <div className="font-medium text-foreground">{o.name}</div>
-                      {o.email && <div className="text-xs text-muted-foreground">{o.email}</div>}
+                      {o.email && <div className="text-xs text-muted-foreground break-all">{o.email}</div>}
+                      <div className="sm:hidden text-[11px] text-muted-foreground mt-0.5">
+                        {o.kvk_number ?? "—"} {o.btw_number ? `· ${o.btw_number}` : ""}
+                      </div>
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
+                    <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">
                       {o.kvk_number ?? "—"} {o.btw_number ? `· ${o.btw_number}` : ""}
                     </TableCell>
-                    <TableCell className="text-xs">{memberCounts?.[o.id] ?? 0}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
+                    <TableCell className="hidden md:table-cell text-xs">{memberCounts?.[o.id] ?? 0}</TableCell>
+                    <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
                       {o.created_at ? format(new Date(o.created_at), "d MMM yyyy", { locale: nl }) : "—"}
                     </TableCell>
                     <TableCell className="text-right">
@@ -746,10 +751,10 @@ function FeatureFlagsPanel() {
           <Card key={f.id}>
             <CardContent className="p-5 space-y-3">
               <div className="flex items-start gap-3">
-                <ToggleRight className="h-5 w-5 text-primary mt-0.5" />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-foreground">{f.name}</h3>
+                <ToggleRight className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-foreground break-all">{f.name}</h3>
                     <Badge variant="outline" className="font-mono text-[10px]">{f.key}</Badge>
                     {f.enabled_globally && <Badge className="text-[10px]">Live voor iedereen</Badge>}
                   </div>
@@ -1198,14 +1203,14 @@ function TestersPanel() {
         <Card>
           <CardContent className="space-y-3 p-6">
             <h3 className="font-semibold text-foreground">Inloggegevens (deel met tester)</h3>
-            <div className="grid grid-cols-[120px_1fr_auto] gap-2 text-sm items-center">
+            <div className="grid grid-cols-[90px_1fr_auto] md:grid-cols-[120px_1fr_auto] gap-2 text-sm items-center">
               <span className="text-muted-foreground">Email</span>
-              <code className="font-mono bg-secondary px-2 py-1 rounded">{result.email}</code>
+              <code className="font-mono bg-secondary px-2 py-1 rounded text-xs md:text-sm break-all">{result.email}</code>
               <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(result.email); toast.success("Gekopieerd"); }}>
                 <Copy className="h-3.5 w-3.5" />
               </Button>
               <span className="text-muted-foreground">Wachtwoord</span>
-              <code className="font-mono bg-secondary px-2 py-1 rounded">{result.password}</code>
+              <code className="font-mono bg-secondary px-2 py-1 rounded text-xs md:text-sm break-all">{result.password}</code>
               <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(result.password); toast.success("Gekopieerd"); }}>
                 <Copy className="h-3.5 w-3.5" />
               </Button>
