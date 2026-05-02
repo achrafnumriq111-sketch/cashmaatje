@@ -67,15 +67,40 @@ export default function TwoFactorRecovery() {
   const handleRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    try {
-      const { error } = await supabase.functions.invoke("request-2fa-recovery", { body: { email } });
-      if (error) throw error;
-      setSent(true);
-    } catch (e: any) {
-      toast.error(e.message);
-    } finally {
+    setAttempt(0);
+
+    const trimmed = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      toast.error("Vul een geldig e-mailadres in.");
       setLoading(false);
+      return;
     }
+
+    let lastErr: any = null;
+    for (let i = 1; i <= MAX_ATTEMPTS; i++) {
+      setAttempt(i);
+      try {
+        const { data, error } = await supabase.functions.invoke("request-2fa-recovery", {
+          body: { email: trimmed },
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(typeof data.error === "string" ? data.error : "Server error");
+        setSent(true);
+        setLoading(false);
+        return;
+      } catch (err: any) {
+        lastErr = err;
+        if (i < MAX_ATTEMPTS && isTransient(err)) {
+          toast.message(`Verbinding hapert — opnieuw proberen (${i}/${MAX_ATTEMPTS})...`);
+          await sleep(600 * 2 ** (i - 1)); // 600ms, 1.2s
+          continue;
+        }
+        break;
+      }
+    }
+
+    toast.error(friendlyMessage(lastErr));
+    setLoading(false);
   };
 
   if (token) {
