@@ -4022,6 +4022,7 @@ export type Database = {
           created_at: string
           finalized_at: string | null
           id: string
+          journal_entry_id: string | null
           organization_id: string
           period_month: number
           period_year: number
@@ -4036,6 +4037,7 @@ export type Database = {
           created_at?: string
           finalized_at?: string | null
           id?: string
+          journal_entry_id?: string | null
           organization_id: string
           period_month: number
           period_year: number
@@ -4050,6 +4052,7 @@ export type Database = {
           created_at?: string
           finalized_at?: string | null
           id?: string
+          journal_entry_id?: string | null
           organization_id?: string
           period_month?: number
           period_year?: number
@@ -4061,6 +4064,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "payroll_runs_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payroll_runs_organization_id_fkey"
             columns: ["organization_id"]
@@ -6079,6 +6089,7 @@ export type Database = {
         Args: { p_memorial_id: string }
         Returns: string
       }
+      post_payroll_journal: { Args: { p_run_id: string }; Returns: string }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
