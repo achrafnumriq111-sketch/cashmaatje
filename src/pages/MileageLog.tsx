@@ -52,10 +52,23 @@ function emptyRoute(): MileageRoute {
   return { name: "", from_address: "", to_address: "", km: 0, default_trip_type: "business" };
 }
 
+async function reverseGeocode(lat: number, lng: number): Promise<string> {
+  const fallback = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+    const j = await r.json();
+    return j.display_name ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export default function MileageLog() {
   const [year, setYear] = useState(currentYear);
   const { trips, routes, loading, saveTrip, deleteTrip, saveRoute, deleteRoute, totals, businessDeduction } =
     useMileageTrips(year);
+  const { data: contactsData } = useContacts({ search: "", type: "all", country: "all", riskStatus: "all" });
+  const contacts: ContactAddress[] = useMemo(() => (contactsData ?? []) as any, [contactsData]);
   const { toast } = useToast();
 
   const [tripOpen, setTripOpen] = useState(false);
@@ -63,6 +76,67 @@ export default function MileageLog() {
   const [trip, setTrip] = useState<MileageTrip>(emptyTrip());
   const [route, setRoute] = useState<MileageRoute>(emptyRoute());
   const [gpsLoading, setGpsLoading] = useState<"from" | "to" | null>(null);
+  const [autoClassify, setAutoClassify] = useState(true);
+  const [classification, setClassification] = useState<{ reason: string; confidence: number } | null>(null);
+
+  // Always-on GPS tracker
+  const handleDetectedTrip = async (detected: DetectedTrip) => {
+    const [from_address, to_address] = await Promise.all([
+      reverseGeocode(detected.startLat, detected.startLng),
+      reverseGeocode(detected.endLat, detected.endLng),
+    ]);
+    const newTrip: MileageTrip = {
+      trip_date: new Date(detected.startedAt).toISOString().slice(0, 10),
+      from_address,
+      to_address,
+      from_lat: detected.startLat,
+      from_lng: detected.startLng,
+      to_lat: detected.endLat,
+      to_lng: detected.endLng,
+      km: detected.km,
+      return_trip: false,
+      trip_type: "private",
+      purpose: "Automatisch gedetecteerd via GPS",
+      source: "gps-auto",
+    };
+    const result = classifyTrip({
+      fromAddress: from_address,
+      toAddress: to_address,
+      contacts,
+      routes,
+    });
+    newTrip.trip_type = result.tripType;
+    if (result.matchedContact) newTrip.contact_id = result.matchedContact.id;
+    if (result.matchedRoute) newTrip.route_id = result.matchedRoute.id ?? null;
+    await saveTrip(newTrip);
+    toast({
+      title: `Rit geregistreerd · ${detected.km.toFixed(1)} km`,
+      description: `${result.reason} (${Math.round(result.confidence * 100)}% zeker)`,
+    });
+  };
+  const tracker = useGpsTracker(handleDetectedTrip);
+
+  // Auto-classificeer wanneer adressen veranderen in dialoog
+  useEffect(() => {
+    if (!autoClassify || !tripOpen || !trip.from_address || !trip.to_address) {
+      setClassification(null);
+      return;
+    }
+    const result = classifyTrip({
+      fromAddress: trip.from_address,
+      toAddress: trip.to_address,
+      contacts,
+      routes,
+    });
+    setClassification({ reason: result.reason, confidence: result.confidence });
+    setTrip((prev) => ({
+      ...prev,
+      trip_type: result.tripType,
+      contact_id: result.matchedContact?.id ?? prev.contact_id ?? null,
+      route_id: result.matchedRoute?.id ?? prev.route_id ?? null,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trip.from_address, trip.to_address, autoClassify, tripOpen]);
 
   const captureGps = async (which: "from" | "to") => {
     if (!navigator.geolocation) {
