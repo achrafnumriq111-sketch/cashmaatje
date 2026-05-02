@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,8 +12,11 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, MapPin, Trash2, Route as RouteIcon, Crosshair, Car, Briefcase, Home as HomeIcon, User, Download } from "lucide-react";
+import { Plus, MapPin, Trash2, Route as RouteIcon, Crosshair, Car, Briefcase, Home as HomeIcon, User, Download, Radio, Sparkles, Square } from "lucide-react";
 import { useMileageTrips, KM_RATE_BUSINESS, type MileageTrip, type TripType, type MileageRoute } from "@/hooks/useMileageTrips";
+import { useContacts } from "@/hooks/useContacts";
+import { useGpsTracker, type DetectedTrip } from "@/hooks/useGpsTracker";
+import { classifyTrip, type ContactAddress } from "@/lib/mileage/classify";
 import { pageTransition, staggerContainer, cardVariant } from "@/lib/animations";
 
 const currentYear = new Date().getFullYear();
