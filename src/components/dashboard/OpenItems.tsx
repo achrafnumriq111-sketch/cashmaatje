@@ -33,7 +33,7 @@ export function OpenItems({ receivable, payable, overdueReceivable, overduePayab
               <div className="p-1.5 rounded-lg bg-emerald-400/10">
                 <ArrowDownLeft className="h-3.5 w-3.5 text-emerald-400" />
               </div>
-              <span className="text-micro text-muted-foreground">Te ontvangen</span>
+              <span className="text-micro uppercase tracking-wider text-muted-foreground">TE ONTVANGEN</span>
             </div>
             <div className="text-xl font-semibold text-emerald-400 tabular-nums">{fmt(receivable)}</div>
             {overdueReceivable > 0 && (
@@ -49,7 +49,7 @@ export function OpenItems({ receivable, payable, overdueReceivable, overduePayab
               <div className="p-1.5 rounded-lg bg-orange-400/10">
                 <ArrowUpRight className="h-3.5 w-3.5 text-orange-400" />
               </div>
-              <span className="text-micro text-muted-foreground">Te betalen</span>
+              <span className="text-micro uppercase tracking-wider text-muted-foreground">TE BETALEN</span>
             </div>
             <div className="text-xl font-semibold text-orange-400 tabular-nums">{fmt(payable)}</div>
             {overduePayable > 0 && (
