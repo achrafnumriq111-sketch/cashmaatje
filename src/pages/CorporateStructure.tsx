@@ -108,33 +108,50 @@ export default function CorporateStructure() {
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         ) : (
           <div className="flex gap-6 flex-wrap justify-center">
-            {entities.map((e) => (
-              <motion.div key={e.id} variants={cardVariant}>
-                <Card className={`arcory-glass w-56 text-center transition-colors ${
-                  e.is_active_addon ? "hover:border-primary/30" : "border-destructive/40 opacity-80"
-                }`}>
-                  <CardContent className="pt-4 pb-3">
-                    <GitBranch className="h-5 w-5 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm font-medium text-foreground truncate">{e.name}</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">{e.org_type?.toUpperCase()}</p>
-                    <div className="flex items-center justify-center gap-1.5 mt-2">
-                      <Badge variant="outline" className="text-[10px]">
-                        {e.entity_ownership_pct ?? 100}%
-                      </Badge>
-                      {e.is_active_addon ? (
-                        <Badge variant="outline" className="text-[10px] gap-1 text-primary border-primary/40">
-                          <CheckCircle2 className="h-2.5 w-2.5" /> Actief
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-[10px] gap-1 text-destructive border-destructive/40">
-                          <AlertCircle className="h-2.5 w-2.5" /> Betaling vereist
-                        </Badge>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+            {entities.map((e) => {
+              const clickable = e.is_active_addon;
+              return (
+                <motion.div key={e.id} variants={cardVariant}>
+                  <button
+                    type="button"
+                    disabled={!clickable}
+                    onClick={() => handleEnter(e.id)}
+                    className="group block w-56 text-left disabled:cursor-not-allowed"
+                  >
+                    <Card className={`arcory-glass text-center transition-all ${
+                      clickable
+                        ? "hover:border-primary group-hover:shadow-lg group-hover:-translate-y-0.5"
+                        : "border-destructive/40 opacity-80"
+                    }`}>
+                      <CardContent className="pt-4 pb-3">
+                        <GitBranch className="h-5 w-5 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-sm font-medium text-foreground truncate">{e.name}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{e.org_type?.toUpperCase()}</p>
+                        <div className="flex items-center justify-center gap-1.5 mt-2">
+                          <Badge variant="outline" className="text-[10px]">
+                            {e.entity_ownership_pct ?? 100}%
+                          </Badge>
+                          {e.is_active_addon ? (
+                            <Badge variant="outline" className="text-[10px] gap-1 text-primary border-primary/40">
+                              <CheckCircle2 className="h-2.5 w-2.5" /> Actief
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] gap-1 text-destructive border-destructive/40">
+                              <AlertCircle className="h-2.5 w-2.5" /> Betaling vereist
+                            </Badge>
+                          )}
+                        </div>
+                        {clickable && (
+                          <div className="flex items-center justify-center gap-1 text-xs text-primary mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            Open <ArrowRight className="h-3 w-3" />
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </button>
+                </motion.div>
+              );
+            })}
           </div>
         )}
 
