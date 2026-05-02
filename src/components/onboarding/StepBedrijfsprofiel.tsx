@@ -13,6 +13,18 @@ const LEGAL_FORMS = [
   { value: "cv", label: "CV" },
 ];
 
+const INDUSTRIES = [
+  { value: "zzp_it", label: "ZZP — IT/Consultancy" },
+  { value: "webshop", label: "Webshop / E-commerce" },
+  { value: "horeca", label: "Horeca" },
+  { value: "bouw", label: "Bouw / Installatie" },
+  { value: "holding", label: "Holding / Investering" },
+  { value: "retail", label: "Retail" },
+  { value: "zorg", label: "Zorg" },
+  { value: "creatief", label: "Creatief / Design" },
+  { value: "overig", label: "Overig" },
+];
+
 interface Props {
   data: OnboardingData;
   setData: React.Dispatch<React.SetStateAction<OnboardingData>>;
