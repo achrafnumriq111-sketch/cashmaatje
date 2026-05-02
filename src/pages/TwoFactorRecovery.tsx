@@ -9,6 +9,33 @@ import { AuthLogo } from "@/components/AuthLogo";
 import { toast } from "sonner";
 import { Mail, CheckCircle2 } from "lucide-react";
 
+const MAX_ATTEMPTS = 3;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Decide whether an invoke error is worth retrying (transient network / 5xx). */
+function isTransient(err: any): boolean {
+  if (!err) return false;
+  const status = err?.context?.status ?? err?.status;
+  if (typeof status === "number") return status >= 500 || status === 408 || status === 429;
+  const msg = String(err?.message ?? err).toLowerCase();
+  return /network|failed to fetch|timeout|fetch error|load failed/.test(msg);
+}
+
+/** Map server / transport errors to a friendly Dutch message. */
+function friendlyMessage(err: any): string {
+  const status = err?.context?.status ?? err?.status;
+  if (status === 400) return "Vul een geldig e-mailadres in.";
+  if (status === 429) return "Te veel pogingen. Probeer het over een paar minuten opnieuw.";
+  if (typeof status === "number" && status >= 500) {
+    return "Onze server reageert even niet. Probeer het zo opnieuw.";
+  }
+  const msg = String(err?.message ?? "").toLowerCase();
+  if (/network|failed to fetch|load failed/.test(msg)) {
+    return "Geen verbinding. Controleer je internet en probeer opnieuw.";
+  }
+  return "Er ging iets mis. Probeer het opnieuw.";
+}
+
 export default function TwoFactorRecovery() {
   const [params] = useSearchParams();
   const token = params.get("token");
@@ -17,6 +44,7 @@ export default function TwoFactorRecovery() {
   const [sent, setSent] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [resetDone, setResetDone] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     if (!token) return;
@@ -39,15 +67,40 @@ export default function TwoFactorRecovery() {
   const handleRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    try {
-      const { error } = await supabase.functions.invoke("request-2fa-recovery", { body: { email } });
-      if (error) throw error;
-      setSent(true);
-    } catch (e: any) {
-      toast.error(e.message);
-    } finally {
+    setAttempt(0);
+
+    const trimmed = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      toast.error("Vul een geldig e-mailadres in.");
       setLoading(false);
+      return;
     }
+
+    let lastErr: any = null;
+    for (let i = 1; i <= MAX_ATTEMPTS; i++) {
+      setAttempt(i);
+      try {
+        const { data, error } = await supabase.functions.invoke("request-2fa-recovery", {
+          body: { email: trimmed },
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(typeof data.error === "string" ? data.error : "Server error");
+        setSent(true);
+        setLoading(false);
+        return;
+      } catch (err: any) {
+        lastErr = err;
+        if (i < MAX_ATTEMPTS && isTransient(err)) {
+          toast.message(`Verbinding hapert — opnieuw proberen (${i}/${MAX_ATTEMPTS})...`);
+          await sleep(600 * 2 ** (i - 1)); // 600ms, 1.2s
+          continue;
+        }
+        break;
+      }
+    }
+
+    toast.error(friendlyMessage(lastErr));
+    setLoading(false);
   };
 
   if (token) {
@@ -91,7 +144,13 @@ export default function TwoFactorRecovery() {
                 <Label htmlFor="email">E-mailadres</Label>
                 <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>{loading ? "Versturen..." : "Stuur herstel-link"}</Button>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading
+                  ? attempt > 1
+                    ? `Opnieuw proberen (${attempt}/${MAX_ATTEMPTS})...`
+                    : "Versturen..."
+                  : "Stuur herstel-link"}
+              </Button>
               <Link to="/login" className="block text-center text-sm text-muted-foreground hover:text-foreground">Terug naar login</Link>
             </form>
           )}
