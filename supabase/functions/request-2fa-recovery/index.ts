@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
       email: user.email!,
       token_hash: tokenHash,
       expires_at: expiresAt,
-      ip_address: req.headers.get("x-forwarded-for") ?? null,
+      ip_address: (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || null,
       user_agent: req.headers.get("user-agent") ?? null,
     });
     if (insErr) throw insErr;
