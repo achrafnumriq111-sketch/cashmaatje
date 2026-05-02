@@ -41,42 +41,44 @@ export default function Admin() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Admin paneel</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-foreground">Admin paneel</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Beheer gebruikers, abonnementen en communicatie
         </p>
       </div>
 
       <Tabs defaultValue="users">
-        <TabsList className="flex-wrap h-auto">
-          <TabsTrigger value="users" className="gap-2">
-            <Users className="h-3.5 w-3.5" /> Gebruikers
-          </TabsTrigger>
-          <TabsTrigger value="organizations" className="gap-2">
-            <Building2 className="h-3.5 w-3.5" /> Organisaties
-          </TabsTrigger>
-          <TabsTrigger value="flags" className="gap-2">
-            <Flag className="h-3.5 w-3.5" /> Feature flags
-          </TabsTrigger>
-          <TabsTrigger value="releases" className="gap-2">
-            <Sparkles className="h-3.5 w-3.5" /> Releases
-          </TabsTrigger>
-          <TabsTrigger value="subscriptions" className="gap-2">
-            <CreditCard className="h-3.5 w-3.5" /> Abonnementen
-          </TabsTrigger>
-          <TabsTrigger value="broadcasts" className="gap-2">
-            <Megaphone className="h-3.5 w-3.5" /> Aankondigingen
-          </TabsTrigger>
-          <TabsTrigger value="testers" className="gap-2">
-            <UserPlus className="h-3.5 w-3.5" /> Testers
-          </TabsTrigger>
-          <TabsTrigger value="feedback" className="gap-2">
-            <MessageCircle className="h-3.5 w-3.5" /> Feedback
-          </TabsTrigger>
-          <TabsTrigger value="support" className="gap-2">
-            <MessageSquare className="h-3.5 w-3.5" /> Support inbox
-          </TabsTrigger>
-        </TabsList>
+        <div className="-mx-4 md:mx-0 overflow-x-auto scrollbar-none">
+          <TabsList className="flex w-max md:w-full md:flex-wrap h-auto px-4 md:px-0 gap-1">
+            <TabsTrigger value="users" className="gap-1.5 text-xs md:text-sm whitespace-nowrap">
+              <Users className="h-3.5 w-3.5" /> Gebruikers
+            </TabsTrigger>
+            <TabsTrigger value="organizations" className="gap-1.5 text-xs md:text-sm whitespace-nowrap">
+              <Building2 className="h-3.5 w-3.5" /> Organisaties
+            </TabsTrigger>
+            <TabsTrigger value="flags" className="gap-1.5 text-xs md:text-sm whitespace-nowrap">
+              <Flag className="h-3.5 w-3.5" /> Flags
+            </TabsTrigger>
+            <TabsTrigger value="releases" className="gap-1.5 text-xs md:text-sm whitespace-nowrap">
+              <Sparkles className="h-3.5 w-3.5" /> Releases
+            </TabsTrigger>
+            <TabsTrigger value="subscriptions" className="gap-1.5 text-xs md:text-sm whitespace-nowrap">
+              <CreditCard className="h-3.5 w-3.5" /> Abonnementen
+            </TabsTrigger>
+            <TabsTrigger value="broadcasts" className="gap-1.5 text-xs md:text-sm whitespace-nowrap">
+              <Megaphone className="h-3.5 w-3.5" /> Aankondigingen
+            </TabsTrigger>
+            <TabsTrigger value="testers" className="gap-1.5 text-xs md:text-sm whitespace-nowrap">
+              <UserPlus className="h-3.5 w-3.5" /> Testers
+            </TabsTrigger>
+            <TabsTrigger value="feedback" className="gap-1.5 text-xs md:text-sm whitespace-nowrap">
+              <MessageCircle className="h-3.5 w-3.5" /> Feedback
+            </TabsTrigger>
+            <TabsTrigger value="support" className="gap-1.5 text-xs md:text-sm whitespace-nowrap">
+              <MessageSquare className="h-3.5 w-3.5" /> Support
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="users" className="mt-4">
           <UsersPanel />
