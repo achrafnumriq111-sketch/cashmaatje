@@ -41,8 +41,23 @@ export default function BankImport() {
   const handleFile = async (file: File) => {
     setImportResult(null);
     const text = await file.text();
-    const result = parseBankCsv(text);
+    const ext = file.name.toLowerCase().split(".").pop();
+    let format = detectStatementFormat(text);
+    if (format === "unknown") {
+      if (ext === "xml") format = "camt053";
+      else if (ext === "sta" || ext === "mt940" || ext === "txt") format = "mt940";
+      else format = "csv";
+    }
+    let result: ParseResult;
+    if (format === "camt053") result = parseCamt053(text);
+    else if (format === "mt940") result = parseMt940(text);
+    else result = parseBankCsv(text);
     setParsed(result);
+    if (result.transactions.length === 0 && result.errors.length === 0) {
+      toast.error("Geen transacties gevonden in dit bestand");
+    } else {
+      toast.success(`${result.transactions.length} transacties uit ${format.toUpperCase()} gelezen`);
+    }
     if (bankAccounts.length === 1) setAccountId(bankAccounts[0].id);
     else if (bankAccounts.find((b) => b.is_primary)) setAccountId(bankAccounts.find((b) => b.is_primary)!.id);
   };
