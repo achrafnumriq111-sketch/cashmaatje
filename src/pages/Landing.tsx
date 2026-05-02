@@ -24,7 +24,7 @@ function Nav() {
   return (
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/60">
       <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
-        <Link to="/landing" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2">
           <div className="h-7 w-7 rounded-lg bg-primary grid place-items-center">
             <span className="text-primary-foreground text-[13px] font-semibold">C</span>
           </div>
