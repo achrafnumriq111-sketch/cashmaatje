@@ -264,11 +264,11 @@ function SubscriptionsPanel() {
 function StatCard({ label, value, tone }: { label: string; value: number; tone: "primary" | "warning" | "muted" }) {
   return (
     <Card>
-      <CardContent className="p-5">
+      <CardContent className="p-3 md:p-5">
         <p className="text-xs text-muted-foreground mb-1">{label}</p>
         <p
           className={cn(
-            "text-3xl font-bold",
+            "text-2xl md:text-3xl font-bold",
             tone === "primary" && "text-primary",
             tone === "warning" && "text-yellow-200",
             tone === "muted" && "text-foreground"
