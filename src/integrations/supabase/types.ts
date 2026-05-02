@@ -14,6 +14,62 @@ export type Database = {
   }
   public: {
     Tables: {
+      accountant_shares: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          invited_email: string
+          invited_name: string | null
+          organization_id: string
+          permissions: Json
+          revoked_at: string | null
+          share_token: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          invited_email: string
+          invited_name?: string | null
+          organization_id: string
+          permissions?: Json
+          revoked_at?: string | null
+          share_token?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          invited_email?: string
+          invited_name?: string | null
+          organization_id?: string
+          permissions?: Json
+          revoked_at?: string | null
+          share_token?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accountant_shares_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounts: {
         Row: {
           account_subtype: Database["public"]["Enums"]["account_subtype"] | null
@@ -107,6 +163,79 @@ export type Database = {
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agenda_events: {
+        Row: {
+          contact_id: string | null
+          created_at: string
+          description: string | null
+          end_at: string
+          hourly_rate_eur: number | null
+          id: string
+          is_billable: boolean
+          organization_id: string
+          start_at: string
+          status: string
+          time_entry_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string
+          description?: string | null
+          end_at: string
+          hourly_rate_eur?: number | null
+          id?: string
+          is_billable?: boolean
+          organization_id: string
+          start_at: string
+          status?: string
+          time_entry_id?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string
+          description?: string | null
+          end_at?: string
+          hourly_rate_eur?: number | null
+          id?: string
+          is_billable?: boolean
+          organization_id?: string
+          start_at?: string
+          status?: string
+          time_entry_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agenda_events_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agenda_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agenda_events_time_entry_id_fkey"
+            columns: ["time_entry_id"]
+            isOneToOne: false
+            referencedRelation: "time_entries"
             referencedColumns: ["id"]
           },
         ]
@@ -708,6 +837,72 @@ export type Database = {
           },
           {
             foreignKeyName: "bank_transactions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_uploads: {
+        Row: {
+          bank_account_id: string | null
+          created_at: string
+          error_message: string | null
+          file_size: number | null
+          filename: string
+          format: string | null
+          id: string
+          organization_id: string
+          rows_imported: number | null
+          rows_skipped: number | null
+          rows_total: number | null
+          status: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          bank_account_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_size?: number | null
+          filename: string
+          format?: string | null
+          id?: string
+          organization_id: string
+          rows_imported?: number | null
+          rows_skipped?: number | null
+          rows_total?: number | null
+          status?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          bank_account_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_size?: number | null
+          filename?: string
+          format?: string | null
+          id?: string
+          organization_id?: string
+          rows_imported?: number | null
+          rows_skipped?: number | null
+          rows_total?: number | null
+          status?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_uploads_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_uploads_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1573,6 +1768,78 @@ export type Database = {
           },
         ]
       }
+      contracts: {
+        Row: {
+          ai_model: string | null
+          analysis: Json | null
+          contact_id: string | null
+          created_at: string
+          employee_id: string | null
+          error_message: string | null
+          file_mime: string | null
+          file_path: string | null
+          id: string
+          organization_id: string
+          raw_text: string | null
+          risk_level: string | null
+          status: string
+          title: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          ai_model?: string | null
+          analysis?: Json | null
+          contact_id?: string | null
+          created_at?: string
+          employee_id?: string | null
+          error_message?: string | null
+          file_mime?: string | null
+          file_path?: string | null
+          id?: string
+          organization_id: string
+          raw_text?: string | null
+          risk_level?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          ai_model?: string | null
+          analysis?: Json | null
+          contact_id?: string | null
+          created_at?: string
+          employee_id?: string | null
+          error_message?: string | null
+          file_mime?: string | null
+          file_path?: string | null
+          id?: string
+          organization_id?: string
+          raw_text?: string | null
+          risk_level?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deductible_premiums: {
         Row: {
           amount: number
@@ -2084,6 +2351,59 @@ export type Database = {
           {
             foreignKeyName: "entity_addons_parent_organization_id_fkey"
             columns: ["parent_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entity_roles: {
+        Row: {
+          accepted_at: string | null
+          can_admin: boolean
+          can_read: boolean
+          can_write: boolean
+          created_at: string
+          id: string
+          invited_at: string
+          invited_by: string | null
+          organization_id: string
+          role: Database["public"]["Enums"]["entity_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          can_admin?: boolean
+          can_read?: boolean
+          can_write?: boolean
+          created_at?: string
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          organization_id: string
+          role?: Database["public"]["Enums"]["entity_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          can_admin?: boolean
+          can_read?: boolean
+          can_write?: boolean
+          created_at?: string
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          organization_id?: string
+          role?: Database["public"]["Enums"]["entity_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_roles_organization_id_fkey"
+            columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
@@ -2903,6 +3223,150 @@ export type Database = {
             columns: ["vat_account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kvk_companies: {
+        Row: {
+          expires_at: string
+          fetched_at: string
+          handelsnaam: string | null
+          id: string
+          kvk_number: string
+          raw: Json | null
+          rechtsvorm: string | null
+          status: string | null
+          vestigingsadres: Json | null
+        }
+        Insert: {
+          expires_at?: string
+          fetched_at?: string
+          handelsnaam?: string | null
+          id?: string
+          kvk_number: string
+          raw?: Json | null
+          rechtsvorm?: string | null
+          status?: string | null
+          vestigingsadres?: Json | null
+        }
+        Update: {
+          expires_at?: string
+          fetched_at?: string
+          handelsnaam?: string | null
+          id?: string
+          kvk_number?: string
+          raw?: Json | null
+          rechtsvorm?: string | null
+          status?: string | null
+          vestigingsadres?: Json | null
+        }
+        Relationships: []
+      }
+      memorial_journal_entries: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string
+          entry_date: string
+          id: string
+          organization_id: string
+          posted_journal_entry_id: string | null
+          reference: string | null
+          status: string
+          total_credit: number
+          total_debit: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description: string
+          entry_date: string
+          id?: string
+          organization_id: string
+          posted_journal_entry_id?: string | null
+          reference?: string | null
+          status?: string
+          total_credit?: number
+          total_debit?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          entry_date?: string
+          id?: string
+          organization_id?: string
+          posted_journal_entry_id?: string | null
+          reference?: string | null
+          status?: string
+          total_credit?: number
+          total_debit?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memorial_journal_entries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memorial_journal_entries_posted_journal_entry_id_fkey"
+            columns: ["posted_journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      memorial_journal_lines: {
+        Row: {
+          account_id: string
+          created_at: string
+          credit_amount: number
+          debit_amount: number
+          description: string | null
+          id: string
+          line_number: number
+          memorial_entry_id: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          credit_amount?: number
+          debit_amount?: number
+          description?: string | null
+          id?: string
+          line_number: number
+          memorial_entry_id: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          credit_amount?: number
+          debit_amount?: number
+          description?: string | null
+          id?: string
+          line_number?: number
+          memorial_entry_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memorial_journal_lines_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memorial_journal_lines_memorial_entry_id_fkey"
+            columns: ["memorial_entry_id"]
+            isOneToOne: false
+            referencedRelation: "memorial_journal_entries"
             referencedColumns: ["id"]
           },
         ]
@@ -4872,6 +5336,79 @@ export type Database = {
           },
         ]
       }
+      time_entries: {
+        Row: {
+          agenda_event_id: string | null
+          contact_id: string | null
+          created_at: string
+          description: string | null
+          entry_date: string
+          hourly_rate_eur: number | null
+          hours: number
+          id: string
+          invoice_id: string | null
+          is_billable: boolean
+          is_invoiced: boolean
+          organization_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agenda_event_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          description?: string | null
+          entry_date: string
+          hourly_rate_eur?: number | null
+          hours: number
+          id?: string
+          invoice_id?: string | null
+          is_billable?: boolean
+          is_invoiced?: boolean
+          organization_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agenda_event_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          description?: string | null
+          entry_date?: string
+          hourly_rate_eur?: number | null
+          hours?: number
+          id?: string
+          invoice_id?: string | null
+          is_billable?: boolean
+          is_invoiced?: boolean
+          organization_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       two_factor_recovery_requests: {
         Row: {
           created_at: string
@@ -5331,6 +5868,74 @@ export type Database = {
           },
         ]
       }
+      vpb_calculations: {
+        Row: {
+          ai_model: string | null
+          ai_reasoning: string | null
+          belastbare_winst: number
+          created_at: string
+          created_by: string | null
+          fiscal_year: number
+          id: string
+          organization_id: string
+          rates_used: Json | null
+          schijf_1_grens_eur: number
+          schijf_1_tarief: number
+          schijf_2_tarief: number
+          status: string
+          updated_at: string
+          vpb_schijf_1: number
+          vpb_schijf_2: number
+          vpb_total: number
+        }
+        Insert: {
+          ai_model?: string | null
+          ai_reasoning?: string | null
+          belastbare_winst?: number
+          created_at?: string
+          created_by?: string | null
+          fiscal_year: number
+          id?: string
+          organization_id: string
+          rates_used?: Json | null
+          schijf_1_grens_eur?: number
+          schijf_1_tarief?: number
+          schijf_2_tarief?: number
+          status?: string
+          updated_at?: string
+          vpb_schijf_1?: number
+          vpb_schijf_2?: number
+          vpb_total?: number
+        }
+        Update: {
+          ai_model?: string | null
+          ai_reasoning?: string | null
+          belastbare_winst?: number
+          created_at?: string
+          created_by?: string | null
+          fiscal_year?: number
+          id?: string
+          organization_id?: string
+          rates_used?: Json | null
+          schijf_1_grens_eur?: number
+          schijf_1_tarief?: number
+          schijf_2_tarief?: number
+          status?: string
+          updated_at?: string
+          vpb_schijf_1?: number
+          vpb_schijf_2?: number
+          vpb_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vpb_calculations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vpb_returns: {
         Row: {
           created_at: string
@@ -5470,6 +6075,10 @@ export type Database = {
         }
         Returns: number
       }
+      post_memorial_journal: {
+        Args: { p_memorial_id: string }
+        Returns: string
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -5581,6 +6190,7 @@ export type Database = {
         | "contract"
         | "tax_filing"
         | "other"
+      entity_role: "owner" | "admin" | "editor" | "viewer"
       invoice_status:
         | "draft"
         | "sent"
@@ -5838,6 +6448,7 @@ export const Constants = {
         "tax_filing",
         "other",
       ],
+      entity_role: ["owner", "admin", "editor", "viewer"],
       invoice_status: [
         "draft",
         "sent",

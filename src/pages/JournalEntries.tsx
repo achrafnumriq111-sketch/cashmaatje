@@ -3,12 +3,15 @@ import { motion } from "framer-motion";
 import { JournalFilters } from "@/components/journal/JournalFilters";
 import { JournalTable } from "@/components/journal/JournalTable";
 import { JournalDetail } from "@/components/journal/JournalDetail";
+import { MemorialJournalDialog } from "@/components/journal/MemorialJournalDialog";
 import { useJournalEntries, type JournalFilters as JFilters } from "@/hooks/useJournalEntries";
 import { Badge } from "@/components/ui/badge";
-import { ScrollText } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ScrollText, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { pageTransition, cardVariant } from "@/lib/animations";
 import { exportToExcel } from "@/lib/exportUtils";
+import { useEntityAccess } from "@/hooks/useEntityAccess";
 
 export default function JournalEntries() {
   const now = new Date();
@@ -18,6 +21,8 @@ export default function JournalEntries() {
     status: "all", search: "", sourceType: "all", vatBox: "", accountId: null,
   });
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [memorialOpen, setMemorialOpen] = useState(false);
+  const { canWrite } = useEntityAccess();
   const { data: entries = [], isLoading } = useJournalEntries(filters);
   const selectedEntry = useMemo(() => entries.find((e) => e.id === detailId) ?? null, [entries, detailId]);
 
@@ -66,11 +71,17 @@ export default function JournalEntries() {
             {stats.review > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500/15 text-amber-400 border-0 text-[10px]">{stats.review} review nodig</Badge>}
           </p>
         </div>
+        {canWrite && (
+          <Button onClick={() => setMemorialOpen(true)} className="gap-1.5">
+            <Plus className="h-4 w-4" /> Memoriaalboeking
+          </Button>
+        )}
       </motion.div>
 
       <motion.div variants={cardVariant}><JournalFilters filters={filters} onChange={setFilters} onExport={handleExport} /></motion.div>
       <motion.div variants={cardVariant}><JournalTable entries={entries} isLoading={isLoading} onRowClick={(id) => setDetailId(id)} /></motion.div>
       <JournalDetail entry={selectedEntry} open={!!detailId} onClose={() => setDetailId(null)} />
+      <MemorialJournalDialog open={memorialOpen} onOpenChange={setMemorialOpen} />
     </motion.div>
   );
 }
