@@ -71,11 +71,17 @@ export default function JournalEntries() {
             {stats.review > 0 && <Badge variant="secondary" className="ml-2 bg-amber-500/15 text-amber-400 border-0 text-[10px]">{stats.review} review nodig</Badge>}
           </p>
         </div>
+        {canWrite && (
+          <Button onClick={() => setMemorialOpen(true)} className="gap-1.5">
+            <Plus className="h-4 w-4" /> Memoriaalboeking
+          </Button>
+        )}
       </motion.div>
 
       <motion.div variants={cardVariant}><JournalFilters filters={filters} onChange={setFilters} onExport={handleExport} /></motion.div>
       <motion.div variants={cardVariant}><JournalTable entries={entries} isLoading={isLoading} onRowClick={(id) => setDetailId(id)} /></motion.div>
       <JournalDetail entry={selectedEntry} open={!!detailId} onClose={() => setDetailId(null)} />
+      <MemorialJournalDialog open={memorialOpen} onOpenChange={setMemorialOpen} />
     </motion.div>
   );
 }
