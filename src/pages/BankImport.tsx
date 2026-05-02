@@ -86,9 +86,9 @@ export default function BankImport() {
   return (
     <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-6">
       <motion.div variants={cardVariant}>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Bank CSV Import</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Bankafschriften importeren</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Upload een CSV-export van je bank — wij lezen het uit en matchen automatisch tegen openstaande facturen.
+          Upload CSV, CAMT.053 of MT940 — wij lezen het uit en matchen automatisch tegen openstaande facturen.
         </p>
       </motion.div>
 
