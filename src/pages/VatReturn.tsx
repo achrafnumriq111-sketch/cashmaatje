@@ -270,7 +270,7 @@ export default function VatReturn() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-[-0.02em] text-foreground">BTW-aangifte</h1>
+          <h1 className="text-2xl font-semibold tracking-[-0.02em] text-foreground">BTW winst-aangifte</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {periodLabel} · Omzetbelasting
           </p>
