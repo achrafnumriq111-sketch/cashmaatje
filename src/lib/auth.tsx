@@ -56,7 +56,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!loading && !session) {
-      navigate("/landing", { replace: true });
+      navigate("/", { replace: true });
     }
   }, [session, loading, navigate]);
 

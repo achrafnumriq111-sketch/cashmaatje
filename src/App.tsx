@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { useAuth } from "@/lib/auth";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -80,6 +81,27 @@ import Pricing from "./pages/Pricing";
 
 const queryClient = new QueryClient();
 
+function RootRoute() {
+  const { session, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+  if (!session) {
+    return <Landing />;
+  }
+  return (
+    <ProtectedRoute>
+      <TwoFactorGate>
+        <AppLayout />
+      </TwoFactorGate>
+    </ProtectedRoute>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -89,7 +111,7 @@ const App = () => (
         <AuthProvider>
           <OrganizationProvider>
           <Routes>
-            <Route path="/landing" element={<Landing />} />
+            <Route path="/landing" element={<Navigate to="/" replace />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -102,7 +124,7 @@ const App = () => (
             <Route path="/2fa/verify" element={<ProtectedRoute><TwoFactorVerify /></ProtectedRoute>} />
             <Route path="/2fa/recovery" element={<TwoFactorRecovery />} />
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-            <Route path="/" element={<ProtectedRoute><TwoFactorGate><AppLayout /></TwoFactorGate></ProtectedRoute>}>
+            <Route path="/" element={<RootRoute />}>
               <Route index element={<CorporateStructure />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="fix-the-chaos" element={<FixTheChaos />} />
