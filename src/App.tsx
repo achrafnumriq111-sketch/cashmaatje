@@ -79,6 +79,9 @@ import AccountantPortal from "./pages/AccountantPortal";
 import Pricing from "./pages/Pricing";
 import MileageLog from "./pages/MileageLog";
 import Benefits from "./pages/Benefits";
+import TimeRegistration from "./pages/TimeRegistration";
+import Agenda from "./pages/Agenda";
+import UsersAndRoles from "./pages/UsersAndRoles";
 
 
 const queryClient = new QueryClient();
@@ -188,6 +191,9 @@ const App = () => (
               <Route path="instellingen/bulk" element={<BulkSettings />} />
               <Route path="audit-log" element={<AuditLog />} />
               <Route path="inbox" element={<Inbox />} />
+              <Route path="uren" element={<TimeRegistration />} />
+              <Route path="agenda" element={<Agenda />} />
+              <Route path="instellingen/gebruikers" element={<UsersAndRoles />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

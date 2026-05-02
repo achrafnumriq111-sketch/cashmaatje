@@ -114,6 +114,8 @@ const navSections: NavSection[] = [
           { id: "premies", labelKey: "nav.premiums", path: "/salaris/premies" },
           { id: "kilometers", labelKey: "Kilometerregistratie", path: "/salaris/kilometers" },
           { id: "toeslagen", labelKey: "Toeslagen-check", path: "/salaris/toeslagen" },
+          { id: "uren", labelKey: "Urenregistratie", path: "/uren" },
+          { id: "agenda", labelKey: "Agenda", path: "/agenda" },
         ],
       },
     ],
