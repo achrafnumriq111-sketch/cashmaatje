@@ -80,15 +80,25 @@ export default function CorporateStructure() {
 
         {/* Holding */}
         <motion.div variants={cardVariant}>
-          <Card className="arcory-glass w-64 text-center border-primary/30">
-            <CardContent className="pt-5 pb-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-2">
-                <Building2 className="h-6 w-6 text-primary" />
-              </div>
-              <p className="font-medium text-foreground">{membership?.organizationName ?? "Holding BV"}</p>
-              <Badge variant="outline" className="mt-1 text-[10px]">Hoofdorganisatie</Badge>
-            </CardContent>
-          </Card>
+          <button
+            type="button"
+            onClick={() => handleEnter(membership?.organizationId)}
+            disabled={!membership}
+            className="group block w-64 text-left disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Card className="arcory-glass text-center border-primary/30 transition-all group-hover:border-primary group-hover:shadow-lg group-hover:-translate-y-0.5">
+              <CardContent className="pt-5 pb-4">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                  <Building2 className="h-6 w-6 text-primary" />
+                </div>
+                <p className="font-medium text-foreground">{membership?.organizationName ?? "Holding BV"}</p>
+                <Badge variant="outline" className="mt-1 text-[10px]">Hoofdorganisatie</Badge>
+                <div className="flex items-center justify-center gap-1 text-xs text-primary mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  Open <ArrowRight className="h-3 w-3" />
+                </div>
+              </CardContent>
+            </Card>
+          </button>
         </motion.div>
 
         {(isLoading || entities.length > 0) && <div className="w-px h-8 bg-border" />}
