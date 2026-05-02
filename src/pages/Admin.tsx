@@ -751,10 +751,10 @@ function FeatureFlagsPanel() {
           <Card key={f.id}>
             <CardContent className="p-5 space-y-3">
               <div className="flex items-start gap-3">
-                <ToggleRight className="h-5 w-5 text-primary mt-0.5" />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-foreground">{f.name}</h3>
+                <ToggleRight className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-foreground break-all">{f.name}</h3>
                     <Badge variant="outline" className="font-mono text-[10px]">{f.key}</Badge>
                     {f.enabled_globally && <Badge className="text-[10px]">Live voor iedereen</Badge>}
                   </div>
