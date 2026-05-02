@@ -13,6 +13,18 @@ const LEGAL_FORMS = [
   { value: "cv", label: "CV" },
 ];
 
+const INDUSTRIES = [
+  { value: "zzp_it", label: "ZZP — IT/Consultancy" },
+  { value: "webshop", label: "Webshop / E-commerce" },
+  { value: "horeca", label: "Horeca" },
+  { value: "bouw", label: "Bouw / Installatie" },
+  { value: "holding", label: "Holding / Investering" },
+  { value: "retail", label: "Retail" },
+  { value: "zorg", label: "Zorg" },
+  { value: "creatief", label: "Creatief / Design" },
+  { value: "overig", label: "Overig" },
+];
+
 interface Props {
   data: OnboardingData;
   setData: React.Dispatch<React.SetStateAction<OnboardingData>>;
@@ -52,6 +64,19 @@ export default function StepBedrijfsprofiel({ data, setData }: Props) {
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Branche / sector</Label>
+          <Select value={data.company.industry} onValueChange={(v) => update("industry", v)}>
+            <SelectTrigger><SelectValue placeholder="Kies je branche" /></SelectTrigger>
+            <SelectContent>
+              {INDUSTRIES.map((i) => (
+                <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">We stemmen rekeningschema, BTW-codes en dashboard-widgets hierop af.</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
