@@ -105,8 +105,8 @@ export default function BankImport() {
           <motion.div variants={cardVariant}>
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">1. Upload CSV</CardTitle>
-                <CardDescription>ING, Rabobank, ABN, Bunq, Knab, Triodos en generieke CSV worden ondersteund.</CardDescription>
+                <CardTitle className="text-base">1. Upload bestand</CardTitle>
+                <CardDescription>CSV (ING, Rabobank, ABN, Bunq, Knab, Triodos), CAMT.053 (XML) of MT940 (.sta/.txt) — formaat wordt automatisch gedetecteerd.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div
@@ -122,18 +122,18 @@ export default function BankImport() {
                 >
                   <Upload className="h-8 w-8 text-muted-foreground" />
                   <div className="text-center">
-                    <p className="text-sm font-medium text-foreground">Sleep een CSV-bestand hierheen</p>
-                    <p className="text-xs text-muted-foreground mt-1">Of klik om te kiezen</p>
+                    <p className="text-sm font-medium text-foreground">Sleep een bankafschrift hierheen</p>
+                    <p className="text-xs text-muted-foreground mt-1">CSV · CAMT.053 (.xml) · MT940 (.sta/.txt)</p>
                   </div>
                   <label className="cursor-pointer">
                     <input
                       type="file"
-                      accept=".csv,text/csv"
+                      accept=".csv,.xml,.sta,.mt940,.txt,text/csv,application/xml,text/xml,text/plain"
                       className="hidden"
                       onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
                     />
                     <span className="inline-flex items-center gap-1 rounded-md bg-secondary px-3 py-1.5 text-xs font-medium text-foreground hover:bg-secondary/80">
-                      Kies CSV
+                      Kies bestand
                     </span>
                   </label>
                 </div>
