@@ -5,11 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, TrendingDown, Minus, RotateCcw, Sparkles } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, RotateCcw, Sparkles, BookOpen } from "lucide-react";
 import { useTaxReserve } from "@/hooks/useTaxReserve";
 import { useQuery } from "@tanstack/react-query";
 import { useOrganization } from "@/hooks/useOrganization";
 import { supabase } from "@/integrations/supabase/client";
+import { MemorialJournalDialog } from "@/components/journal/MemorialJournalDialog";
 
 const NL_INCOME_TAX_RATE = 0.3193;
 const NL_VAT_RATE = 0.21;
@@ -18,6 +19,7 @@ export default function ScenarioSimulator() {
   const { membership } = useOrganization();
   const orgId = membership?.organizationId;
   const { data: reserve } = useTaxReserve();
+  const [memorialOpen, setMemorialOpen] = useState(false);
 
   // Haal YTD baseline op
   const { data: baseline } = useQuery({
@@ -100,9 +102,14 @@ export default function ScenarioSimulator() {
             Wat als je 20% meer verdient? Of een werknemer aanneemt? Speel met de variabelen en zie direct het effect op winst en belasting.
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={reset}>
-          <RotateCcw className="h-3.5 w-3.5 mr-1" />Reset
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setMemorialOpen(true)}>
+            <BookOpen className="h-3.5 w-3.5 mr-1" />Memoriaalboeking
+          </Button>
+          <Button variant="outline" size="sm" onClick={reset}>
+            <RotateCcw className="h-3.5 w-3.5 mr-1" />Reset
+          </Button>
+        </div>
       </motion.div>
 
       <div className="grid lg:grid-cols-2 gap-6">
@@ -190,6 +197,7 @@ export default function ScenarioSimulator() {
           )}
         </motion.div>
       </div>
+      <MemorialJournalDialog open={memorialOpen} onOpenChange={setMemorialOpen} />
     </motion.div>
   );
 }
