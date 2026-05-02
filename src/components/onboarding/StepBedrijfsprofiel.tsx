@@ -66,6 +66,19 @@ export default function StepBedrijfsprofiel({ data, setData }: Props) {
           </Select>
         </div>
 
+        <div className="space-y-2">
+          <Label>Branche / sector</Label>
+          <Select value={data.company.industry} onValueChange={(v) => update("industry", v)}>
+            <SelectTrigger><SelectValue placeholder="Kies je branche" /></SelectTrigger>
+            <SelectContent>
+              {INDUSTRIES.map((i) => (
+                <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">We stemmen rekeningschema, BTW-codes en dashboard-widgets hierop af.</p>
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="kvk">KVK-nummer</Label>
