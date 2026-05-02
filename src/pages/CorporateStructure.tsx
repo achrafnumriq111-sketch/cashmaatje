@@ -3,40 +3,63 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Building2, GitBranch, Plus, User, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Building2, GitBranch, Plus, User, Loader2, AlertCircle, CheckCircle2, LogOut, ArrowRight } from "lucide-react";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useEntities } from "@/hooks/useEntities";
 import { useSubscription } from "@/hooks/useSubscription";
 import { AddEntityDialog } from "@/components/structure/AddEntityDialog";
 import { pageTransition, staggerContainer, cardVariant } from "@/lib/animations";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 
 export default function CorporateStructure() {
-  const { membership } = useOrganization();
+  const { membership, switchOrganization } = useOrganization();
   const { entities, isLoading } = useEntities();
   const sub = useSubscription();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [addOpen, setAddOpen] = useState(false);
 
   const canAdd = sub.isActive && !!membership;
 
+  const handleEnter = (organizationId?: string) => {
+    if (organizationId) switchOrganization(organizationId);
+    navigate("/dashboard");
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate("/", { replace: true });
+    } catch (e: any) {
+      toast.error(e.message ?? "Uitloggen mislukt");
+    }
+  };
+
   return (
-    <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-6">
-      <motion.div variants={cardVariant} className="flex items-center justify-between">
+    <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-6 max-w-5xl mx-auto px-6 py-10">
+      <motion.div variants={cardVariant} className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Corporate Structure</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Organogram en holding structuur — €15,99 per extra entiteit per maand
+            Klik op een entiteit om er in te werken — €15,99 per extra entiteit per maand
           </p>
         </div>
-        <Button
-          className="gap-1.5"
-          onClick={() => (canAdd ? setAddOpen(true) : navigate("/pricing"))}
-          disabled={!membership}
-        >
-          <Plus className="h-4 w-4" />
-          Entiteit toevoegen
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            className="gap-1.5"
+            onClick={() => (canAdd ? setAddOpen(true) : navigate("/pricing"))}
+            disabled={!membership}
+          >
+            <Plus className="h-4 w-4" />
+            Entiteit toevoegen
+          </Button>
+          <Button variant="outline" className="gap-1.5" onClick={handleSignOut}>
+            <LogOut className="h-4 w-4" />
+            Uitloggen
+          </Button>
+        </div>
       </motion.div>
 
       <motion.div variants={staggerContainer} initial="initial" animate="animate" className="flex flex-col items-center gap-4">
@@ -57,15 +80,25 @@ export default function CorporateStructure() {
 
         {/* Holding */}
         <motion.div variants={cardVariant}>
-          <Card className="arcory-glass w-64 text-center border-primary/30">
-            <CardContent className="pt-5 pb-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-2">
-                <Building2 className="h-6 w-6 text-primary" />
-              </div>
-              <p className="font-medium text-foreground">{membership?.organizationName ?? "Holding BV"}</p>
-              <Badge variant="outline" className="mt-1 text-[10px]">Hoofdorganisatie</Badge>
-            </CardContent>
-          </Card>
+          <button
+            type="button"
+            onClick={() => handleEnter(membership?.organizationId)}
+            disabled={!membership}
+            className="group block w-64 text-left disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Card className="arcory-glass text-center border-primary/30 transition-all group-hover:border-primary group-hover:shadow-lg group-hover:-translate-y-0.5">
+              <CardContent className="pt-5 pb-4">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                  <Building2 className="h-6 w-6 text-primary" />
+                </div>
+                <p className="font-medium text-foreground">{membership?.organizationName ?? "Holding BV"}</p>
+                <Badge variant="outline" className="mt-1 text-[10px]">Hoofdorganisatie</Badge>
+                <div className="flex items-center justify-center gap-1 text-xs text-primary mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  Open <ArrowRight className="h-3 w-3" />
+                </div>
+              </CardContent>
+            </Card>
+          </button>
         </motion.div>
 
         {(isLoading || entities.length > 0) && <div className="w-px h-8 bg-border" />}
@@ -75,33 +108,50 @@ export default function CorporateStructure() {
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         ) : (
           <div className="flex gap-6 flex-wrap justify-center">
-            {entities.map((e) => (
-              <motion.div key={e.id} variants={cardVariant}>
-                <Card className={`arcory-glass w-56 text-center transition-colors ${
-                  e.is_active_addon ? "hover:border-primary/30" : "border-destructive/40 opacity-80"
-                }`}>
-                  <CardContent className="pt-4 pb-3">
-                    <GitBranch className="h-5 w-5 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm font-medium text-foreground truncate">{e.name}</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">{e.org_type?.toUpperCase()}</p>
-                    <div className="flex items-center justify-center gap-1.5 mt-2">
-                      <Badge variant="outline" className="text-[10px]">
-                        {e.entity_ownership_pct ?? 100}%
-                      </Badge>
-                      {e.is_active_addon ? (
-                        <Badge variant="outline" className="text-[10px] gap-1 text-primary border-primary/40">
-                          <CheckCircle2 className="h-2.5 w-2.5" /> Actief
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-[10px] gap-1 text-destructive border-destructive/40">
-                          <AlertCircle className="h-2.5 w-2.5" /> Betaling vereist
-                        </Badge>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+            {entities.map((e) => {
+              const clickable = e.is_active_addon;
+              return (
+                <motion.div key={e.id} variants={cardVariant}>
+                  <button
+                    type="button"
+                    disabled={!clickable}
+                    onClick={() => handleEnter(e.id)}
+                    className="group block w-56 text-left disabled:cursor-not-allowed"
+                  >
+                    <Card className={`arcory-glass text-center transition-all ${
+                      clickable
+                        ? "hover:border-primary group-hover:shadow-lg group-hover:-translate-y-0.5"
+                        : "border-destructive/40 opacity-80"
+                    }`}>
+                      <CardContent className="pt-4 pb-3">
+                        <GitBranch className="h-5 w-5 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-sm font-medium text-foreground truncate">{e.name}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{e.org_type?.toUpperCase()}</p>
+                        <div className="flex items-center justify-center gap-1.5 mt-2">
+                          <Badge variant="outline" className="text-[10px]">
+                            {e.entity_ownership_pct ?? 100}%
+                          </Badge>
+                          {e.is_active_addon ? (
+                            <Badge variant="outline" className="text-[10px] gap-1 text-primary border-primary/40">
+                              <CheckCircle2 className="h-2.5 w-2.5" /> Actief
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] gap-1 text-destructive border-destructive/40">
+                              <AlertCircle className="h-2.5 w-2.5" /> Betaling vereist
+                            </Badge>
+                          )}
+                        </div>
+                        {clickable && (
+                          <div className="flex items-center justify-center gap-1 text-xs text-primary mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            Open <ArrowRight className="h-3 w-3" />
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </button>
+                </motion.div>
+              );
+            })}
           </div>
         )}
 
