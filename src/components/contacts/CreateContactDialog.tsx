@@ -141,11 +141,39 @@ export function CreateContactDialog({ open, onOpenChange }: Props) {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="kvk">KvK-nummer</Label>
-            <Input
-              id="kvk"
-              value={form.kvk_number}
-              onChange={(e) => setForm({ ...form, kvk_number: e.target.value })}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="kvk"
+                value={form.kvk_number}
+                onChange={(e) => setForm({ ...form, kvk_number: e.target.value })}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  const q = form.kvk_number.trim() || form.name.trim();
+                  if (!q) { toast.error("Vul KvK-nummer of naam in"); return; }
+                  const { data, error } = await supabase.functions.invoke("lookup-kvk", { body: { query: q } });
+                  if (error || data?.error) { toast.error(data?.hint ?? data?.error ?? error?.message ?? "KVK lookup mislukt"); return; }
+                  const r = data.result;
+                  if (Array.isArray(r)) { toast.info(`${r.length} resultaten — vul exact KvK-nummer in voor auto-fill`); return; }
+                  setForm((f) => ({
+                    ...f,
+                    kvk_number: r.kvk_number ?? f.kvk_number,
+                    name: f.name || r.name,
+                    legal_name: r.legal_name ?? f.legal_name,
+                    address_street: r.address_street ?? f.address_street,
+                    address_postal_code: r.address_postal_code ?? f.address_postal_code,
+                    address_city: r.address_city ?? f.address_city,
+                    address_country: r.address_country ?? f.address_country,
+                  }));
+                  toast.success("Bedrijfsgegevens opgehaald via KVK");
+                }}
+              >
+                KVK
+              </Button>
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="iban">IBAN</Label>
