@@ -456,7 +456,7 @@ function SupportPanel() {
   return (
     <div className="grid md:grid-cols-[300px_1fr] gap-4">
       <Card>
-        <CardContent className="p-3 space-y-2 max-h-[70vh] overflow-auto">
+        <CardContent className="p-3 space-y-2 max-h-[40vh] md:max-h-[70vh] overflow-auto">
           {isLoading && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
           {threads.map((t) => (
             <button
