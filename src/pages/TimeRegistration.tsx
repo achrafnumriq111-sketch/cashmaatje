@@ -16,7 +16,7 @@ import { toast } from "sonner";
 
 export default function TimeRegistration() {
   const { list, create, remove } = useTimeEntries();
-  const { data: contacts = [] } = useContacts({});
+  const { data: contacts = [] } = useContacts({ search: "", type: "customer", country: "all", riskStatus: "all" });
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     entry_date: new Date().toISOString().slice(0, 10),
