@@ -715,6 +715,72 @@ export type Database = {
           },
         ]
       }
+      benefits_profile: {
+        Row: {
+          birth_year: number | null
+          childcare_hourly_rate: number
+          childcare_hours_per_month: number
+          children_ages: Json
+          created_at: string
+          has_childcare: boolean
+          has_partner: boolean
+          health_insurance_yearly: number
+          income_override: number | null
+          monthly_rent: number
+          monthly_service_costs: number
+          notes: string | null
+          num_children: number
+          partner_birth_year: number | null
+          partner_yearly_income: number
+          rent_type: Database["public"]["Enums"]["rent_type"]
+          total_assets: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          birth_year?: number | null
+          childcare_hourly_rate?: number
+          childcare_hours_per_month?: number
+          children_ages?: Json
+          created_at?: string
+          has_childcare?: boolean
+          has_partner?: boolean
+          health_insurance_yearly?: number
+          income_override?: number | null
+          monthly_rent?: number
+          monthly_service_costs?: number
+          notes?: string | null
+          num_children?: number
+          partner_birth_year?: number | null
+          partner_yearly_income?: number
+          rent_type?: Database["public"]["Enums"]["rent_type"]
+          total_assets?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          birth_year?: number | null
+          childcare_hourly_rate?: number
+          childcare_hours_per_month?: number
+          children_ages?: Json
+          created_at?: string
+          has_childcare?: boolean
+          has_partner?: boolean
+          health_insurance_yearly?: number
+          income_override?: number | null
+          monthly_rent?: number
+          monthly_service_costs?: number
+          notes?: string | null
+          num_children?: number
+          partner_birth_year?: number | null
+          partner_yearly_income?: number
+          rent_type?: Database["public"]["Enums"]["rent_type"]
+          total_assets?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       broadcast_reads: {
         Row: {
           broadcast_id: string
@@ -2837,6 +2903,173 @@ export type Database = {
             columns: ["vat_account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mileage_routes: {
+        Row: {
+          created_at: string
+          created_by: string
+          default_contact_id: string | null
+          default_trip_type: Database["public"]["Enums"]["mileage_trip_type"]
+          from_address: string
+          from_lat: number | null
+          from_lng: number | null
+          id: string
+          km: number
+          name: string
+          organization_id: string
+          to_address: string
+          to_lat: number | null
+          to_lng: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string
+          default_contact_id?: string | null
+          default_trip_type?: Database["public"]["Enums"]["mileage_trip_type"]
+          from_address: string
+          from_lat?: number | null
+          from_lng?: number | null
+          id?: string
+          km: number
+          name: string
+          organization_id: string
+          to_address: string
+          to_lat?: number | null
+          to_lng?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          default_contact_id?: string | null
+          default_trip_type?: Database["public"]["Enums"]["mileage_trip_type"]
+          from_address?: string
+          from_lat?: number | null
+          from_lng?: number | null
+          id?: string
+          km?: number
+          name?: string
+          organization_id?: string
+          to_address?: string
+          to_lat?: number | null
+          to_lng?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mileage_routes_default_contact_id_fkey"
+            columns: ["default_contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mileage_routes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mileage_trips: {
+        Row: {
+          contact_id: string | null
+          created_at: string
+          created_by: string
+          from_address: string
+          from_lat: number | null
+          from_lng: number | null
+          id: string
+          km: number
+          organization_id: string
+          purpose: string | null
+          return_trip: boolean
+          route_id: string | null
+          source: string
+          to_address: string
+          to_lat: number | null
+          to_lng: number | null
+          trip_date: string
+          trip_type: Database["public"]["Enums"]["mileage_trip_type"]
+          updated_at: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string
+          from_address: string
+          from_lat?: number | null
+          from_lng?: number | null
+          id?: string
+          km: number
+          organization_id: string
+          purpose?: string | null
+          return_trip?: boolean
+          route_id?: string | null
+          source?: string
+          to_address: string
+          to_lat?: number | null
+          to_lng?: number | null
+          trip_date: string
+          trip_type?: Database["public"]["Enums"]["mileage_trip_type"]
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string
+          from_address?: string
+          from_lat?: number | null
+          from_lng?: number | null
+          id?: string
+          km?: number
+          organization_id?: string
+          purpose?: string | null
+          return_trip?: boolean
+          route_id?: string | null
+          source?: string
+          to_address?: string
+          to_lat?: number | null
+          to_lng?: number | null
+          trip_date?: string
+          trip_type?: Database["public"]["Enums"]["mileage_trip_type"]
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mileage_trips_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mileage_trips_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mileage_trips_route_fk"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "mileage_routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mileage_trips_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "company_car"
             referencedColumns: ["id"]
           },
         ]
@@ -5362,6 +5595,7 @@ export type Database = {
         | "credit_note_sales"
         | "credit_note_purchase"
       journal_status: "draft" | "posted" | "voided"
+      mileage_trip_type: "business" | "commute" | "private"
       notification_severity: "info" | "warning" | "error" | "critical"
       org_type:
         | "eenmanszaak"
@@ -5380,6 +5614,7 @@ export type Database = {
       period_status: "open" | "closing" | "closed" | "locked"
       plan_tier: "start" | "smart" | "pro"
       platform_role: "super_admin" | "support_agent"
+      rent_type: "social" | "private" | "none"
       subscription_status:
         | "trialing"
         | "active"
@@ -5619,6 +5854,7 @@ export const Constants = {
         "credit_note_purchase",
       ],
       journal_status: ["draft", "posted", "voided"],
+      mileage_trip_type: ["business", "commute", "private"],
       notification_severity: ["info", "warning", "error", "critical"],
       org_type: [
         "eenmanszaak",
@@ -5639,6 +5875,7 @@ export const Constants = {
       period_status: ["open", "closing", "closed", "locked"],
       plan_tier: ["start", "smart", "pro"],
       platform_role: ["super_admin", "support_agent"],
+      rent_type: ["social", "private", "none"],
       subscription_status: [
         "trialing",
         "active",
