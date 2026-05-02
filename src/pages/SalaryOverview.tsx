@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "react-router-dom";
-import { TrendingUp, TrendingDown, Calculator, Package, Car, Home, Shield, ChevronRight, Wallet } from "lucide-react";
+import { TrendingUp, TrendingDown, Calculator, Package, Car, Home, Shield, ChevronRight, Wallet, MapPin, HandCoins } from "lucide-react";
 import { useTaxDeductions } from "@/hooks/useTaxDeductions";
 import { useBusinessExpenses } from "@/hooks/useBusinessExpenses";
 import { useDepreciations } from "@/hooks/useDepreciations";
@@ -98,6 +98,8 @@ export default function SalaryOverview() {
           <ModuleCard title="Aftrekbare premies" description="AOV en lijfrentepremies" amount={premiumsTotal} icon={<Shield className="h-5 w-5 text-primary" />} href="/salaris/premies" />
           <ModuleCard title="Auto van de zaak" description="Bijtelling en autokosten" amount={totalBijtelling + totalCarCosts} icon={<Car className="h-5 w-5 text-primary" />} href="/salaris/auto" />
           <ModuleCard title="Koopwoning" description="Hypotheekrenteaftrek en erfpacht" amount={mortgageDeduction} icon={<Home className="h-5 w-5 text-primary" />} href="/salaris/woning" />
+          <ModuleCard title="Kilometerregistratie" description="Zakelijke ritten met €0,23/km" amount={0} icon={<MapPin className="h-5 w-5 text-primary" />} href="/salaris/kilometers" />
+          <ModuleCard title="Toeslagen-check" description="Zorg, huur, kinderopvang & KGB" amount={0} icon={<HandCoins className="h-5 w-5 text-primary" />} href="/salaris/toeslagen" badge="Privé" />
         </div>
       </motion.div>
 
