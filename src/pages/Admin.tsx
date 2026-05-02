@@ -622,16 +622,16 @@ function OrganizationsPanel() {
         {isLoading ? (
           <Loader2 className="h-5 w-5 animate-spin text-primary" />
         ) : (
-          <div className="border border-border rounded-lg overflow-hidden">
+          <div className="border border-border rounded-lg overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Naam</TableHead>
-                  <TableHead>KVK / BTW</TableHead>
-                  <TableHead>Leden</TableHead>
-                  <TableHead>Aangemaakt</TableHead>
-                  <TableHead className="text-right gap-1 inline-flex items-center">
-                    <Beaker className="h-3.5 w-3.5" /> Test sandbox
+                  <TableHead className="hidden sm:table-cell">KVK / BTW</TableHead>
+                  <TableHead className="hidden md:table-cell">Leden</TableHead>
+                  <TableHead className="hidden md:table-cell">Aangemaakt</TableHead>
+                  <TableHead className="text-right">
+                    <span className="inline-flex items-center gap-1"><Beaker className="h-3.5 w-3.5" /> Test</span>
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -640,13 +640,16 @@ function OrganizationsPanel() {
                   <TableRow key={o.id}>
                     <TableCell>
                       <div className="font-medium text-foreground">{o.name}</div>
-                      {o.email && <div className="text-xs text-muted-foreground">{o.email}</div>}
+                      {o.email && <div className="text-xs text-muted-foreground break-all">{o.email}</div>}
+                      <div className="sm:hidden text-[11px] text-muted-foreground mt-0.5">
+                        {o.kvk_number ?? "—"} {o.btw_number ? `· ${o.btw_number}` : ""}
+                      </div>
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
+                    <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">
                       {o.kvk_number ?? "—"} {o.btw_number ? `· ${o.btw_number}` : ""}
                     </TableCell>
-                    <TableCell className="text-xs">{memberCounts?.[o.id] ?? 0}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
+                    <TableCell className="hidden md:table-cell text-xs">{memberCounts?.[o.id] ?? 0}</TableCell>
+                    <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
                       {o.created_at ? format(new Date(o.created_at), "d MMM yyyy", { locale: nl }) : "—"}
                     </TableCell>
                     <TableCell className="text-right">
