@@ -11,6 +11,37 @@ import { AuthLogo } from "@/components/AuthLogo";
 import { toast } from "sonner";
 import { Loader2, ShieldCheck } from "lucide-react";
 
+/**
+ * Rewrite an otpauth:// URI so the authenticator app shows our own brand
+ * as issuer (the big bold name) and a clean account label.
+ */
+function rebrandTotpUri(uri: string, issuer: string, accountEmail?: string | null): string {
+  try {
+    // Format: otpauth://totp/{label}?secret=...&issuer=...&...
+    const protoEnd = uri.indexOf("://");
+    const queryStart = uri.indexOf("?");
+    if (protoEnd === -1 || queryStart === -1) return uri;
+
+    const pathPart = uri.substring(protoEnd + 3, queryStart); // e.g. "totp/Lovable:foo@bar"
+    const queryPart = uri.substring(queryStart + 1);
+    const slashIdx = pathPart.indexOf("/");
+    const type = slashIdx === -1 ? pathPart : pathPart.substring(0, slashIdx);
+    const oldLabel = slashIdx === -1 ? "" : decodeURIComponent(pathPart.substring(slashIdx + 1));
+
+    // Determine account portion (after the colon, if present)
+    const colonIdx = oldLabel.indexOf(":");
+    const account = accountEmail || (colonIdx === -1 ? oldLabel : oldLabel.substring(colonIdx + 1)) || "account";
+    const newLabel = `${issuer}:${account}`;
+
+    const params = new URLSearchParams(queryPart);
+    params.set("issuer", issuer);
+
+    return `otpauth://${type}/${encodeURIComponent(newLabel)}?${params.toString()}`;
+  } catch {
+    return uri;
+  }
+}
+
 export default function TwoFactorSetup() {
   const navigate = useNavigate();
   const { user } = useAuth();
