@@ -173,6 +173,7 @@ const navSections: NavSection[] = [
       },
       { id: "integraties", labelKey: "nav.integrations", icon: <Plug size={16} />, path: "/integraties" },
       { id: "boekhoudregels", labelKey: "Boekhoudregels", icon: <BookOpen size={16} />, path: "/instellingen/bulk" },
+      { id: "gebruikers", labelKey: "Gebruikers & rechten", icon: <Users size={16} />, path: "/instellingen/gebruikers" },
     ],
   },
 ];
