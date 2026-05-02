@@ -210,26 +210,26 @@ function SubscriptionsPanel() {
         <StatCard label="Geannuleerd" value={stats.canceled} tone="muted" />
       </div>
       <Card>
-        <CardContent className="p-5">
+        <CardContent className="p-4 md:p-5">
           {isLoading ? (
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
           ) : (
-            <div className="border border-border rounded-lg overflow-hidden">
+            <div className="border border-border rounded-lg overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>User ID</TableHead>
-                    <TableHead>Plan</TableHead>
+                    <TableHead>User</TableHead>
+                    <TableHead className="hidden sm:table-cell">Plan</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Env</TableHead>
-                    <TableHead>Periode tot</TableHead>
+                    <TableHead className="hidden md:table-cell">Env</TableHead>
+                    <TableHead className="hidden md:table-cell">Periode tot</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {(data ?? []).map((s: any) => (
                     <TableRow key={s.id}>
                       <TableCell className="font-mono text-xs">{s.user_id?.slice(0, 8)}...</TableCell>
-                      <TableCell className="capitalize">{s.price_id ?? "—"}</TableCell>
+                      <TableCell className="hidden sm:table-cell capitalize">{s.price_id ?? "—"}</TableCell>
                       <TableCell>
                         <Badge
                           variant="outline"
@@ -243,8 +243,8 @@ function SubscriptionsPanel() {
                           {s.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{s.environment}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
+                      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{s.environment}</TableCell>
+                      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
                         {s.current_period_end
                           ? format(new Date(s.current_period_end), "d MMM yyyy", { locale: nl })
                           : "—"}
