@@ -77,6 +77,8 @@ import ScenarioSimulator from "./pages/ScenarioSimulator";
 import FinancialHealth from "./pages/FinancialHealth";
 import AccountantPortal from "./pages/AccountantPortal";
 import Pricing from "./pages/Pricing";
+import MileageLog from "./pages/MileageLog";
+import Benefits from "./pages/Benefits";
 
 
 const queryClient = new QueryClient();
@@ -163,6 +165,8 @@ const App = () => (
               <Route path="salaris/auto" element={<CompanyCarPage />} />
               <Route path="salaris/woning" element={<MortgagePage />} />
               <Route path="salaris/medewerkers" element={<Salary />} />
+              <Route path="salaris/kilometers" element={<MileageLog />} />
+              <Route path="salaris/toeslagen" element={<Benefits />} />
               <Route path="belasting/vpb" element={<CorporateTax />} />
               <Route path="relaties" element={<Contacts />} />
               <Route path="grootboek" element={<GeneralLedger />} />

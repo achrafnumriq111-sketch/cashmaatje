@@ -112,6 +112,8 @@ const navSections: NavSection[] = [
           { id: "salaris-overzicht", labelKey: "nav.salary.overview", path: "/salaris" },
           { id: "salaris-medewerkers", labelKey: "nav.salary.employees", path: "/salaris/medewerkers" },
           { id: "premies", labelKey: "nav.premiums", path: "/salaris/premies" },
+          { id: "kilometers", labelKey: "Kilometerregistratie", path: "/salaris/kilometers" },
+          { id: "toeslagen", labelKey: "Toeslagen-check", path: "/salaris/toeslagen" },
         ],
       },
     ],
