@@ -136,16 +136,16 @@ function UsersPanel() {
 
   return (
     <Card>
-      <CardContent className="p-5 space-y-4">
-        <div className="flex items-center gap-2">
+      <CardContent className="p-4 md:p-5 space-y-4">
+        <div className="flex flex-wrap items-center gap-2">
           <Search className="h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Zoek op email of naam..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="max-w-sm"
+            className="flex-1 min-w-[200px] max-w-sm"
           />
-          <Badge variant="outline" className="ml-auto">{filtered.length} gebruikers</Badge>
+          <Badge variant="outline" className="ml-auto">{filtered.length}</Badge>
         </div>
         {isLoading ? (
           <Loader2 className="h-5 w-5 animate-spin text-primary" />
