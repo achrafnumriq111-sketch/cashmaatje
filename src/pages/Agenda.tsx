@@ -26,7 +26,7 @@ export default function Agenda() {
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date()));
   const weekEnd = new Date(weekStart); weekEnd.setDate(weekEnd.getDate() + 7);
   const { list, create, remove } = useAgendaEvents(weekStart.toISOString(), weekEnd.toISOString());
-  const { data: contacts = [] } = useContacts();
+  const { data: contacts = [] } = useContacts({});
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     title: "",

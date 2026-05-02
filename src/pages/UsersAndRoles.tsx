@@ -10,7 +10,7 @@ import { Plus, Users, Trash2, Mail } from "lucide-react";
 import { pageTransition, cardVariant } from "@/lib/animations";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/hooks/useOrganization";
-import { ROLE_LABELS, ROLE_DESCRIPTIONS, type EntityRole } from "@/lib/roles";
+import { ROLE_LABELS_NL as ROLE_LABELS, ROLE_DESCRIPTIONS_NL as ROLE_DESCRIPTIONS, type EntityRole } from "@/lib/roles";
 import { toast } from "sonner";
 
 type RoleRow = {
