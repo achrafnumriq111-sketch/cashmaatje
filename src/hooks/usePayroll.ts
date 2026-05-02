@@ -223,15 +223,15 @@ export function useFinalizePayrollRun() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("payroll_runs" as any)
-        .update({ status: "finalized", finalized_at: new Date().toISOString() })
-        .eq("id", id);
+      const { data, error } = await supabase.rpc("post_payroll_journal" as any, { p_run_id: id });
       if (error) throw error;
+      return data as string;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["payroll_runs"] });
-      toast.success("Definitief gemaakt");
+      qc.invalidateQueries({ queryKey: ["journal_entries"] });
+      toast.success("Salarisrun gefinaliseerd + journaalpost geboekt");
     },
+    onError: (e: any) => toast.error(e?.message ?? "Fout bij finaliseren"),
   });
 }
