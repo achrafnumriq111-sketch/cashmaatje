@@ -97,7 +97,7 @@ export default function FixTheChaos() {
         <StatCard icon={<Inbox className="w-4 h-4" />} label="Open totaal" value={stats.open} tone="muted" />
         <StatCard
           icon={<Euro className="w-4 h-4" />}
-          label="Te betalen"
+          label="TE BETALEN"
           value={`€${stats.totalDue.toLocaleString("nl-NL", { maximumFractionDigits: 0 })}`}
           tone="muted"
         />
