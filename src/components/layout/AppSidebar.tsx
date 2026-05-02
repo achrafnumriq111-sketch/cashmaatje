@@ -114,6 +114,8 @@ const navSections: NavSection[] = [
           { id: "premies", labelKey: "nav.premiums", path: "/salaris/premies" },
           { id: "kilometers", labelKey: "Kilometerregistratie", path: "/salaris/kilometers" },
           { id: "toeslagen", labelKey: "Toeslagen-check", path: "/salaris/toeslagen" },
+          { id: "uren", labelKey: "Urenregistratie", path: "/uren" },
+          { id: "agenda", labelKey: "Agenda", path: "/agenda" },
         ],
       },
     ],
@@ -171,6 +173,7 @@ const navSections: NavSection[] = [
       },
       { id: "integraties", labelKey: "nav.integrations", icon: <Plug size={16} />, path: "/integraties" },
       { id: "boekhoudregels", labelKey: "Boekhoudregels", icon: <BookOpen size={16} />, path: "/instellingen/bulk" },
+      { id: "gebruikers", labelKey: "Gebruikers & rechten", icon: <Users size={16} />, path: "/instellingen/gebruikers" },
     ],
   },
 ];
