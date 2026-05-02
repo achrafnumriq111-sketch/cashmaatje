@@ -486,7 +486,7 @@ function SupportPanel() {
         </CardContent>
       </Card>
 
-      <Card className="h-[70vh] flex flex-col">
+      <Card className="h-[60vh] md:h-[70vh] flex flex-col">
         {activeId ? (
           <>
             <CardContent className="flex-1 overflow-auto p-5 space-y-3">
