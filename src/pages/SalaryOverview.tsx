@@ -224,36 +224,37 @@ export default function SalaryOverview() {
             </TabsList>
           </div>
 
-          <TabsContent value="all" className="mt-0">
-            <motion.div variants={staggerContainer} initial="initial" animate="animate" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <ModuleCard tone="deduction" title="Bedrijfskosten" description="Terugkerende en eenmalige zakelijke kosten" amount={expensesTotal} icon={<Package className="h-5 w-5 text-primary" />} href="/salaris/bedrijfskosten" />
-              <ModuleCard tone="deduction" title="Afschrijvingen" description="Investeringen automatisch afgeschreven" amount={depreciationTotal} icon={<Calculator className="h-5 w-5 text-primary" />} href="/salaris/afschrijvingen" />
-              <ModuleCard tone="deduction" title="Ondernemersaftrek" description="Zelfstandigenaftrek, MKB-vrijstelling" amount={taxDeductionTotal} icon={<TrendingDown className="h-5 w-5 text-primary" />} href="/belasting/ondernemersaftrek" />
-              <ModuleCard tone="deduction" title="Aftrekbare premies" description="AOV en lijfrentepremies" amount={premiumsTotal} icon={<Shield className="h-5 w-5 text-primary" />} href="/salaris/premies" />
-              <ModuleCard title="Auto van de zaak" description="Bijtelling en autokosten" amount={totalBijtelling + totalCarCosts} icon={<Car className="h-5 w-5 text-primary" />} href="/salaris/auto" />
-              <ModuleCard tone="deduction" title="Koopwoning" description="Hypotheekrenteaftrek en erfpacht" amount={mortgageDeduction} icon={<Home className="h-5 w-5 text-primary" />} href="/salaris/woning" badge="Privé" />
-              <ModuleCard title="Kilometerregistratie" description="Zakelijke ritten met €0,23/km" amount={0} icon={<MapPin className="h-5 w-5 text-primary" />} href="/salaris/kilometers" />
-              <ModuleCard title="Toeslagen-check" description="Zorg, huur, kinderopvang & KGB" amount={0} icon={<HandCoins className="h-5 w-5 text-primary" />} href="/salaris/toeslagen" badge="Privé" />
-            </motion.div>
-          </TabsContent>
-
-          <TabsContent value="business" className="mt-0">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <ModuleCard tone="deduction" title="Bedrijfskosten" description="Terugkerende en eenmalige zakelijke kosten" amount={expensesTotal} icon={<Package className="h-5 w-5 text-primary" />} href="/salaris/bedrijfskosten" />
-              <ModuleCard tone="deduction" title="Afschrijvingen" description="Investeringen automatisch afgeschreven" amount={depreciationTotal} icon={<Calculator className="h-5 w-5 text-primary" />} href="/salaris/afschrijvingen" />
-              <ModuleCard tone="deduction" title="Ondernemersaftrek" description="Zelfstandigenaftrek, MKB-vrijstelling" amount={taxDeductionTotal} icon={<TrendingDown className="h-5 w-5 text-primary" />} href="/belasting/ondernemersaftrek" />
-              <ModuleCard tone="deduction" title="Aftrekbare premies" description="AOV en lijfrentepremies" amount={premiumsTotal} icon={<Shield className="h-5 w-5 text-primary" />} href="/salaris/premies" />
-              <ModuleCard title="Auto van de zaak" description="Bijtelling en autokosten" amount={totalBijtelling + totalCarCosts} icon={<Car className="h-5 w-5 text-primary" />} href="/salaris/auto" />
-              <ModuleCard title="Kilometerregistratie" description="Zakelijke ritten met €0,23/km" amount={0} icon={<MapPin className="h-5 w-5 text-primary" />} href="/salaris/kilometers" />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="private" className="mt-0">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <ModuleCard tone="deduction" title="Koopwoning" description="Hypotheekrenteaftrek en erfpacht" amount={mortgageDeduction} icon={<Home className="h-5 w-5 text-primary" />} href="/salaris/woning" badge="Privé" />
-              <ModuleCard title="Toeslagen-check" description="Zorg, huur, kinderopvang & KGB" amount={0} icon={<HandCoins className="h-5 w-5 text-primary" />} href="/salaris/toeslagen" badge="Privé" />
-            </div>
-          </TabsContent>
+          {(() => {
+            const businessModules: ModuleCardProps[] = [
+              { tone: "deduction", title: "Bedrijfskosten", description: "Terugkerende en eenmalige zakelijke kosten", amount: expensesTotal, icon: <Package className="h-5 w-5 text-primary" />, href: "/salaris/bedrijfskosten" },
+              { tone: "deduction", title: "Afschrijvingen", description: "Investeringen automatisch afgeschreven", amount: depreciationTotal, icon: <Calculator className="h-5 w-5 text-primary" />, href: "/salaris/afschrijvingen" },
+              { tone: "deduction", title: "Ondernemersaftrek", description: "Zelfstandigenaftrek, MKB-vrijstelling, startersaftrek", amount: taxDeductionTotal, icon: <TrendingDown className="h-5 w-5 text-primary" />, href: "/belasting/ondernemersaftrek", badge: "Zakelijk" },
+              { tone: "deduction", title: "Aftrekbare premies", description: "AOV en lijfrentepremies (zakelijk gerelateerd)", amount: premiumsTotal, icon: <Shield className="h-5 w-5 text-primary" />, href: "/salaris/premies" },
+              { title: "Auto van de zaak", description: "Bijtelling en autokosten", amount: totalBijtelling + totalCarCosts, icon: <Car className="h-5 w-5 text-primary" />, href: "/salaris/auto", badge: "Zakelijk" },
+              { title: "Kilometerregistratie", description: "Zakelijke ritten met €0,23/km", amount: 0, icon: <MapPin className="h-5 w-5 text-primary" />, href: "/salaris/kilometers" },
+              { title: "Medewerkers & loon", description: "Loonadministratie en personeelskosten", amount: 0, icon: <Briefcase className="h-5 w-5 text-primary" />, href: "/salaris/medewerkers" },
+            ];
+            const privateModules: ModuleCardProps[] = [
+              { tone: "deduction", title: "Koopwoning", description: "Hypotheekrenteaftrek en erfpacht", amount: mortgageDeduction, icon: <Home className="h-5 w-5 text-primary" />, href: "/salaris/woning", badge: "Privé" },
+              { title: "Toeslagen-check", description: "Zorg, huur, kinderopvang & KGB", amount: 0, icon: <HandCoins className="h-5 w-5 text-primary" />, href: "/salaris/toeslagen", badge: "Privé" },
+              { tone: "deduction", title: "Lijfrente & pensioen", description: "Privé pensioenopbouw en lijfrentepremies", amount: premiumsTotal, icon: <PiggyBank className="h-5 w-5 text-primary" />, href: "/salaris/premies", badge: "Privé" },
+              { title: "Privégebruik auto", description: "Bijtelling die telt als privé-inkomen", amount: totalBijtelling, icon: <Car className="h-5 w-5 text-primary" />, href: "/salaris/auto", badge: "Privé" },
+              { title: "Woon-werk kilometers", description: "Privé deel van je ritregistratie", amount: 0, icon: <MapPin className="h-5 w-5 text-primary" />, href: "/salaris/kilometers", badge: "Privé" },
+              { title: "Netto inkomen & sparen", description: "Wat je maandelijks overhoudt", amount: netAnnual, icon: <Wallet className="h-5 w-5 text-primary" />, href: "#", badge: "Privé" },
+            ];
+            const renderGrid = (mods: ModuleCardProps[]) => (
+              <motion.div variants={staggerContainer} initial="initial" animate="animate" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {mods.map((m) => <ModuleCard key={`${m.title}-${m.href}`} {...m} />)}
+              </motion.div>
+            );
+            return (
+              <>
+                <TabsContent value="all" className="mt-0">{renderGrid([...businessModules, ...privateModules])}</TabsContent>
+                <TabsContent value="business" className="mt-0">{renderGrid(businessModules)}</TabsContent>
+                <TabsContent value="private" className="mt-0">{renderGrid(privateModules)}</TabsContent>
+              </>
+            );
+          })()}
         </Tabs>
       </motion.div>
 
