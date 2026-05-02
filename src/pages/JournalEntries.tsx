@@ -3,12 +3,15 @@ import { motion } from "framer-motion";
 import { JournalFilters } from "@/components/journal/JournalFilters";
 import { JournalTable } from "@/components/journal/JournalTable";
 import { JournalDetail } from "@/components/journal/JournalDetail";
+import { MemorialJournalDialog } from "@/components/journal/MemorialJournalDialog";
 import { useJournalEntries, type JournalFilters as JFilters } from "@/hooks/useJournalEntries";
 import { Badge } from "@/components/ui/badge";
-import { ScrollText } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ScrollText, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { pageTransition, cardVariant } from "@/lib/animations";
 import { exportToExcel } from "@/lib/exportUtils";
+import { useEntityAccess } from "@/hooks/useEntityAccess";
 
 export default function JournalEntries() {
   const now = new Date();
@@ -18,6 +21,8 @@ export default function JournalEntries() {
     status: "all", search: "", sourceType: "all", vatBox: "", accountId: null,
   });
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [memorialOpen, setMemorialOpen] = useState(false);
+  const { canWrite } = useEntityAccess();
   const { data: entries = [], isLoading } = useJournalEntries(filters);
   const selectedEntry = useMemo(() => entries.find((e) => e.id === detailId) ?? null, [entries, detailId]);
 
