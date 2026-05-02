@@ -22,27 +22,33 @@ interface SignupEmailProps {
 }
 
 export const SignupEmail = ({
+  siteName,
+  siteUrl,
   recipient,
   confirmationUrl,
 }: SignupEmailProps) => (
   <Html lang="nl" dir="ltr">
     <Head />
-    <Preview>Bevestig je e-mailadres voor Cash Maatje</Preview>
+    <Preview>Bevestig je e-mailadres voor {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Welkom bij Cash Maatje</Heading>
+        <Heading style={h1}>Bevestig je e-mailadres</Heading>
         <Text style={text}>
-          Bedankt voor je aanmelding! Bevestig je e-mailadres ({recipient}) door op de knop hieronder te klikken om je account te activeren.
+          Bedankt voor je aanmelding bij{' '}
+          <Link href={siteUrl} style={link}>
+            <strong>{siteName}</strong>
+          </Link>
+          !
+        </Text>
+        <Text style={text}>
+          Bevestig je e-mailadres ({recipient}) door op de knop hieronder te klikken:
         </Text>
         <Button style={button} href={confirmationUrl}>
-          E-mailadres bevestigen
+          E-mail bevestigen
         </Button>
-        <Text style={text}>Of kopieer en plak deze link in je browser:</Text>
-        <Link href={confirmationUrl} style={link}>{confirmationUrl}</Link>
         <Text style={footer}>
           Heb je geen account aangemaakt? Dan kun je deze e-mail negeren.
         </Text>
-        <Text style={brand}>— Het Cash Maatje team</Text>
       </Container>
     </Body>
   </Html>
@@ -50,11 +56,19 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: "'Inter', Arial, sans-serif" }
+const main = { backgroundColor: '#ffffff', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Arial, sans-serif' }
 const container = { padding: '32px 28px', maxWidth: '560px' }
-const h1 = { fontSize: '24px', fontWeight: '600' as const, color: '#1d2128', margin: '0 0 20px', letterSpacing: '-0.01em' }
-const text = { fontSize: '15px', color: '#4b5563', lineHeight: '1.6', margin: '0 0 20px' }
-const link = { color: '#15bfa5', textDecoration: 'underline', fontSize: '13px', wordBreak: 'break-all' as const }
-const button = { backgroundColor: '#15bfa5', color: '#ffffff', fontSize: '15px', fontWeight: '600' as const, borderRadius: '12px', padding: '14px 24px', textDecoration: 'none', display: 'inline-block', margin: '0 0 24px' }
-const footer = { fontSize: '13px', color: '#6b7280', margin: '32px 0 8px', borderTop: '1px solid #e5e7eb', paddingTop: '20px' }
-const brand = { fontSize: '13px', color: '#6b7280', margin: '0' }
+const h1 = { fontSize: '24px', fontWeight: 'bold' as const, color: '#0a0a0a', margin: '0 0 20px' }
+const text = { fontSize: '15px', color: '#3f3f46', lineHeight: '1.6', margin: '0 0 24px' }
+const link = { color: '#10a867', textDecoration: 'underline' }
+const button = {
+  backgroundColor: '#10a867',
+  color: '#ffffff',
+  fontSize: '15px',
+  fontWeight: '600' as const,
+  borderRadius: '10px',
+  padding: '14px 24px',
+  textDecoration: 'none',
+  display: 'inline-block',
+}
+const footer = { fontSize: '13px', color: '#71717a', margin: '32px 0 0', lineHeight: '1.5' }

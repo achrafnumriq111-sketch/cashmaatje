@@ -3,14 +3,7 @@
 import * as React from 'npm:react@18.3.1'
 
 import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Heading,
-  Html,
-  Preview,
-  Text,
+  Body, Button, Container, Head, Heading, Html, Link, Preview, Text,
 } from 'npm:@react-email/components@0.0.22'
 
 interface InviteEmailProps {
@@ -19,21 +12,22 @@ interface InviteEmailProps {
   confirmationUrl: string
 }
 
-export const InviteEmail = ({ confirmationUrl }: InviteEmailProps) => (
+export const InviteEmail = ({ siteName, siteUrl, confirmationUrl }: InviteEmailProps) => (
   <Html lang="nl" dir="ltr">
     <Head />
-    <Preview>Je bent uitgenodigd voor Cash Maatje</Preview>
+    <Preview>Je bent uitgenodigd voor {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
         <Heading style={h1}>Je bent uitgenodigd</Heading>
         <Text style={text}>
-          Je bent uitgenodigd om deel te nemen aan een organisatie op Cash Maatje. Klik op de knop hieronder om de uitnodiging te accepteren en je account aan te maken.
+          Je bent uitgenodigd om mee te doen met{' '}
+          <Link href={siteUrl} style={link}><strong>{siteName}</strong></Link>.
+          Klik op de knop hieronder om de uitnodiging te accepteren en je account aan te maken.
         </Text>
         <Button style={button} href={confirmationUrl}>Uitnodiging accepteren</Button>
         <Text style={footer}>
           Verwachtte je deze uitnodiging niet? Dan kun je deze e-mail negeren.
         </Text>
-        <Text style={brand}>— Het Cash Maatje team</Text>
       </Container>
     </Body>
   </Html>
@@ -41,10 +35,13 @@ export const InviteEmail = ({ confirmationUrl }: InviteEmailProps) => (
 
 export default InviteEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: "'Inter', Arial, sans-serif" }
+const main = { backgroundColor: '#ffffff', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Arial, sans-serif' }
 const container = { padding: '32px 28px', maxWidth: '560px' }
-const h1 = { fontSize: '24px', fontWeight: '600' as const, color: '#1d2128', margin: '0 0 20px', letterSpacing: '-0.01em' }
-const text = { fontSize: '15px', color: '#4b5563', lineHeight: '1.6', margin: '0 0 20px' }
-const button = { backgroundColor: '#15bfa5', color: '#ffffff', fontSize: '15px', fontWeight: '600' as const, borderRadius: '12px', padding: '14px 24px', textDecoration: 'none', display: 'inline-block', margin: '0 0 24px' }
-const footer = { fontSize: '13px', color: '#6b7280', margin: '32px 0 8px', borderTop: '1px solid #e5e7eb', paddingTop: '20px' }
-const brand = { fontSize: '13px', color: '#6b7280', margin: '0' }
+const h1 = { fontSize: '24px', fontWeight: 'bold' as const, color: '#0a0a0a', margin: '0 0 20px' }
+const text = { fontSize: '15px', color: '#3f3f46', lineHeight: '1.6', margin: '0 0 24px' }
+const link = { color: '#10a867', textDecoration: 'underline' }
+const button = {
+  backgroundColor: '#10a867', color: '#ffffff', fontSize: '15px', fontWeight: '600' as const,
+  borderRadius: '10px', padding: '14px 24px', textDecoration: 'none', display: 'inline-block',
+}
+const footer = { fontSize: '13px', color: '#71717a', margin: '32px 0 0', lineHeight: '1.5' }
