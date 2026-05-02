@@ -1203,14 +1203,14 @@ function TestersPanel() {
         <Card>
           <CardContent className="space-y-3 p-6">
             <h3 className="font-semibold text-foreground">Inloggegevens (deel met tester)</h3>
-            <div className="grid grid-cols-[120px_1fr_auto] gap-2 text-sm items-center">
+            <div className="grid grid-cols-[90px_1fr_auto] md:grid-cols-[120px_1fr_auto] gap-2 text-sm items-center">
               <span className="text-muted-foreground">Email</span>
-              <code className="font-mono bg-secondary px-2 py-1 rounded">{result.email}</code>
+              <code className="font-mono bg-secondary px-2 py-1 rounded text-xs md:text-sm break-all">{result.email}</code>
               <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(result.email); toast.success("Gekopieerd"); }}>
                 <Copy className="h-3.5 w-3.5" />
               </Button>
               <span className="text-muted-foreground">Wachtwoord</span>
-              <code className="font-mono bg-secondary px-2 py-1 rounded">{result.password}</code>
+              <code className="font-mono bg-secondary px-2 py-1 rounded text-xs md:text-sm break-all">{result.password}</code>
               <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(result.password); toast.success("Gekopieerd"); }}>
                 <Copy className="h-3.5 w-3.5" />
               </Button>
