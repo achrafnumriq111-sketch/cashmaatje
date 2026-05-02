@@ -343,6 +343,54 @@ export default function MileageLog() {
         ))}
       </motion.div>
 
+      <motion.div variants={cardVariant} initial="initial" animate="animate">
+        <Card className={`arcory-glass border-2 transition-colors ${tracker.active ? "border-primary/60" : "border-border/50"}`}>
+          <CardContent className="pt-5 pb-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${tracker.active ? "bg-primary/15" : "bg-secondary"}`}>
+                  <Radio className={`h-5 w-5 ${tracker.active ? "text-primary" : "text-muted-foreground"} ${tracker.status === "moving" ? "animate-pulse" : ""}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Always-on GPS-tracking</p>
+                  <p className="text-xs text-muted-foreground">
+                    {tracker.active
+                      ? tracker.status === "moving"
+                        ? `In beweging · ${tracker.currentSpeed.toFixed(0)} km/u · ${tracker.currentKm.toFixed(1)} km onderweg`
+                        : "Wachten op beweging — rit start automatisch bij > 8 km/u"
+                      : "Detecteert ritten zolang dit tabblad open is. Stopt 3 min na laatste beweging."}
+                  </p>
+                  {tracker.error && <p className="text-xs text-destructive mt-1">{tracker.error}</p>}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                {!tracker.active ? (
+                  <Button size="sm" onClick={tracker.start}>
+                    <Radio className="h-4 w-4 mr-1.5" /> Start tracking
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="outline" onClick={tracker.stop}>
+                    <Square className="h-4 w-4 mr-1.5" /> Stop
+                  </Button>
+                )}
+              </div>
+            </div>
+            <AnimatePresence>
+              {tracker.status === "moving" && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-3 pt-3 border-t border-border/40 text-xs text-muted-foreground"
+                >
+                  Bij stilstand wordt deze rit automatisch opgeslagen en geclassificeerd op basis van je contacten ({contacts.length}) en routes ({routes.length}).
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </CardContent>
+        </Card>
+      </motion.div>
+
       <Tabs defaultValue="trips" className="space-y-4">
         <TabsList>
           <TabsTrigger value="trips">Ritten</TabsTrigger>
