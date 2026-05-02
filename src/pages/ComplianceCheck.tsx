@@ -17,6 +17,7 @@ interface ComplianceResult {
   overallScore: number;
   riskLevel: "safe" | "caution" | "danger";
   checks: { category: string; status: "pass" | "warning" | "fail"; detail: string }[];
+  kvkData?: { tradeName?: string; legalForm?: string; city?: string; isActive?: boolean } | null;
 }
 
 const riskConfig = {
@@ -53,14 +54,34 @@ export default function ComplianceCheck() {
       // Build compliance checks from available data
       const checks: ComplianceResult["checks"] = [];
 
-      // KVK check
+      // Live KVK lookup als input op KVK-nummer lijkt
       const isKvkNumber = /^\d{8}$/.test(searchTerm.trim());
+      let kvkData: ComplianceResult["kvkData"] = null;
+      if (isKvkNumber) {
+        try {
+          const { data: kvk, error: kvkErr } = await supabase.functions.invoke("lookup-kvk", {
+            body: { kvkNumber: searchTerm.trim() },
+          });
+          if (!kvkErr && kvk && !(kvk as any).error) {
+            kvkData = {
+              tradeName: (kvk as any).tradeName ?? (kvk as any).name,
+              legalForm: (kvk as any).legalForm,
+              city: (kvk as any).city,
+              isActive: (kvk as any).isActive ?? true,
+            };
+          }
+        } catch { /* fallback naar contact match */ }
+      }
+
+      // KVK check
       checks.push({
         category: "KVK Verificatie",
-        status: contactMatch?.kvk_number ? "pass" : isKvkNumber ? "warning" : "warning",
-        detail: contactMatch?.kvk_number
+        status: kvkData ? "pass" : contactMatch?.kvk_number ? "pass" : isKvkNumber ? "warning" : "warning",
+        detail: kvkData
+          ? `Geverifieerd in handelsregister: ${kvkData.tradeName ?? "—"} (${kvkData.legalForm ?? "?"})`
+          : contactMatch?.kvk_number
           ? `KVK-nummer ${contactMatch.kvk_number} bekend in uw administratie`
-          : isKvkNumber ? "KVK-nummer formaat correct, niet gekoppeld aan relatie" : "Geen KVK-nummer gevonden",
+          : isKvkNumber ? "KVK-nummer formaat correct, geen live data beschikbaar" : "Geen KVK-nummer gevonden",
       });
 
       // BTW check
@@ -100,11 +121,12 @@ export default function ComplianceCheck() {
       const score = Math.max(0, 100 - failCount * 30 - warnCount * 10);
 
       setResult({
-        companyName: contactMatch?.name ?? searchTerm,
+        companyName: kvkData?.tradeName ?? contactMatch?.name ?? searchTerm,
         kvkNumber: contactMatch?.kvk_number ?? (isKvkNumber ? searchTerm : "—"),
         overallScore: score,
         riskLevel: score >= 70 ? "safe" : score >= 40 ? "caution" : "danger",
         checks,
+        kvkData,
       });
 
       toast.success("Compliance check voltooid");
