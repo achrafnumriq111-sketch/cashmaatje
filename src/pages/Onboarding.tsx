@@ -51,6 +51,7 @@ export interface OnboardingData {
     email: string;
     phone: string;
     website: string;
+    industry: string;
   };
   tax: {
     btwPlichtig: boolean;
@@ -87,6 +88,7 @@ const defaultData: OnboardingData = {
     email: "",
     phone: "",
     website: "",
+    industry: "",
   },
   tax: {
     btwPlichtig: true,
