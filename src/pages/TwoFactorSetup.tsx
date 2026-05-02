@@ -35,7 +35,10 @@ export default function TwoFactorSetup() {
         if (error) throw error;
         setFactorId(data.id);
         setSecret(data.totp.secret);
-        const url = await QRCode.toDataURL(data.totp.uri, { width: 240, margin: 1, color: { dark: "#0a0a0a", light: "#ffffff" } });
+
+        // Rewrite the otpauth:// URI so authenticator apps show "Cashmaatje" instead of the default issuer
+        const brandedUri = rebrandTotpUri(data.totp.uri, "Cashmaatje", user?.email);
+        const url = await QRCode.toDataURL(brandedUri, { width: 240, margin: 1, color: { dark: "#0a0a0a", light: "#ffffff" } });
         setQrDataUrl(url);
       } catch (e: any) {
         toast.error(e.message);
