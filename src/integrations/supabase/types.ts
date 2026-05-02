@@ -6127,8 +6127,6 @@ export type Database = {
         }
         Returns: string
       }
-      show_limit: { Args: never; Returns: number }
-      show_trgm: { Args: { "": string }; Returns: string[] }
       tier_from_price: {
         Args: { p_price_id: string }
         Returns: Database["public"]["Enums"]["plan_tier"]
