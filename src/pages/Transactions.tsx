@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { TransactionFilters } from "@/components/transactions/TransactionFilters";
 import { TransactionsTable } from "@/components/transactions/TransactionsTable";
