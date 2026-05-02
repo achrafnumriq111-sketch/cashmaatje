@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { TransactionFilters } from "@/components/transactions/TransactionFilters";
 import { TransactionsTable } from "@/components/transactions/TransactionsTable";
@@ -28,6 +29,7 @@ const STATUS_TABS = [
 
 export default function Transactions() {
   const { membership } = useOrganization();
+  const navigate = useNavigate();
   const [preset, setPreset] = useState<DateRangePreset>("month");
   const initial = getDateRangeFromPreset("month");
   const [filters, setFilters] = useState<TFilters>({
@@ -117,7 +119,7 @@ export default function Transactions() {
               />
               <QuickFilters options={DATE_PRESETS} value={preset} onChange={handlePreset} />
             </div>
-            <TransactionFilters filters={filters} onChange={setFilters} bankAccounts={bankAccounts} onImport={() => setImportOpen(true)} selectedCount={selectedIds.size} />
+            <TransactionFilters filters={filters} onChange={setFilters} bankAccounts={bankAccounts} onImport={() => navigate("/bank/import")} selectedCount={selectedIds.size} />
             {selectedIds.size > 0 && <BulkActions selectedIds={Array.from(selectedIds)} accounts={accounts} onClear={() => setSelectedIds(new Set())} />}
             <TransactionsTable transactions={transactions} isLoading={isLoading} selectedIds={selectedIds} onSelectionChange={setSelectedIds} onRowClick={(id) => setDetailId(id)} role={membership?.role} />
           </TabsContent>

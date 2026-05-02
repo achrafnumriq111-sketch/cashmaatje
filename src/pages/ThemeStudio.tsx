@@ -20,12 +20,12 @@ interface ThemeConfig {
 }
 
 const themes: ThemeConfig[] = [
-  { id: "dark", name: "Cash Maatje Dark", desc: "Standaard donker thema", colors: ["#0a0a0a", "#171717", "#10B981", "#27272a"], cssVars: { "--background": "0 0% 3.9%", "--primary": "160 84% 39%", "--card": "0 0% 7.8%" } },
-  { id: "emerald", name: "Emerald Glass", desc: "Premium glaseffect met emerald accent", colors: ["#0c1017", "#131a24", "#10B981", "#1a2332"], cssVars: { "--background": "215 30% 5%", "--primary": "160 84% 39%", "--card": "215 25% 8%" } },
-  { id: "midnight", name: "Midnight Blue", desc: "Diepblauw met koele tinten", colors: ["#0a0f1a", "#111827", "#3B82F6", "#1e293b"], cssVars: { "--background": "222 47% 5%", "--primary": "217 91% 60%", "--card": "222 47% 8%" } },
-  { id: "light", name: "Minimal Light", desc: "Schoon licht thema", colors: ["#ffffff", "#f4f4f5", "#10B981", "#e4e4e7"], cssVars: { "--background": "0 0% 100%", "--primary": "160 84% 39%", "--card": "0 0% 100%" } },
-  { id: "sahara", name: "Sahara Gold", desc: "Warm goud en zandtinten", colors: ["#1a1408", "#2d2310", "#D97706", "#44381d"], cssVars: { "--background": "36 45% 6%", "--primary": "32 95% 44%", "--card": "36 45% 10%" } },
-  { id: "forest", name: "Forest Mode", desc: "Diepgroen bos thema", colors: ["#0a120a", "#142014", "#22C55E", "#1a2e1a"], cssVars: { "--background": "120 25% 5%", "--primary": "142 71% 45%", "--card": "120 25% 8%" } },
+  { id: "dark", name: "Cash Maatje Dark", desc: "Standaard donker thema met emerald accent", colors: ["#0a0a0a", "#171717", "#10B981", "#27272a"], cssVars: { "--background": "0 0% 3.9%", "--primary": "160 84% 39%", "--card": "0 0% 7.8%" } },
+  { id: "arctic", name: "Arctic Light", desc: "Helder licht thema, witte achtergrond", colors: ["#ffffff", "#f8fafc", "#0EA5E9", "#e2e8f0"], cssVars: { "--background": "0 0% 100%", "--foreground": "222 47% 11%", "--primary": "199 89% 48%", "--card": "0 0% 100%", "--card-foreground": "222 47% 11%", "--muted": "210 40% 96%", "--muted-foreground": "215 16% 47%", "--border": "214 32% 91%" } },
+  { id: "midnight", name: "Midnight Blue", desc: "Diepblauw, koel en strak", colors: ["#0a0f1a", "#111827", "#3B82F6", "#1e293b"], cssVars: { "--background": "222 47% 5%", "--primary": "217 91% 60%", "--card": "222 47% 8%" } },
+  { id: "sunset", name: "Sunset Glow", desc: "Warm oranje/roze accent op donker", colors: ["#1a0a14", "#2d1320", "#F97316", "#3d1f2a"], cssVars: { "--background": "340 35% 6%", "--primary": "20 95% 55%", "--card": "340 35% 10%" } },
+  { id: "forest", name: "Forest Mode", desc: "Diepgroen bos met levendige accent", colors: ["#0a120a", "#142014", "#22C55E", "#1a2e1a"], cssVars: { "--background": "120 25% 5%", "--primary": "142 71% 45%", "--card": "120 25% 8%" } },
+  { id: "mono", name: "Mono Pro", desc: "Pure grijstinten, professioneel", colors: ["#0a0a0a", "#1f1f1f", "#a3a3a3", "#2e2e2e"], cssVars: { "--background": "0 0% 4%", "--primary": "0 0% 75%", "--card": "0 0% 9%" } },
 ];
 
 const typographyOptions = [

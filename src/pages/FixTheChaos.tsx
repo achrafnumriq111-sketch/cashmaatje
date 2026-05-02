@@ -13,7 +13,6 @@ import { PanicScoreGauge } from "@/components/chaos/PanicScoreGauge";
 import { DailyAnchorCard } from "@/components/chaos/DailyAnchorCard";
 import { UrgencyLanes } from "@/components/chaos/UrgencyLanes";
 import { SevenDayPlanCard } from "@/components/chaos/SevenDayPlanCard";
-import { BookkeeperHandoverButton } from "@/components/chaos/BookkeeperHandoverButton";
 import { NeverAgainPanel } from "@/components/chaos/NeverAgainPanel";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -234,11 +233,6 @@ export default function FixTheChaos() {
       {/* Recovery plan */}
       <motion.div variants={fadeInUp}>
         <SevenDayPlanCard />
-      </motion.div>
-
-      {/* Bookkeeper handover */}
-      <motion.div variants={fadeInUp}>
-        <BookkeeperHandoverButton />
       </motion.div>
 
       {/* Never again */}

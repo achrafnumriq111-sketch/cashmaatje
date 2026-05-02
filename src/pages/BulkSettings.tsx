@@ -19,6 +19,8 @@ interface OrgRow {
   vat_frequency: string;
   vat_scheme: string;
   org_type: string;
+  fiscal_year_start_month?: number;
+  kor_eligible?: boolean;
 }
 
 export default function BulkSettings() {
@@ -28,6 +30,8 @@ export default function BulkSettings() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [vatFreq, setVatFreq] = useState<string>("");
   const [vatScheme, setVatScheme] = useState<string>("");
+  const [fiscalMonth, setFiscalMonth] = useState<string>("");
+  const [korEligible, setKorEligible] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -36,7 +40,7 @@ export default function BulkSettings() {
     setLoading(true);
     supabase
       .from("organizations")
-      .select("id, name, vat_frequency, vat_scheme, org_type")
+      .select("id, name, vat_frequency, vat_scheme, org_type, fiscal_year_start_month, kor_eligible")
       .in("id", ids)
       .then(({ data, error }) => {
         if (error) toast.error("Kon entiteiten niet laden");
@@ -60,11 +64,15 @@ export default function BulkSettings() {
 
   const handleApply = async () => {
     if (!selected.size) { toast.info("Selecteer minimaal 1 entiteit"); return; }
-    if (!vatFreq && !vatScheme) { toast.info("Kies minimaal 1 instelling om toe te passen"); return; }
+    if (!vatFreq && !vatScheme && !fiscalMonth && !korEligible) {
+      toast.info("Kies minimaal 1 instelling om toe te passen"); return;
+    }
     setSaving(true);
-    const updates: Record<string, string> = {};
+    const updates: Record<string, any> = {};
     if (vatFreq) updates.vat_frequency = vatFreq;
     if (vatScheme) updates.vat_scheme = vatScheme;
+    if (fiscalMonth) updates.fiscal_year_start_month = Number(fiscalMonth);
+    if (korEligible) updates.kor_eligible = korEligible === "true";
     const { error } = await supabase
       .from("organizations")
       .update(updates as never)
@@ -74,11 +82,10 @@ export default function BulkSettings() {
     toast.success(`Toegepast op ${selected.size} entiteiten`);
     // Refetch
     const ids = memberships.map((m) => m.organizationId);
-    const { data } = await supabase.from("organizations").select("id, name, vat_frequency, vat_scheme, org_type").in("id", ids);
+    const { data } = await supabase.from("organizations").select("id, name, vat_frequency, vat_scheme, org_type, fiscal_year_start_month, kor_eligible").in("id", ids);
     setOrgs((data as OrgRow[]) ?? []);
     setSelected(new Set());
-    setVatFreq("");
-    setVatScheme("");
+    setVatFreq(""); setVatScheme(""); setFiscalMonth(""); setKorEligible("");
   };
 
   const freqLabel = (f: string) => ({ monthly: "Maandelijks", quarterly: "Kwartaal", yearly: "Jaarlijks" }[f] ?? f);
@@ -86,24 +93,30 @@ export default function BulkSettings() {
 
   return (
     <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-4 max-w-5xl">
-      <motion.div variants={cardVariant}>
-        <div className="flex items-center gap-2">
-          <Layers className="h-5 w-5 text-primary" />
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Bulk instellingen</h1>
+      <motion.div variants={cardVariant} className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <Layers className="h-5 w-5 text-primary" />
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Bulk instellingen</h1>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Pas instellingen tegelijk toe op meerdere entiteiten — BTW, boekjaar en KOR.
+          </p>
         </div>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Pas BTW-instellingen tegelijk toe op meerdere entiteiten.
-        </p>
+        <Button onClick={handleApply} disabled={saving || !selected.size} size="sm">
+          {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
+          Toepassen op {selected.size}
+        </Button>
       </motion.div>
 
       <motion.div variants={cardVariant}>
-        <Tabs defaultValue="vat">
+        <Tabs defaultValue="settings">
           <TabsList>
-            <TabsTrigger value="vat">BTW instellingen</TabsTrigger>
+            <TabsTrigger value="settings">Instellingen</TabsTrigger>
             <TabsTrigger value="overview">Overzicht</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="vat" className="space-y-4 mt-4">
+          <TabsContent value="settings" className="space-y-4 mt-4">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">1. Selecteer entiteiten</CardTitle>
@@ -134,6 +147,8 @@ export default function BulkSettings() {
                           <p className="text-sm font-medium truncate">{o.name}</p>
                           <p className="text-[11px] text-muted-foreground">
                             {o.org_type} · BTW {freqLabel(o.vat_frequency)} · {schemeLabel(o.vat_scheme)}
+                            {o.fiscal_year_start_month && o.fiscal_year_start_month !== 1 ? ` · FY-start mnd ${o.fiscal_year_start_month}` : ""}
+                            {o.kor_eligible ? " · KOR" : ""}
                           </p>
                         </div>
                       </label>
@@ -145,7 +160,7 @@ export default function BulkSettings() {
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">2. Kies instellingen</CardTitle>
+                <CardTitle className="text-base">2. Kies instellingen om toe te passen</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -169,18 +184,33 @@ export default function BulkSettings() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <Label className="text-xs">Boekjaar startmaand</Label>
+                  <Select value={fiscalMonth} onValueChange={setFiscalMonth}>
+                    <SelectTrigger><SelectValue placeholder="— niet wijzigen —" /></SelectTrigger>
+                    <SelectContent>
+                      {["Januari","Februari","Maart","April","Mei","Juni","Juli","Augustus","September","Oktober","November","December"].map((m, i) => (
+                        <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">KOR eligible</Label>
+                  <Select value={korEligible} onValueChange={setKorEligible}>
+                    <SelectTrigger><SelectValue placeholder="— niet wijzigen —" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Ja, in aanmerking</SelectItem>
+                      <SelectItem value="false">Nee</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardContent>
             </Card>
 
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                {selected.size} van {orgs.length} entiteiten geselecteerd
-              </p>
-              <Button onClick={handleApply} disabled={saving || !selected.size}>
-                {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
-                Toepassen
-              </Button>
-            </div>
+            <p className="text-xs text-muted-foreground text-center">
+              {selected.size} van {orgs.length} entiteiten geselecteerd — gebruik de <strong>Toepassen</strong>-knop bovenaan.
+            </p>
           </TabsContent>
 
           <TabsContent value="overview" className="mt-4">

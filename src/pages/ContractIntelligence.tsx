@@ -42,10 +42,41 @@ export default function ContractIntelligence() {
   const [result, setResult] = useState<Analysis | null>(null);
 
   async function handleFile(file: File) {
-    if (file.type === "text/plain" || file.name.endsWith(".txt")) {
-      setText(await file.text());
-    } else {
-      toast.error("Alleen .txt wordt momenteel ondersteund — plak PDF/DOCX tekst");
+    try {
+      const lower = file.name.toLowerCase();
+      if (file.type === "text/plain" || lower.endsWith(".txt")) {
+        setText(await file.text());
+        toast.success(`${file.name} ingeladen`);
+        return;
+      }
+      if (lower.endsWith(".docx")) {
+        const mammoth = await import("mammoth/mammoth.browser");
+        const arrayBuffer = await file.arrayBuffer();
+        const { value } = await mammoth.extractRawText({ arrayBuffer });
+        setText(value);
+        toast.success(`${file.name} ingeladen (${value.length} tekens)`);
+        return;
+      }
+      if (lower.endsWith(".pdf")) {
+        const pdfjsLib = await import("pdfjs-dist");
+        // @ts-ignore - worker entry
+        const workerSrc = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let fullText = "";
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          fullText += content.items.map((it: any) => it.str).join(" ") + "\n\n";
+        }
+        setText(fullText.trim());
+        toast.success(`${file.name} ingeladen (${pdf.numPages} pagina's)`);
+        return;
+      }
+      toast.error("Ondersteunde formaten: .txt, .pdf, .docx");
+    } catch (e: any) {
+      toast.error("Kon bestand niet inlezen: " + (e?.message ?? "onbekend"));
     }
   }
 
@@ -82,9 +113,10 @@ export default function ContractIntelligence() {
             <CardHeader><CardTitle className="text-base flex items-center gap-2"><Upload className="h-4 w-4 text-primary" />Contract uploaden</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <label className="block border-2 border-dashed border-border/50 rounded-xl p-8 text-center cursor-pointer hover:border-primary/50 transition">
-                <input type="file" accept=".txt" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
+                <input type="file" accept=".txt,.pdf,.docx" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
                 <FileSearch className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Klik om .txt te uploaden (PDF/DOCX: plak tekst hieronder)</p>
+                <p className="text-sm text-muted-foreground">Sleep PDF/DOCX/TXT hier of klik om te uploaden</p>
+                <p className="text-[10px] text-muted-foreground/60 mt-1">Max 10 MB · tekst wordt automatisch geëxtraheerd</p>
               </label>
               <div className="relative">
                 <p className="text-xs text-muted-foreground mb-2">Of plak contracttekst:</p>
