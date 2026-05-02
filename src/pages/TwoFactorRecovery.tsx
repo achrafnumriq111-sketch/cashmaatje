@@ -9,6 +9,33 @@ import { AuthLogo } from "@/components/AuthLogo";
 import { toast } from "sonner";
 import { Mail, CheckCircle2 } from "lucide-react";
 
+const MAX_ATTEMPTS = 3;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Decide whether an invoke error is worth retrying (transient network / 5xx). */
+function isTransient(err: any): boolean {
+  if (!err) return false;
+  const status = err?.context?.status ?? err?.status;
+  if (typeof status === "number") return status >= 500 || status === 408 || status === 429;
+  const msg = String(err?.message ?? err).toLowerCase();
+  return /network|failed to fetch|timeout|fetch error|load failed/.test(msg);
+}
+
+/** Map server / transport errors to a friendly Dutch message. */
+function friendlyMessage(err: any): string {
+  const status = err?.context?.status ?? err?.status;
+  if (status === 400) return "Vul een geldig e-mailadres in.";
+  if (status === 429) return "Te veel pogingen. Probeer het over een paar minuten opnieuw.";
+  if (typeof status === "number" && status >= 500) {
+    return "Onze server reageert even niet. Probeer het zo opnieuw.";
+  }
+  const msg = String(err?.message ?? "").toLowerCase();
+  if (/network|failed to fetch|load failed/.test(msg)) {
+    return "Geen verbinding. Controleer je internet en probeer opnieuw.";
+  }
+  return "Er ging iets mis. Probeer het opnieuw.";
+}
+
 export default function TwoFactorRecovery() {
   const [params] = useSearchParams();
   const token = params.get("token");
@@ -17,6 +44,7 @@ export default function TwoFactorRecovery() {
   const [sent, setSent] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [resetDone, setResetDone] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     if (!token) return;
