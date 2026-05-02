@@ -11,6 +11,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useOrganization } from "@/hooks/useOrganization";
 import { supabase } from "@/integrations/supabase/client";
 import { parseBankCsv, importBankTransactions, type ParseResult, type ImportResult } from "@/lib/bankCsvImport";
+import { parseCamt053, parseMt940, detectStatementFormat } from "@/lib/bankStatementParsers";
 import { toast } from "sonner";
 import { SmartEmptyState } from "@/components/ui/smart-empty-state";
 
