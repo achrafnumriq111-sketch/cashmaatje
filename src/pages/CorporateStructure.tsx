@@ -3,40 +3,63 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Building2, GitBranch, Plus, User, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Building2, GitBranch, Plus, User, Loader2, AlertCircle, CheckCircle2, LogOut, ArrowRight } from "lucide-react";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useEntities } from "@/hooks/useEntities";
 import { useSubscription } from "@/hooks/useSubscription";
 import { AddEntityDialog } from "@/components/structure/AddEntityDialog";
 import { pageTransition, staggerContainer, cardVariant } from "@/lib/animations";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 
 export default function CorporateStructure() {
-  const { membership } = useOrganization();
+  const { membership, switchOrganization } = useOrganization();
   const { entities, isLoading } = useEntities();
   const sub = useSubscription();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [addOpen, setAddOpen] = useState(false);
 
   const canAdd = sub.isActive && !!membership;
 
+  const handleEnter = (organizationId?: string) => {
+    if (organizationId) switchOrganization(organizationId);
+    navigate("/dashboard");
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate("/", { replace: true });
+    } catch (e: any) {
+      toast.error(e.message ?? "Uitloggen mislukt");
+    }
+  };
+
   return (
-    <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-6">
-      <motion.div variants={cardVariant} className="flex items-center justify-between">
+    <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-6 max-w-5xl mx-auto px-6 py-10">
+      <motion.div variants={cardVariant} className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Corporate Structure</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Organogram en holding structuur — €15,99 per extra entiteit per maand
+            Klik op een entiteit om er in te werken — €15,99 per extra entiteit per maand
           </p>
         </div>
-        <Button
-          className="gap-1.5"
-          onClick={() => (canAdd ? setAddOpen(true) : navigate("/pricing"))}
-          disabled={!membership}
-        >
-          <Plus className="h-4 w-4" />
-          Entiteit toevoegen
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            className="gap-1.5"
+            onClick={() => (canAdd ? setAddOpen(true) : navigate("/pricing"))}
+            disabled={!membership}
+          >
+            <Plus className="h-4 w-4" />
+            Entiteit toevoegen
+          </Button>
+          <Button variant="outline" className="gap-1.5" onClick={handleSignOut}>
+            <LogOut className="h-4 w-4" />
+            Uitloggen
+          </Button>
+        </div>
       </motion.div>
 
       <motion.div variants={staggerContainer} initial="initial" animate="animate" className="flex flex-col items-center gap-4">
