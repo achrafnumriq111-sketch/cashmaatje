@@ -297,6 +297,19 @@ export default function MileageLog() {
                   <Label>Doel / omschrijving</Label>
                   <Textarea rows={2} value={trip.purpose ?? ""} onChange={(e) => setTrip({ ...trip, purpose: e.target.value })} placeholder="Klantbezoek, levering, …" />
                 </div>
+                <div className="flex items-center justify-between rounded-lg border border-border/60 bg-secondary/30 px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                    <Label className="text-xs font-normal cursor-pointer">Auto-classificeer op basis van contacten & routes</Label>
+                  </div>
+                  <Switch checked={autoClassify} onCheckedChange={setAutoClassify} />
+                </div>
+                {classification && autoClassify && (
+                  <div className="text-xs text-muted-foreground flex items-center gap-2 -mt-2">
+                    <Badge variant="secondary" className="text-[10px]">{Math.round(classification.confidence * 100)}%</Badge>
+                    <span className="truncate">{classification.reason}</span>
+                  </div>
+                )}
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setTripOpen(false)}>Annuleren</Button>
