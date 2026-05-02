@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useContactStats } from "@/hooks/useContacts";
 import { Building2, User, Globe, Mail, Phone, CreditCard, FileText, ArrowLeftRight, TrendingUp, Calendar } from "lucide-react";
 import { ContactActivityLog } from "./ContactActivityLog";
+import { EntityRolesEditor } from "./EntityRolesEditor";
 
 function fmtAmount(n: number) {
   return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(n);
@@ -151,6 +152,13 @@ export function ContactDetail({ contact, open, onClose }: Props) {
                     )}
                   </div>
                 ) : null}
+              </div>
+
+              <Separator />
+
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Rollen binnen organisatie</p>
+                <EntityRolesEditor contactId={contact.id} organizationId={contact.organization_id} />
               </div>
 
               <Separator />
