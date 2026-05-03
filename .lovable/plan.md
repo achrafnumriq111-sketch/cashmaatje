@@ -1,75 +1,52 @@
+## Doel
 
-# Fixes voor punten_02052026.docx
+1. Gebruiker automatisch uitloggen na **10 minuten inactiviteit**.
+2. Na klikken op "Uitloggen" moet de browser **niet** via de terug-knop een ingelogde pagina kunnen tonen (geen gecachete authed view).
 
-11 punten gevonden in het feedback-document. Hier is wat er nog niet werkt en hoe ik het ga fixen.
+## Aanpak
 
-## Pagina 1 — Cut the CHAOS
+### 1. Inactivity timer (10 min)
 
-### 1. "Moet weg" — knop in Cut the Chaos verwijderen
-De screenshot toont een element ("Pakket voor boekhouder") dat weg moet uit `FixTheChaos.tsx`. → Verwijderen.
+Nieuwe hook `src/hooks/useIdleLogout.ts`:
+- Luistert naar events: `mousemove`, `mousedown`, `keydown`, `touchstart`, `scroll`, `visibilitychange`.
+- Reset een timer (10 min = 600.000 ms) bij elke activiteit, met throttle (max 1x per 5s) om performance te sparen.
+- Bij timeout: toon een toast ("Uitgelogd wegens inactiviteit"), roep `signOut()` aan, en navigeer naar `/`.
+- Synchroniseert tussen tabs via `localStorage` key `arcory:lastActivity` + `storage` event, zodat activiteit in tab A ook tab B's timer reset.
+- Optioneel: 30 sec voor timeout een waarschuwing-toast met "Blijf ingelogd"-knop (sla over als te complex; alleen toast bij logout).
 
-### 2. Bank-CSV upload werkt niet vanuit Transacties
-De "Import" knop opent `CsvImportModal`, maar die accepteert geen CAMT.053/MT940. We hebben de nieuwe parser al gemaakt in `BankImport.tsx` — fix is de "Import" knop in Transacties laten doorlinken naar `/bank/import` (de uitgebreide importpagina), zodat alle 3 formaten werken.
+Inhaken in `AuthProvider` (`src/lib/auth.tsx`) zodat hij automatisch actief is wanneer er een sessie is — alleen starten als `session` bestaat, opruimen als sessie weg is.
 
-## Pagina 2 — Salarisoverzicht
+### 2. Harde logout (back-button bypass voorkomen)
 
-### 3. Module-grid voelt als duplicaat van BTW-pagina
-De huidige 8 module-cards staan los van de KPI's bovenin → wordt rommelig. → Modules consolideren in één duidelijk gegroepeerde sectie ("Aftrekposten" / "Inkomsten" / "Privé") met visuele scheiding, en de KPI-bar verkleinen.
+Aanpassingen in `src/lib/auth.tsx` `signOut`:
+```
+- await supabase.auth.signOut({ scope: 'local' })
+- Wis lokale state direct (setSession(null))
+- Wis sessionStorage en relevante localStorage-keys (sb-* tokens worden door signOut gewist; dubbel checken)
+- window.location.replace('/') i.p.v. navigate — vervangt history-entry zodat "vorige" terug naar /landing of /login gaat, niet naar de authed pagina
+```
 
-### 4. "Unauthorized?" 
-Komt waarschijnlijk uit een hook die een tabel zonder org_id-filter raakt. → Onderzoek welke hook (`useDeductiblePremiums`, `useCompanyCar`, `useMortgageDeduction`) faalt en fix de query/RLS.
+In `TopHeader.tsx` (en eventuele andere logout-knoppen zoals `Index.tsx`): laat de signOut-call de redirect doen via `window.location.replace('/')`. Verwijder eventuele `navigate(...)` calls die ervoor zorgen dat de history nog een authed-entry bevat.
 
-## Pagina 3 — Financial Intelligence
+Cache-control op authed pagina's:
+- Voeg in `index.html` een `<meta http-equiv="Cache-Control" content="no-store">` toe — voorkomt dat browsers de bfcache (back-forward cache) gebruiken voor authed views.
+- Plus in `AppLayout.tsx` een `useEffect` die luistert naar `pageshow` event: als `event.persisted === true` (pagina kwam uit bfcache) en er is geen sessie meer → `window.location.replace('/')`.
 
-### 5. "Unauthorized" + reageert niet op kosten
-De `useFinancialInsights` edge function kan falen wanneer er geen kosten zijn. → Edge function defensief maken: bij lege data toch een AI-respons geven ("nog geen kosten geboekt — voeg eerst transacties toe"), en auth-token correct doorsturen.
+### 3. ProtectedRoute hardening
 
-### 6. Memoriaalboeking-knop in Scenario Simulator
-Onder "Geprojecteerde winst" een knop "Memoriaalboeking maken" toevoegen die `MemorialJournalDialog` opent (component bestaat al).
+`src/lib/auth.tsx` `ProtectedRoute`:
+- Vervang `navigate("/", { replace: true })` door `window.location.replace("/")` zodat de history-entry van de authed pagina volledig vervangen wordt en bfcache niet helpt.
 
-## Pagina 4 — Contract Intelligence
+## Bestanden
 
-### 7. PDF/DOCX upload werkt niet
-Nu accepteert `ContractIntelligence.tsx` alleen `.txt`. → Toevoegen: client-side extractie van PDF (via `pdfjs-dist`) en DOCX (via `mammoth`), beide al makkelijk in browser bruikbaar zonder backend.
+- **Nieuw**: `src/hooks/useIdleLogout.ts`
+- **Edit**: `src/lib/auth.tsx` — idle hook inhaken in `AuthProvider`, `signOut` hard maken, `ProtectedRoute` redirect verharden
+- **Edit**: `src/components/layout/AppLayout.tsx` — `pageshow` bfcache guard
+- **Edit**: `index.html` — `Cache-Control: no-store` meta tag
+- **Edit**: `src/components/layout/TopHeader.tsx` & `src/pages/Index.tsx` — logout flow gebruikt nieuwe `signOut` (geen extra navigate nodig)
 
-## Pagina 5 — Compliance Check & Theme Studio
+## Acceptatie
 
-### 8. "KVK API nodig"
-KVK edge function bestaat al (`lookup-kvk`). De waarschuwing komt van Compliance Check pagina. → Pagina koppelen aan dezelfde `lookup-kvk` edge function en de "API nodig" placeholder vervangen door werkende lookup.
-
-### 9. Theme Studio: thema's te donker / te vergelijkbaar
-6 thema's zijn allemaal donker met emerald-achtige accent. → Vervangen met meer diverse opties:
-- **Cash Maatje Dark** (huidige default)
-- **Arctic Light** (echt licht thema, witte achtergrond)
-- **Midnight Blue** (donkerblauw, koel)
-- **Sunset** (warm oranje/roze accent op donker)
-- **Forest** (groen op donker)
-- **Mono Pro** (grijstinten, geen accent)
-
-### 10. Bulk instellingen: alleen BTW-sliders, geen andere
-Pagina heet "Bulk instellingen" en suggereert dat je alle settings tegelijk kan aanpassen. Nu alleen BTW. → Tabs uitbreiden met:
-- BTW (bestaand)
-- **Boekjaar** (fiscaal jaarstart maand)
-- **KOR-status** (eligible toggle)
-- **Branding** (logo/kleuren overerven van hoofdorg)
-
-## Pagina 6 — Floating buttons
-
-### 11. Feedback-button + andere FAB's zitten in de weg
-Er is een floating feedback-knop linksonder die actie-knoppen overlapt. → Positie verplaatsen naar rechtsboven of inklappen tot icon-only.
-
----
-
-## Uitvoeringsvolgorde
-
-| Batch | Punten | Geschatte impact |
-|---|---|---|
-| **A — Quick wins** | 1, 2, 6, 11 | Direct zichtbaar, kleine edits |
-| **B — Auth/data fixes** | 4, 5, 8 | Functionele blockers wegnemen |
-| **C — UX herontwerp** | 3, 9, 10 | Layout & opties verbeteren |
-| **D — File parsing** | 7 | PDF/DOCX support contract intelligence |
-
-Doel: alle 11 punten in één implementatieronde af. Ik begin met A → B → C → D zodra je akkoord geeft.
-
-## Vraag aan jou
-Akkoord met deze 11 fixes in deze volgorde, of wil je iets anders prioriteren / een punt overslaan?
+- Niets doen voor 10 min → automatisch uitgelogd, redirect naar `/`, toast getoond.
+- Activiteit in een andere tab voorkomt logout in beide tabs.
+- Klik "Uitloggen" → land op `/` (landing). Browser "vorige" → blijft op `/` (of forceert opnieuw redirect), nooit een ingelogde pagina zichtbaar.

@@ -20,6 +20,22 @@ export function AppLayout() {
     membership?.organizationId
   );
 
+  // bfcache guard: if page restored from back/forward cache without a session, force reload to landing
+  useEffect(() => {
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        // Re-check session; if missing, hard redirect
+        import("@/integrations/supabase/client").then(({ supabase }) => {
+          supabase.auth.getSession().then(({ data }) => {
+            if (!data.session) window.location.replace("/");
+          });
+        });
+      }
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, []);
+
   // Apply organization brand colors on load
   useEffect(() => {
     if (!membership?.organizationId) return;
