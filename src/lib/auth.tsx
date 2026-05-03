@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useIdleLogout } from "@/hooks/useIdleLogout";
 
 interface AuthContextType {
   session: Session | null;
@@ -18,6 +18,18 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const useAuth = () => useContext(AuthContext);
+
+function clearClientAuthStorage() {
+  try {
+    // Clear Supabase auth tokens from localStorage
+    Object.keys(localStorage).forEach((k) => {
+      if (k.startsWith("sb-") || k.startsWith("supabase.")) {
+        localStorage.removeItem(k);
+      }
+    });
+    sessionStorage.clear();
+  } catch {}
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -39,9 +51,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
+  const signOut = useCallback(async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch {}
+    setSession(null);
+    clearClientAuthStorage();
+    // Hard redirect — replaces history entry so back-button cannot return to authed page
+    window.location.replace("/");
+  }, []);
+
+  // Idle auto-logout (10 min) — only active when logged in
+  useIdleLogout(!!session, signOut);
 
   return (
     <AuthContext.Provider value={{ session, user: session?.user ?? null, loading, signOut }}>
@@ -52,13 +73,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (!loading && !session) {
-      navigate("/", { replace: true });
+      window.location.replace("/");
     }
-  }, [session, loading, navigate]);
+  }, [session, loading]);
 
   if (loading) {
     return (
