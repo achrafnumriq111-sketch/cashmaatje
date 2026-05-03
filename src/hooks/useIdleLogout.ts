@@ -38,15 +38,15 @@ export function useIdleLogout(active: boolean, onLogout: () => void) {
       if (e.key === STORAGE_KEY) schedule();
     };
 
-    const events: (keyof WindowEventMap)[] = [
+    const events = [
       "mousemove",
       "mousedown",
       "keydown",
       "touchstart",
       "scroll",
-      "visibilitychange",
-    ];
+    ] as const;
     events.forEach((ev) => window.addEventListener(ev, ping, { passive: true }));
+    document.addEventListener("visibilitychange", ping);
     window.addEventListener("storage", onStorage);
 
     schedule();
@@ -54,6 +54,7 @@ export function useIdleLogout(active: boolean, onLogout: () => void) {
     return () => {
       if (timerRef.current) window.clearTimeout(timerRef.current);
       events.forEach((ev) => window.removeEventListener(ev, ping));
+      document.removeEventListener("visibilitychange", ping);
       window.removeEventListener("storage", onStorage);
     };
   }, [active, onLogout]);
