@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Users, CreditCard, Megaphone, MessageSquare, Loader2, Send, Plus, Search, Building2, Flag, Sparkles, Beaker, Shield, ToggleRight, UserPlus, MessageCircle, Copy } from "lucide-react";
+import { Users, CreditCard, Megaphone, MessageSquare, Loader2, Send, Plus, Search, Building2, Flag, Sparkles, Beaker, Shield, ToggleRight, UserPlus, MessageCircle, Copy, LayoutDashboard } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -40,11 +41,19 @@ export default function Admin() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl md:text-2xl font-bold text-foreground">Admin paneel</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Beheer gebruikers, abonnementen en communicatie
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-foreground">Admin paneel</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Beheer gebruikers, abonnementen en communicatie
+          </p>
+        </div>
+        <Button asChild variant="outline" size="sm" className="gap-1.5 self-start">
+          <Link to="/dashboard">
+            <LayoutDashboard className="h-4 w-4" />
+            Naar mijn account
+          </Link>
+        </Button>
       </div>
 
       <Tabs defaultValue="users">

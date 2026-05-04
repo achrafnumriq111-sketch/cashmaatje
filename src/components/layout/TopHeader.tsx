@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, LogOut, User, Search, Gift, Menu } from "lucide-react";
+import { Bell, LogOut, User, Search, Gift, Menu, Shield } from "lucide-react";
+import { usePlatformRole } from "@/hooks/usePlatformRole";
 
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
@@ -42,6 +43,7 @@ export function TopHeader({
   const { t, lang } = useI18n();
   const navigate = useNavigate();
   const { toggle: toggleMobileNav } = useMobileNav();
+  const { data: platformRole } = usePlatformRole();
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -143,6 +145,14 @@ export function TopHeader({
                   <button className="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-foreground hover:bg-secondary transition-colors">
                     <User className="w-3.5 h-3.5" /> {t("header.profile")}
                   </button>
+                  {platformRole?.isSuperAdmin && (
+                    <button
+                      onClick={() => { setProfileOpen(false); navigate("/admin"); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-foreground hover:bg-secondary transition-colors"
+                    >
+                      <Shield className="w-3.5 h-3.5" /> Admin paneel
+                    </button>
+                  )}
                   <div className="border-t border-border" />
                   <button
                     onClick={signOut}
