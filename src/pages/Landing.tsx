@@ -14,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import { useI18n, type Language } from "@/lib/i18n";
+import logoImg from "@/assets/logo.png";
 
 /* ──────────────────────────────────────────────────────────────
    Cash Maatje — Landing (NL default, EN toggle)
