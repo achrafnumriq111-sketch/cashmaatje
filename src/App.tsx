@@ -68,6 +68,7 @@ import Inbox from "./pages/Inbox";
 import Admin from "./pages/Admin";
 import FixTheChaos from "./pages/FixTheChaos";
 import Landing from "./pages/Landing";
+import Unsubscribe from "./pages/Unsubscribe";
 import TaxReserve from "./pages/TaxReserve";
 import RecurringInvoices from "./pages/RecurringInvoices";
 import QuarterlyChecklist from "./pages/QuarterlyChecklist";
