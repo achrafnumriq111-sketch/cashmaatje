@@ -1355,6 +1355,7 @@ function TestersPanel() {
       qc.invalidateQueries({ queryKey: ["admin_testers_list"] });
     },
     onError: (e: any) => toast.error(e.message),
+  });
 
   const deleteTester = useMutation({
     mutationFn: async (t: { organization_id: string; owner_user_id: string | null }) => {
