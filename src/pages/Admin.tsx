@@ -1248,7 +1248,23 @@ function FeedbackPanel() {
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) throw error;
-      return data;
+      const userIds = Array.from(new Set((data ?? []).map((f: any) => f.user_id).filter(Boolean)));
+      const orgIds = Array.from(new Set((data ?? []).map((f: any) => f.organization_id).filter(Boolean)));
+      const [{ data: profiles }, { data: orgs }] = await Promise.all([
+        userIds.length
+          ? supabase.from("user_profiles").select("id, full_name, email").in("id", userIds)
+          : Promise.resolve({ data: [] as any[] }),
+        orgIds.length
+          ? supabase.from("organizations").select("id, name").in("id", orgIds)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+      const pMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+      const oMap = new Map((orgs ?? []).map((o: any) => [o.id, o]));
+      return (data ?? []).map((f: any) => ({
+        ...f,
+        profile: pMap.get(f.user_id) ?? null,
+        organization: oMap.get(f.organization_id) ?? null,
+      }));
     },
   });
 
@@ -1260,12 +1276,17 @@ function FeedbackPanel() {
       {data.map((f: any) => (
         <Card key={f.id}>
           <CardContent className="p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant="outline">{f.feedback_type}</Badge>
                 {f.page_path && <code className="text-xs text-muted-foreground">{f.page_path}</code>}
               </div>
-              <span className="text-xs text-muted-foreground">{format(new Date(f.created_at), "d MMM HH:mm", { locale: nl })}</span>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">{format(new Date(f.created_at), "d MMM HH:mm", { locale: nl })}</span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {f.profile?.full_name || f.profile?.email || (f.user_id ? `User ${f.user_id.slice(0, 8)}` : "Onbekende gebruiker")}
+              {f.profile?.full_name && f.profile?.email ? ` · ${f.profile.email}` : ""}
+              {f.organization?.name ? ` · ${f.organization.name}` : ""}
             </div>
             <p className="text-sm text-foreground whitespace-pre-wrap">{f.message}</p>
           </CardContent>
