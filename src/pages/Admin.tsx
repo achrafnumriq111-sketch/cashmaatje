@@ -1337,6 +1337,69 @@ function TestersPanel() {
           </CardContent>
         </Card>
       )}
+
+      <Card>
+        <CardContent className="p-4 md:p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">Actieve testers</h2>
+            <Badge variant="outline" className="ml-auto">{testersList.data?.length ?? 0}</Badge>
+          </div>
+          {testersList.isLoading ? (
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          ) : (testersList.data ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">Nog geen testers</p>
+          ) : (
+            <div className="border border-border rounded-lg overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tester</TableHead>
+                    <TableHead className="hidden sm:table-cell">Organisatie</TableHead>
+                    <TableHead className="hidden md:table-cell">Aangemaakt</TableHead>
+                    <TableHead className="hidden md:table-cell">Laatst ingelogd</TableHead>
+                    <TableHead className="text-right">Acties</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(testersList.data ?? []).map((t) => (
+                    <TableRow key={t.organization_id}>
+                      <TableCell>
+                        <div className="font-medium text-foreground">{t.full_name || "—"}</div>
+                        <div className="text-xs text-muted-foreground break-all">{t.email ?? "—"}</div>
+                        <div className="sm:hidden text-[11px] text-muted-foreground mt-0.5">{t.organization_name}</div>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">{t.organization_name}</TableCell>
+                      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
+                        {t.user_created_at ? format(new Date(t.user_created_at), "d MMM yyyy HH:mm", { locale: nl }) : "—"}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
+                        {t.last_sign_in_at
+                          ? `${format(new Date(t.last_sign_in_at), "d MMM HH:mm", { locale: nl })} (${formatDistanceToNow(new Date(t.last_sign_in_at), { addSuffix: true, locale: nl })})`
+                          : <span className="text-muted-foreground/60">nooit</span>}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            if (confirm(`Tester "${t.email ?? t.organization_name}" en bijbehorende organisatie definitief verwijderen?`)) {
+                              deleteTester.mutate({ organization_id: t.organization_id, owner_user_id: t.owner_user_id });
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-400" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">Login-tijden komen uit het authenticatiesysteem (laatste sessie). Verwijderen wist het account én de tester-organisatie.</p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
