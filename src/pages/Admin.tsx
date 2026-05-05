@@ -1276,12 +1276,17 @@ function FeedbackPanel() {
       {data.map((f: any) => (
         <Card key={f.id}>
           <CardContent className="p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant="outline">{f.feedback_type}</Badge>
                 {f.page_path && <code className="text-xs text-muted-foreground">{f.page_path}</code>}
               </div>
-              <span className="text-xs text-muted-foreground">{format(new Date(f.created_at), "d MMM HH:mm", { locale: nl })}</span>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">{format(new Date(f.created_at), "d MMM HH:mm", { locale: nl })}</span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {f.profile?.full_name || f.profile?.email || (f.user_id ? `User ${f.user_id.slice(0, 8)}` : "Onbekende gebruiker")}
+              {f.profile?.full_name && f.profile?.email ? ` · ${f.profile.email}` : ""}
+              {f.organization?.name ? ` · ${f.organization.name}` : ""}
             </div>
             <p className="text-sm text-foreground whitespace-pre-wrap">{f.message}</p>
           </CardContent>
