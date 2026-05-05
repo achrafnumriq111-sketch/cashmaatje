@@ -15,3 +15,11 @@ project_id = "mibmftxjhvrxgxypypiy"
     verify_jwt = true
   [functions.admin-create-tester]
     verify_jwt = true
+  [functions.send-transactional-email]
+    verify_jwt = true
+  [functions.preview-transactional-email]
+    verify_jwt = false
+  [functions.handle-email-unsubscribe]
+    verify_jwt = false
+  [functions.handle-email-suppression]
+    verify_jwt = false
