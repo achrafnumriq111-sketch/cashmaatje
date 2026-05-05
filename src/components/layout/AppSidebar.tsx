@@ -12,6 +12,7 @@ import { useMobileNav } from "./MobileNavContext";
 import { useI18n } from "@/lib/i18n";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import type { Database } from "@/integrations/supabase/types";
+import sidebarLogo from "@/assets/logo.png";
 
 type UserRole = Database["public"]["Enums"]["user_role"];
 
