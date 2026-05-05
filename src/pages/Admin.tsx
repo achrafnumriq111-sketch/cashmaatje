@@ -724,7 +724,20 @@ function OrganizationsPanel() {
                         onCheckedChange={(v) => toggleTestOrg.mutate({ id: o.id, value: v })}
                       />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right whitespace-nowrap">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        title="Stuur reset-wachtwoord-link naar eigenaar"
+                        disabled={resetPw.isPending}
+                        onClick={() => {
+                          if (confirm(`Reset-wachtwoord-link mailen naar de eigenaar van "${o.name}"?`)) {
+                            resetPw.mutate(o.id);
+                          }
+                        }}
+                      >
+                        <KeyRound className="h-4 w-4" />
+                      </Button>
                       <Button
                         size="sm"
                         variant="ghost"
