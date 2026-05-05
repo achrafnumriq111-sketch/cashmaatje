@@ -1369,6 +1369,7 @@ function TestersPanel() {
                   <TableRow>
                     <TableHead>Tester</TableHead>
                     <TableHead className="hidden sm:table-cell">Organisatie</TableHead>
+                    <TableHead>Wachtwoord</TableHead>
                     <TableHead className="hidden md:table-cell">Aangemaakt</TableHead>
                     <TableHead className="hidden md:table-cell">Laatst ingelogd</TableHead>
                     <TableHead className="text-right">Acties</TableHead>
@@ -1376,35 +1377,16 @@ function TestersPanel() {
                 </TableHeader>
                 <TableBody>
                   {(testersList.data ?? []).map((t) => (
-                    <TableRow key={t.organization_id}>
-                      <TableCell>
-                        <div className="font-medium text-foreground">{t.full_name || "—"}</div>
-                        <div className="text-xs text-muted-foreground break-all">{t.email ?? "—"}</div>
-                        <div className="sm:hidden text-[11px] text-muted-foreground mt-0.5">{t.organization_name}</div>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">{t.organization_name}</TableCell>
-                      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
-                        {t.user_created_at ? format(new Date(t.user_created_at), "d MMM yyyy HH:mm", { locale: nl }) : "—"}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
-                        {t.last_sign_in_at
-                          ? `${format(new Date(t.last_sign_in_at), "d MMM HH:mm", { locale: nl })} (${formatDistanceToNow(new Date(t.last_sign_in_at), { addSuffix: true, locale: nl })})`
-                          : <span className="text-muted-foreground/60">nooit</span>}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            if (confirm(`Tester "${t.email ?? t.organization_name}" en bijbehorende organisatie definitief verwijderen?`)) {
-                              deleteTester.mutate({ organization_id: t.organization_id, owner_user_id: t.owner_user_id });
-                            }
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-400" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
+                    <TesterRow
+                      key={t.organization_id}
+                      t={t}
+                      onResend={(uid) => resendCreds.mutate(uid)}
+                      onDelete={() => {
+                        if (confirm(`Tester "${t.email ?? t.organization_name}" en bijbehorende organisatie definitief verwijderen?`)) {
+                          deleteTester.mutate({ organization_id: t.organization_id, owner_user_id: t.owner_user_id });
+                        }
+                      }}
+                    />
                   ))}
                 </TableBody>
               </Table>
