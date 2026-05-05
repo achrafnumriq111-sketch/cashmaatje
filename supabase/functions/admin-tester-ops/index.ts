@@ -143,6 +143,63 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    if (action === "resend_tester_credentials") {
+      const userId = body.user_id as string;
+      if (!userId) return json({ error: "user_id required" }, 400);
+      const { data: cred } = await admin
+        .from("tester_credentials")
+        .select("email, password")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (!cred) return json({ error: "no stored credentials for this tester" }, 404);
+      const { data: u } = await admin.auth.admin.getUserById(userId);
+      const fullName = (u?.user?.user_metadata as any)?.full_name ?? "";
+      const origin = req.headers.get("origin") ?? "https://cashmaatje.com";
+      const { error: sendErr } = await admin.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "tester-credentials",
+          recipientEmail: cred.email,
+          idempotencyKey: `tester-credentials-resend-${userId}-${Date.now()}`,
+          templateData: {
+            name: fullName,
+            email: cred.email,
+            password: cred.password,
+            loginUrl: `${origin}/login`,
+          },
+        },
+      });
+      if (sendErr) throw sendErr;
+      return json({ ok: true });
+    }
+
+    if (action === "send_password_reset") {
+      const orgId = body.organization_id as string | undefined;
+      const userIdInput = body.user_id as string | undefined;
+      let targetUserId = userIdInput ?? null;
+      if (!targetUserId && orgId) {
+        const { data: m } = await admin
+          .from("organization_members")
+          .select("user_id")
+          .eq("organization_id", orgId)
+          .eq("is_owner", true)
+          .maybeSingle();
+        targetUserId = (m as any)?.user_id ?? null;
+      }
+      if (!targetUserId) return json({ error: "no owner found" }, 404);
+      const { data: u } = await admin.auth.admin.getUserById(targetUserId);
+      const email = u?.user?.email;
+      if (!email) return json({ error: "user has no email" }, 404);
+      const origin = req.headers.get("origin") ?? "https://cashmaatje.com";
+      // Generate a recovery link via Auth Admin and email it via Supabase's built-in templates
+      const { data: link, error: linkErr } = await admin.auth.admin.generateLink({
+        type: "recovery",
+        email,
+        options: { redirectTo: `${origin}/reset-password` },
+      });
+      if (linkErr) throw linkErr;
+      return json({ ok: true, email, action_link: link?.properties?.action_link ?? null });
+    }
+
     return json({ error: "unknown action" }, 400);
   } catch (e: any) {
     console.error(e);
