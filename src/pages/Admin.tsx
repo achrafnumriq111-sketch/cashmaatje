@@ -635,6 +635,19 @@ function OrganizationsPanel() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const resetPw = useMutation({
+    mutationFn: async (orgId: string) => {
+      const { data, error } = await supabase.functions.invoke("admin-tester-ops", {
+        body: { action: "send_password_reset", organization_id: orgId },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      return data as { email: string };
+    },
+    onSuccess: (d) => toast.success(`Reset-link verstuurd naar ${d.email}`),
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const filtered = (orgs ?? []).filter(
     (o: any) =>
       !search ||
