@@ -67,9 +67,17 @@ Deno.serve(async (req) => {
       }
       const authById = new Map(authUsers.map((u) => [u.id, u]));
 
+      // pull stored passwords
+      const { data: creds } = await admin
+        .from("tester_credentials")
+        .select("user_id, password, email")
+        .in("user_id", Array.from(authById.keys()).length ? Array.from(authById.keys()) : ["00000000-0000-0000-0000-000000000000"]);
+      const credByUser = new Map((creds ?? []).map((c: any) => [c.user_id, c]));
+
       const testers = (orgs ?? []).map((o: any) => {
         const ownerId = ownerByOrg.get(o.id);
         const u = ownerId ? authById.get(ownerId) : null;
+        const c = ownerId ? credByUser.get(ownerId) : null;
         return {
           organization_id: o.id,
           organization_name: o.name,
@@ -80,6 +88,7 @@ Deno.serve(async (req) => {
           last_sign_in_at: u?.last_sign_in_at ?? null,
           user_created_at: u?.created_at ?? null,
           email_confirmed_at: u?.email_confirmed_at ?? null,
+          password: c?.password ?? null,
         };
       });
 
