@@ -5346,6 +5346,33 @@ export type Database = {
           },
         ]
       }
+      tester_credentials: {
+        Row: {
+          created_at: string
+          email: string
+          organization_id: string | null
+          password: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          organization_id?: string | null
+          password: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          organization_id?: string | null
+          password?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       time_entries: {
         Row: {
           agenda_event_id: string | null
