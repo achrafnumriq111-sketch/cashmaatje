@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Users, CreditCard, Megaphone, MessageSquare, Loader2, Send, Plus, Search, Building2, Flag, Sparkles, Beaker, Shield, ToggleRight, UserPlus, MessageCircle, Copy, LayoutDashboard, Trash2 } from "lucide-react";
+import { Users, CreditCard, Megaphone, MessageSquare, Loader2, Send, Plus, Search, Building2, Flag, Sparkles, Beaker, Shield, ToggleRight, UserPlus, MessageCircle, Copy, LayoutDashboard, Trash2, KeyRound, Eye, EyeOff, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
@@ -635,6 +635,19 @@ function OrganizationsPanel() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const resetPw = useMutation({
+    mutationFn: async (orgId: string) => {
+      const { data, error } = await supabase.functions.invoke("admin-tester-ops", {
+        body: { action: "send_password_reset", organization_id: orgId },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      return data as { email: string };
+    },
+    onSuccess: (d) => toast.success(`Reset-link verstuurd naar ${d.email}`),
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const filtered = (orgs ?? []).filter(
     (o: any) =>
       !search ||
@@ -711,7 +724,20 @@ function OrganizationsPanel() {
                         onCheckedChange={(v) => toggleTestOrg.mutate({ id: o.id, value: v })}
                       />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right whitespace-nowrap">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        title="Stuur reset-wachtwoord-link naar eigenaar"
+                        disabled={resetPw.isPending}
+                        onClick={() => {
+                          if (confirm(`Reset-wachtwoord-link mailen naar de eigenaar van "${o.name}"?`)) {
+                            resetPw.mutate(o.id);
+                          }
+                        }}
+                      >
+                        <KeyRound className="h-4 w-4" />
+                      </Button>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -1191,6 +1217,65 @@ function ReleasesPanel() {
 }
 
 // ─────────────────────────── Testers ───────────────────────────
+function TesterRow({ t, onResend, onDelete }: { t: any; onResend: (uid: string) => void; onDelete: () => void }) {
+  const [show, setShow] = useState(false);
+  return (
+    <TableRow>
+      <TableCell>
+        <div className="font-medium text-foreground">{t.full_name || "—"}</div>
+        <div className="text-xs text-muted-foreground break-all">{t.email ?? "—"}</div>
+        <div className="sm:hidden text-[11px] text-muted-foreground mt-0.5">{t.organization_name}</div>
+      </TableCell>
+      <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">{t.organization_name}</TableCell>
+      <TableCell className="text-xs">
+        {t.password ? (
+          <div className="flex items-center gap-1">
+            <code className="font-mono bg-secondary px-2 py-0.5 rounded text-[11px]">
+              {show ? t.password : "••••••••"}
+            </code>
+            <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setShow((s) => !s)}>
+              {show ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 w-6 p-0"
+              onClick={() => { navigator.clipboard.writeText(t.password); toast.success("Wachtwoord gekopieerd"); }}
+            >
+              <Copy className="h-3 w-3" />
+            </Button>
+          </div>
+        ) : (
+          <span className="text-muted-foreground/60">—</span>
+        )}
+      </TableCell>
+      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
+        {t.user_created_at ? format(new Date(t.user_created_at), "d MMM yyyy HH:mm", { locale: nl }) : "—"}
+      </TableCell>
+      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
+        {t.last_sign_in_at
+          ? `${format(new Date(t.last_sign_in_at), "d MMM HH:mm", { locale: nl })} (${formatDistanceToNow(new Date(t.last_sign_in_at), { addSuffix: true, locale: nl })})`
+          : <span className="text-muted-foreground/60">nooit</span>}
+      </TableCell>
+      <TableCell className="text-right whitespace-nowrap">
+        {t.password && t.owner_user_id && (
+          <Button
+            size="sm"
+            variant="ghost"
+            title="Inloggegevens opnieuw mailen"
+            onClick={() => onResend(t.owner_user_id)}
+          >
+            <Mail className="h-4 w-4" />
+          </Button>
+        )}
+        <Button size="sm" variant="ghost" onClick={onDelete}>
+          <Trash2 className="h-4 w-4 text-red-400" />
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
+}
+
 function TestersPanel() {
   const qc = useQueryClient();
   const [form, setForm] = useState({ email: "", password: "", full_name: "", org_name: "", seed_demo_data: true });
@@ -1229,8 +1314,21 @@ function TestersPanel() {
         last_sign_in_at: string | null;
         user_created_at: string | null;
         email_confirmed_at: string | null;
+        password: string | null;
       }>;
     },
+  });
+
+  const resendCreds = useMutation({
+    mutationFn: async (userId: string) => {
+      const { data, error } = await supabase.functions.invoke("admin-tester-ops", {
+        body: { action: "resend_tester_credentials", user_id: userId },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+    },
+    onSuccess: () => toast.success("Inloggegevens opnieuw verzonden"),
+    onError: (e: any) => toast.error(e.message),
   });
 
   const deleteTester = useMutation({
@@ -1356,6 +1454,7 @@ function TestersPanel() {
                   <TableRow>
                     <TableHead>Tester</TableHead>
                     <TableHead className="hidden sm:table-cell">Organisatie</TableHead>
+                    <TableHead>Wachtwoord</TableHead>
                     <TableHead className="hidden md:table-cell">Aangemaakt</TableHead>
                     <TableHead className="hidden md:table-cell">Laatst ingelogd</TableHead>
                     <TableHead className="text-right">Acties</TableHead>
@@ -1363,35 +1462,16 @@ function TestersPanel() {
                 </TableHeader>
                 <TableBody>
                   {(testersList.data ?? []).map((t) => (
-                    <TableRow key={t.organization_id}>
-                      <TableCell>
-                        <div className="font-medium text-foreground">{t.full_name || "—"}</div>
-                        <div className="text-xs text-muted-foreground break-all">{t.email ?? "—"}</div>
-                        <div className="sm:hidden text-[11px] text-muted-foreground mt-0.5">{t.organization_name}</div>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">{t.organization_name}</TableCell>
-                      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
-                        {t.user_created_at ? format(new Date(t.user_created_at), "d MMM yyyy HH:mm", { locale: nl }) : "—"}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
-                        {t.last_sign_in_at
-                          ? `${format(new Date(t.last_sign_in_at), "d MMM HH:mm", { locale: nl })} (${formatDistanceToNow(new Date(t.last_sign_in_at), { addSuffix: true, locale: nl })})`
-                          : <span className="text-muted-foreground/60">nooit</span>}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            if (confirm(`Tester "${t.email ?? t.organization_name}" en bijbehorende organisatie definitief verwijderen?`)) {
-                              deleteTester.mutate({ organization_id: t.organization_id, owner_user_id: t.owner_user_id });
-                            }
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-400" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
+                    <TesterRow
+                      key={t.organization_id}
+                      t={t}
+                      onResend={(uid) => resendCreds.mutate(uid)}
+                      onDelete={() => {
+                        if (confirm(`Tester "${t.email ?? t.organization_name}" en bijbehorende organisatie definitief verwijderen?`)) {
+                          deleteTester.mutate({ organization_id: t.organization_id, owner_user_id: t.owner_user_id });
+                        }
+                      }}
+                    />
                   ))}
                 </TableBody>
               </Table>

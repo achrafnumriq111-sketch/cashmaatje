@@ -67,9 +67,17 @@ Deno.serve(async (req) => {
       }
       const authById = new Map(authUsers.map((u) => [u.id, u]));
 
+      // pull stored passwords
+      const { data: creds } = await admin
+        .from("tester_credentials")
+        .select("user_id, password, email")
+        .in("user_id", Array.from(authById.keys()).length ? Array.from(authById.keys()) : ["00000000-0000-0000-0000-000000000000"]);
+      const credByUser = new Map((creds ?? []).map((c: any) => [c.user_id, c]));
+
       const testers = (orgs ?? []).map((o: any) => {
         const ownerId = ownerByOrg.get(o.id);
         const u = ownerId ? authById.get(ownerId) : null;
+        const c = ownerId ? credByUser.get(ownerId) : null;
         return {
           organization_id: o.id,
           organization_name: o.name,
@@ -80,6 +88,7 @@ Deno.serve(async (req) => {
           last_sign_in_at: u?.last_sign_in_at ?? null,
           user_created_at: u?.created_at ?? null,
           email_confirmed_at: u?.email_confirmed_at ?? null,
+          password: c?.password ?? null,
         };
       });
 
@@ -132,6 +141,60 @@ Deno.serve(async (req) => {
       const { error } = await admin.auth.admin.deleteUser(userId);
       if (error) throw error;
       return json({ ok: true });
+    }
+
+    if (action === "resend_tester_credentials") {
+      const userId = body.user_id as string;
+      if (!userId) return json({ error: "user_id required" }, 400);
+      const { data: cred } = await admin
+        .from("tester_credentials")
+        .select("email, password")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (!cred) return json({ error: "no stored credentials for this tester" }, 404);
+      const { data: u } = await admin.auth.admin.getUserById(userId);
+      const fullName = (u?.user?.user_metadata as any)?.full_name ?? "";
+      const origin = req.headers.get("origin") ?? "https://cashmaatje.com";
+      const { error: sendErr } = await admin.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "tester-credentials",
+          recipientEmail: cred.email,
+          idempotencyKey: `tester-credentials-resend-${userId}-${Date.now()}`,
+          templateData: {
+            name: fullName,
+            email: cred.email,
+            password: cred.password,
+            loginUrl: `${origin}/login`,
+          },
+        },
+      });
+      if (sendErr) throw sendErr;
+      return json({ ok: true });
+    }
+
+    if (action === "send_password_reset") {
+      const orgId = body.organization_id as string | undefined;
+      const userIdInput = body.user_id as string | undefined;
+      let targetUserId = userIdInput ?? null;
+      if (!targetUserId && orgId) {
+        const { data: m } = await admin
+          .from("organization_members")
+          .select("user_id")
+          .eq("organization_id", orgId)
+          .eq("is_owner", true)
+          .maybeSingle();
+        targetUserId = (m as any)?.user_id ?? null;
+      }
+      if (!targetUserId) return json({ error: "no owner found" }, 404);
+      const { data: u } = await admin.auth.admin.getUserById(targetUserId);
+      const email = u?.user?.email;
+      if (!email) return json({ error: "user has no email" }, 404);
+      const origin = req.headers.get("origin") ?? "https://cashmaatje.com";
+      const { error: rpErr } = await admin.auth.resetPasswordForEmail(email, {
+        redirectTo: `${origin}/reset-password`,
+      });
+      if (rpErr) throw rpErr;
+      return json({ ok: true, email });
     }
 
     return json({ error: "unknown action" }, 400);

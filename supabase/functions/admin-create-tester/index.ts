@@ -89,6 +89,19 @@ Deno.serve(async (req) => {
       try { await admin.rpc("seed_demo_data", { p_org_id: orgId }); } catch (_) { /* ignore — needs auth.uid */ }
     }
 
+    // 4b. Persist credentials so super-admin can re-share if lost
+    try {
+      await admin.from("tester_credentials").upsert({
+        user_id: userId,
+        organization_id: orgId,
+        email,
+        password,
+        updated_at: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.error("store tester credentials failed", e);
+    }
+
     // 5. Send credentials email to the tester
     let emailSent = false;
     let emailError: string | null = null;
