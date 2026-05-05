@@ -1257,6 +1257,8 @@ function TestersPanel() {
     },
     onError: (e: any) => toast.error(e.message),
   });
+
+  const generatePassword = () => {
     const pw = Math.random().toString(36).slice(2, 6) + "-" + Math.random().toString(36).slice(2, 6);
     setForm((f) => ({ ...f, password: pw }));
   };
