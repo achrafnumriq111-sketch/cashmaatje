@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Users, CreditCard, Megaphone, MessageSquare, Loader2, Send, Plus, Search, Building2, Flag, Sparkles, Beaker, Shield, ToggleRight, UserPlus, MessageCircle, Copy, LayoutDashboard } from "lucide-react";
+import { Users, CreditCard, Megaphone, MessageSquare, Loader2, Send, Plus, Search, Building2, Flag, Sparkles, Beaker, Shield, ToggleRight, UserPlus, MessageCircle, Copy, LayoutDashboard, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
@@ -591,6 +591,19 @@ function OrganizationsPanel() {
     },
   });
 
+  const { data: owners } = useQuery({
+    queryKey: ["admin_org_owners", (orgs ?? []).map((o: any) => o.id).join(",")],
+    enabled: !!orgs && orgs.length > 0,
+    queryFn: async () => {
+      const ids = (orgs ?? []).map((o: any) => o.id);
+      const { data, error } = await supabase.functions.invoke("admin-tester-ops", {
+        body: { action: "list_org_owners", organization_ids: ids },
+      });
+      if (error) throw error;
+      return (data as any).owners as Record<string, { email: string | null; full_name: string | null }>;
+    },
+  });
+
   const toggleTestOrg = useMutation({
     mutationFn: async ({ id, value }: { id: string; value: boolean }) => {
       const { error } = await supabase
@@ -602,6 +615,22 @@ function OrganizationsPanel() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin_orgs"] });
       toast.success("Bijgewerkt");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const deleteOrg = useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabase.functions.invoke("admin-tester-ops", {
+        body: { action: "delete_organization", organization_id: id },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+    },
+    onSuccess: () => {
+      toast.success("Organisatie verwijderd");
+      qc.invalidateQueries({ queryKey: ["admin_orgs"] });
+      qc.invalidateQueries({ queryKey: ["admin_org_member_counts"] });
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -636,23 +665,38 @@ function OrganizationsPanel() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Naam</TableHead>
+                  <TableHead className="hidden md:table-cell">Eigenaar</TableHead>
                   <TableHead className="hidden sm:table-cell">KVK / BTW</TableHead>
                   <TableHead className="hidden md:table-cell">Leden</TableHead>
                   <TableHead className="hidden md:table-cell">Aangemaakt</TableHead>
                   <TableHead className="text-right">
                     <span className="inline-flex items-center gap-1"><Beaker className="h-3.5 w-3.5" /> Test</span>
                   </TableHead>
+                  <TableHead className="text-right">Acties</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((o: any) => (
+                {filtered.map((o: any) => {
+                  const owner = owners?.[o.id];
+                  return (
                   <TableRow key={o.id}>
                     <TableCell>
                       <div className="font-medium text-foreground">{o.name}</div>
                       {o.email && <div className="text-xs text-muted-foreground break-all">{o.email}</div>}
+                      <div className="md:hidden text-[11px] text-muted-foreground mt-0.5">
+                        {owner?.email ? `👤 ${owner.email}` : ""}
+                      </div>
                       <div className="sm:hidden text-[11px] text-muted-foreground mt-0.5">
                         {o.kvk_number ?? "—"} {o.btw_number ? `· ${o.btw_number}` : ""}
                       </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell text-xs">
+                      {owner ? (
+                        <div>
+                          <div className="text-foreground">{owner.full_name || "—"}</div>
+                          <div className="text-muted-foreground break-all">{owner.email ?? "—"}</div>
+                        </div>
+                      ) : <span className="text-muted-foreground">—</span>}
                     </TableCell>
                     <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">
                       {o.kvk_number ?? "—"} {o.btw_number ? `· ${o.btw_number}` : ""}
@@ -667,11 +711,25 @@ function OrganizationsPanel() {
                         onCheckedChange={(v) => toggleTestOrg.mutate({ id: o.id, value: v })}
                       />
                     </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          if (confirm(`Organisatie "${o.name}" definitief verwijderen? Alle gekoppelde data gaat verloren.`)) {
+                            deleteOrg.mutate(o.id);
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-400" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
                 {filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-8">
+                    <TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">
                       Geen organisaties gevonden
                     </TableCell>
                   </TableRow>
@@ -1154,6 +1212,52 @@ function TestersPanel() {
     onError: (e: any) => toast.error(e.message ?? "Fout bij aanmaken"),
   });
 
+  const testersList = useQuery({
+    queryKey: ["admin_testers_list"],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke("admin-tester-ops", {
+        body: { action: "list_testers" },
+      });
+      if (error) throw error;
+      return (data as any).testers as Array<{
+        organization_id: string;
+        organization_name: string;
+        organization_created_at: string;
+        owner_user_id: string | null;
+        email: string | null;
+        full_name: string | null;
+        last_sign_in_at: string | null;
+        user_created_at: string | null;
+        email_confirmed_at: string | null;
+      }>;
+    },
+  });
+
+  const deleteTester = useMutation({
+    mutationFn: async (t: { organization_id: string; owner_user_id: string | null }) => {
+      if (t.owner_user_id) {
+        const { data, error } = await supabase.functions.invoke("admin-tester-ops", {
+          body: { action: "delete_user", user_id: t.owner_user_id },
+        });
+        if (error) throw error;
+        if ((data as any)?.error) throw new Error((data as any).error);
+      } else {
+        const { data, error } = await supabase.functions.invoke("admin-tester-ops", {
+          body: { action: "delete_organization", organization_id: t.organization_id },
+        });
+        if (error) throw error;
+        if ((data as any)?.error) throw new Error((data as any).error);
+      }
+    },
+    onSuccess: () => {
+      toast.success("Tester verwijderd");
+      qc.invalidateQueries({ queryKey: ["admin_testers_list"] });
+      qc.invalidateQueries({ queryKey: ["admin_orgs"] });
+      qc.invalidateQueries({ queryKey: ["admin_users"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const generatePassword = () => {
     const pw = Math.random().toString(36).slice(2, 6) + "-" + Math.random().toString(36).slice(2, 6);
     setForm((f) => ({ ...f, password: pw }));
@@ -1233,6 +1337,69 @@ function TestersPanel() {
           </CardContent>
         </Card>
       )}
+
+      <Card>
+        <CardContent className="p-4 md:p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">Actieve testers</h2>
+            <Badge variant="outline" className="ml-auto">{testersList.data?.length ?? 0}</Badge>
+          </div>
+          {testersList.isLoading ? (
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          ) : (testersList.data ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">Nog geen testers</p>
+          ) : (
+            <div className="border border-border rounded-lg overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tester</TableHead>
+                    <TableHead className="hidden sm:table-cell">Organisatie</TableHead>
+                    <TableHead className="hidden md:table-cell">Aangemaakt</TableHead>
+                    <TableHead className="hidden md:table-cell">Laatst ingelogd</TableHead>
+                    <TableHead className="text-right">Acties</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(testersList.data ?? []).map((t) => (
+                    <TableRow key={t.organization_id}>
+                      <TableCell>
+                        <div className="font-medium text-foreground">{t.full_name || "—"}</div>
+                        <div className="text-xs text-muted-foreground break-all">{t.email ?? "—"}</div>
+                        <div className="sm:hidden text-[11px] text-muted-foreground mt-0.5">{t.organization_name}</div>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">{t.organization_name}</TableCell>
+                      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
+                        {t.user_created_at ? format(new Date(t.user_created_at), "d MMM yyyy HH:mm", { locale: nl }) : "—"}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
+                        {t.last_sign_in_at
+                          ? `${format(new Date(t.last_sign_in_at), "d MMM HH:mm", { locale: nl })} (${formatDistanceToNow(new Date(t.last_sign_in_at), { addSuffix: true, locale: nl })})`
+                          : <span className="text-muted-foreground/60">nooit</span>}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            if (confirm(`Tester "${t.email ?? t.organization_name}" en bijbehorende organisatie definitief verwijderen?`)) {
+                              deleteTester.mutate({ organization_id: t.organization_id, owner_user_id: t.owner_user_id });
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-400" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">Login-tijden komen uit het authenticatiesysteem (laatste sessie). Verwijderen wist het account én de tester-organisatie.</p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
