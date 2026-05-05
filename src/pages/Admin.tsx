@@ -591,6 +591,19 @@ function OrganizationsPanel() {
     },
   });
 
+  const { data: owners } = useQuery({
+    queryKey: ["admin_org_owners", (orgs ?? []).map((o: any) => o.id).join(",")],
+    enabled: !!orgs && orgs.length > 0,
+    queryFn: async () => {
+      const ids = (orgs ?? []).map((o: any) => o.id);
+      const { data, error } = await supabase.functions.invoke("admin-tester-ops", {
+        body: { action: "list_org_owners", organization_ids: ids },
+      });
+      if (error) throw error;
+      return (data as any).owners as Record<string, { email: string | null; full_name: string | null }>;
+    },
+  });
+
   const toggleTestOrg = useMutation({
     mutationFn: async ({ id, value }: { id: string; value: boolean }) => {
       const { error } = await supabase
@@ -602,6 +615,22 @@ function OrganizationsPanel() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin_orgs"] });
       toast.success("Bijgewerkt");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const deleteOrg = useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabase.functions.invoke("admin-tester-ops", {
+        body: { action: "delete_organization", organization_id: id },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+    },
+    onSuccess: () => {
+      toast.success("Organisatie verwijderd");
+      qc.invalidateQueries({ queryKey: ["admin_orgs"] });
+      qc.invalidateQueries({ queryKey: ["admin_org_member_counts"] });
     },
     onError: (e: any) => toast.error(e.message),
   });
