@@ -1552,19 +1552,3 @@ function FeedbackPanel() {
     </div>
   );
 }
-
-  const regenPw = useMutation({
-    mutationFn: async (t: { organization_id: string; owner_user_id: string }) => {
-      const { data, error } = await supabase.functions.invoke("admin-tester-ops", {
-        body: { action: "regenerate_password", user_id: t.owner_user_id, organization_id: t.organization_id },
-      });
-      if (error) throw error;
-      if ((data as any)?.error) throw new Error((data as any).error);
-      return data as { email: string; password: string; email_sent: boolean };
-    },
-    onSuccess: (d) => {
-      toast.success(`Nieuw wachtwoord ingesteld${d.email_sent ? " en gemaild" : " (mail mislukt)"}`);
-      qc.invalidateQueries({ queryKey: ["admin_testers_list"] });
-    },
-    onError: (e: any) => toast.error(e.message),
-  });
