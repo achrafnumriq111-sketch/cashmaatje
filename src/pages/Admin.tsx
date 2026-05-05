@@ -665,23 +665,38 @@ function OrganizationsPanel() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Naam</TableHead>
+                  <TableHead className="hidden md:table-cell">Eigenaar</TableHead>
                   <TableHead className="hidden sm:table-cell">KVK / BTW</TableHead>
                   <TableHead className="hidden md:table-cell">Leden</TableHead>
                   <TableHead className="hidden md:table-cell">Aangemaakt</TableHead>
                   <TableHead className="text-right">
                     <span className="inline-flex items-center gap-1"><Beaker className="h-3.5 w-3.5" /> Test</span>
                   </TableHead>
+                  <TableHead className="text-right">Acties</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((o: any) => (
+                {filtered.map((o: any) => {
+                  const owner = owners?.[o.id];
+                  return (
                   <TableRow key={o.id}>
                     <TableCell>
                       <div className="font-medium text-foreground">{o.name}</div>
                       {o.email && <div className="text-xs text-muted-foreground break-all">{o.email}</div>}
+                      <div className="md:hidden text-[11px] text-muted-foreground mt-0.5">
+                        {owner?.email ? `👤 ${owner.email}` : ""}
+                      </div>
                       <div className="sm:hidden text-[11px] text-muted-foreground mt-0.5">
                         {o.kvk_number ?? "—"} {o.btw_number ? `· ${o.btw_number}` : ""}
                       </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell text-xs">
+                      {owner ? (
+                        <div>
+                          <div className="text-foreground">{owner.full_name || "—"}</div>
+                          <div className="text-muted-foreground break-all">{owner.email ?? "—"}</div>
+                        </div>
+                      ) : <span className="text-muted-foreground">—</span>}
                     </TableCell>
                     <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">
                       {o.kvk_number ?? "—"} {o.btw_number ? `· ${o.btw_number}` : ""}
@@ -696,11 +711,25 @@ function OrganizationsPanel() {
                         onCheckedChange={(v) => toggleTestOrg.mutate({ id: o.id, value: v })}
                       />
                     </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          if (confirm(`Organisatie "${o.name}" definitief verwijderen? Alle gekoppelde data gaat verloren.`)) {
+                            deleteOrg.mutate(o.id);
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-400" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
                 {filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-8">
+                    <TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">
                       Geen organisaties gevonden
                     </TableCell>
                   </TableRow>
