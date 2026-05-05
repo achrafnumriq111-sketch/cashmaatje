@@ -68,6 +68,7 @@ import Inbox from "./pages/Inbox";
 import Admin from "./pages/Admin";
 import FixTheChaos from "./pages/FixTheChaos";
 import Landing from "./pages/Landing";
+import Unsubscribe from "./pages/Unsubscribe";
 import TaxReserve from "./pages/TaxReserve";
 import RecurringInvoices from "./pages/RecurringInvoices";
 import QuarterlyChecklist from "./pages/QuarterlyChecklist";
@@ -124,6 +125,7 @@ const App = () => (
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/unsubscribe" element={<Unsubscribe />} />
             
             <Route path="/checkout/return" element={<CheckoutReturn />} />
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
