@@ -1492,6 +1492,12 @@ function TestersPanel() {
                       key={t.organization_id}
                       t={t}
                       onResend={(uid) => resendCreds.mutate(uid)}
+                      onRegen={(tt) => {
+                        if (!tt.owner_user_id) return;
+                        if (confirm(`Nieuw wachtwoord genereren voor "${tt.email ?? tt.organization_name}" en mailen?`)) {
+                          regenPw.mutate({ organization_id: tt.organization_id, owner_user_id: tt.owner_user_id });
+                        }
+                      }}
                       onDelete={() => {
                         if (confirm(`Tester "${t.email ?? t.organization_name}" en bijbehorende organisatie definitief verwijderen?`)) {
                           deleteTester.mutate({ organization_id: t.organization_id, owner_user_id: t.owner_user_id });
