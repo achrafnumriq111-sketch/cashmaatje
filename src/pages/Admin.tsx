@@ -1191,6 +1191,65 @@ function ReleasesPanel() {
 }
 
 // ─────────────────────────── Testers ───────────────────────────
+function TesterRow({ t, onResend, onDelete }: { t: any; onResend: (uid: string) => void; onDelete: () => void }) {
+  const [show, setShow] = useState(false);
+  return (
+    <TableRow>
+      <TableCell>
+        <div className="font-medium text-foreground">{t.full_name || "—"}</div>
+        <div className="text-xs text-muted-foreground break-all">{t.email ?? "—"}</div>
+        <div className="sm:hidden text-[11px] text-muted-foreground mt-0.5">{t.organization_name}</div>
+      </TableCell>
+      <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">{t.organization_name}</TableCell>
+      <TableCell className="text-xs">
+        {t.password ? (
+          <div className="flex items-center gap-1">
+            <code className="font-mono bg-secondary px-2 py-0.5 rounded text-[11px]">
+              {show ? t.password : "••••••••"}
+            </code>
+            <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setShow((s) => !s)}>
+              {show ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 w-6 p-0"
+              onClick={() => { navigator.clipboard.writeText(t.password); toast.success("Wachtwoord gekopieerd"); }}
+            >
+              <Copy className="h-3 w-3" />
+            </Button>
+          </div>
+        ) : (
+          <span className="text-muted-foreground/60">—</span>
+        )}
+      </TableCell>
+      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
+        {t.user_created_at ? format(new Date(t.user_created_at), "d MMM yyyy HH:mm", { locale: nl }) : "—"}
+      </TableCell>
+      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
+        {t.last_sign_in_at
+          ? `${format(new Date(t.last_sign_in_at), "d MMM HH:mm", { locale: nl })} (${formatDistanceToNow(new Date(t.last_sign_in_at), { addSuffix: true, locale: nl })})`
+          : <span className="text-muted-foreground/60">nooit</span>}
+      </TableCell>
+      <TableCell className="text-right whitespace-nowrap">
+        {t.password && t.owner_user_id && (
+          <Button
+            size="sm"
+            variant="ghost"
+            title="Inloggegevens opnieuw mailen"
+            onClick={() => onResend(t.owner_user_id)}
+          >
+            <Mail className="h-4 w-4" />
+          </Button>
+        )}
+        <Button size="sm" variant="ghost" onClick={onDelete}>
+          <Trash2 className="h-4 w-4 text-red-400" />
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
+}
+
 function TestersPanel() {
   const qc = useQueryClient();
   const [form, setForm] = useState({ email: "", password: "", full_name: "", org_name: "", seed_demo_data: true });
