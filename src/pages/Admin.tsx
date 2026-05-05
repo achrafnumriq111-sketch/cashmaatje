@@ -1229,8 +1229,21 @@ function TestersPanel() {
         last_sign_in_at: string | null;
         user_created_at: string | null;
         email_confirmed_at: string | null;
+        password: string | null;
       }>;
     },
+  });
+
+  const resendCreds = useMutation({
+    mutationFn: async (userId: string) => {
+      const { data, error } = await supabase.functions.invoke("admin-tester-ops", {
+        body: { action: "resend_tester_credentials", user_id: userId },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+    },
+    onSuccess: () => toast.success("Inloggegevens opnieuw verzonden"),
+    onError: (e: any) => toast.error(e.message),
   });
 
   const deleteTester = useMutation({
