@@ -12,6 +12,7 @@ import { useMobileNav } from "./MobileNavContext";
 import { useI18n } from "@/lib/i18n";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import type { Database } from "@/integrations/supabase/types";
+import sidebarLogo from "@/assets/logo.png";
 
 type UserRole = Database["public"]["Enums"]["user_role"];
 
@@ -320,9 +321,7 @@ export function AppSidebar({ role }: { role?: UserRole }) {
             className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
             aria-label="Cashmaatje website"
           >
-            <div className="w-7 h-7 rounded-lg bg-primary grid place-items-center">
-              <span className="text-primary-foreground text-[13px] font-semibold leading-none">C</span>
-            </div>
+            <img src={sidebarLogo} alt="Cash Maatje logo" className="w-7 h-7 rounded-lg object-contain" style={{ imageRendering: "pixelated" }} />
             <span className="text-[15px] font-semibold tracking-tight text-foreground">Cash Maatje</span>
           </a>
           <button

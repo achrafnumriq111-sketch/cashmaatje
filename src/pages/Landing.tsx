@@ -14,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import { useI18n, type Language } from "@/lib/i18n";
+import logoImg from "@/assets/logo.png";
 
 /* ──────────────────────────────────────────────────────────────
    Cash Maatje — Landing (NL default, EN toggle)
@@ -248,9 +249,7 @@ function Nav({ c }: { c: Copy }) {
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/60">
       <div className="mx-auto max-w-6xl px-4 md:px-6 h-16 flex items-center justify-between gap-3">
         <Link to="/" className="flex items-center gap-2 shrink-0">
-          <div className="h-7 w-7 rounded-lg bg-primary grid place-items-center">
-            <span className="text-primary-foreground text-[13px] font-semibold">C</span>
-          </div>
+          <img src={logoImg} alt="Cash Maatje logo" className="h-7 w-7 rounded-lg object-contain" style={{ imageRendering: "pixelated" }} />
           <span className="text-[15px] font-semibold tracking-tight text-foreground">Cash Maatje</span>
         </Link>
         <nav className="hidden md:flex items-center gap-8 text-[14px] text-muted-foreground">
