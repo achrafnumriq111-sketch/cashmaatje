@@ -261,7 +261,7 @@ function Nav({ c }: { c: Copy }) {
         </nav>
         <div className="flex items-center gap-2">
           <LangSwitch />
-          <Link to="/login" className="hidden sm:inline-block text-[14px] text-muted-foreground hover:text-foreground px-3 py-2">
+          <Link to="/login" className="text-[13px] md:text-[14px] text-muted-foreground hover:text-foreground px-2 md:px-3 py-2 whitespace-nowrap">
             {c.nav.signin}
           </Link>
           <Link
