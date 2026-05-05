@@ -197,6 +197,52 @@ Deno.serve(async (req) => {
       return json({ ok: true, email });
     }
 
+    if (action === "regenerate_password") {
+      const userId = body.user_id as string;
+      const orgId = body.organization_id as string | undefined;
+      if (!userId) return json({ error: "user_id required" }, 400);
+      const { data: u } = await admin.auth.admin.getUserById(userId);
+      const email = u?.user?.email;
+      if (!email) return json({ error: "user has no email" }, 404);
+      const fullName = (u?.user?.user_metadata as any)?.full_name ?? "";
+      const newPassword =
+        Math.random().toString(36).slice(2, 6) + "-" + Math.random().toString(36).slice(2, 6);
+      const { error: updErr } = await admin.auth.admin.updateUserById(userId, {
+        password: newPassword,
+      });
+      if (updErr) throw updErr;
+      await admin.from("tester_credentials").upsert({
+        user_id: userId,
+        organization_id: orgId ?? null,
+        email,
+        password: newPassword,
+        updated_at: new Date().toISOString(),
+      });
+      const origin = req.headers.get("origin") ?? "https://cashmaatje.com";
+      let emailSent = false;
+      let emailError: string | null = null;
+      try {
+        const { error: sendErr } = await admin.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "tester-credentials",
+            recipientEmail: email,
+            idempotencyKey: `tester-credentials-regen-${userId}-${Date.now()}`,
+            templateData: {
+              name: fullName,
+              email,
+              password: newPassword,
+              loginUrl: `${origin}/login`,
+            },
+          },
+        });
+        if (sendErr) throw sendErr;
+        emailSent = true;
+      } catch (e: any) {
+        emailError = e?.message ?? String(e);
+      }
+      return json({ ok: true, email, password: newPassword, email_sent: emailSent, email_error: emailError });
+    }
+
     return json({ error: "unknown action" }, 400);
   } catch (e: any) {
     console.error(e);

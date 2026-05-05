@@ -1217,7 +1217,7 @@ function ReleasesPanel() {
 }
 
 // ─────────────────────────── Testers ───────────────────────────
-function TesterRow({ t, onResend, onDelete }: { t: any; onResend: (uid: string) => void; onDelete: () => void }) {
+function TesterRow({ t, onResend, onRegen, onDelete }: { t: any; onResend: (uid: string) => void; onRegen: (t: any) => void; onDelete: () => void }) {
   const [show, setShow] = useState(false);
   return (
     <TableRow>
@@ -1258,11 +1258,21 @@ function TesterRow({ t, onResend, onDelete }: { t: any; onResend: (uid: string) 
           : <span className="text-muted-foreground/60">nooit</span>}
       </TableCell>
       <TableCell className="text-right whitespace-nowrap">
+        {t.owner_user_id && (
+          <Button
+            size="sm"
+            variant="ghost"
+            title={t.password ? "Genereer nieuw wachtwoord en mail" : "Stel nieuw wachtwoord in en mail"}
+            onClick={() => onRegen(t)}
+          >
+            <KeyRound className="h-4 w-4" />
+          </Button>
+        )}
         {t.password && t.owner_user_id && (
           <Button
             size="sm"
             variant="ghost"
-            title="Inloggegevens opnieuw mailen"
+            title="Bestaande inloggegevens opnieuw mailen"
             onClick={() => onResend(t.owner_user_id)}
           >
             <Mail className="h-4 w-4" />
@@ -1328,6 +1338,22 @@ function TestersPanel() {
       if ((data as any)?.error) throw new Error((data as any).error);
     },
     onSuccess: () => toast.success("Inloggegevens opnieuw verzonden"),
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const regenPw = useMutation({
+    mutationFn: async (t: { organization_id: string; owner_user_id: string }) => {
+      const { data, error } = await supabase.functions.invoke("admin-tester-ops", {
+        body: { action: "regenerate_password", user_id: t.owner_user_id, organization_id: t.organization_id },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      return data as { email: string; password: string; email_sent: boolean };
+    },
+    onSuccess: (d) => {
+      toast.success(`Nieuw wachtwoord ingesteld${d.email_sent ? " en gemaild" : " (mail mislukt)"}`);
+      qc.invalidateQueries({ queryKey: ["admin_testers_list"] });
+    },
     onError: (e: any) => toast.error(e.message),
   });
 
@@ -1466,6 +1492,12 @@ function TestersPanel() {
                       key={t.organization_id}
                       t={t}
                       onResend={(uid) => resendCreds.mutate(uid)}
+                      onRegen={(tt) => {
+                        if (!tt.owner_user_id) return;
+                        if (confirm(`Nieuw wachtwoord genereren voor "${tt.email ?? tt.organization_name}" en mailen?`)) {
+                          regenPw.mutate({ organization_id: tt.organization_id, owner_user_id: tt.owner_user_id });
+                        }
+                      }}
                       onDelete={() => {
                         if (confirm(`Tester "${t.email ?? t.organization_name}" en bijbehorende organisatie definitief verwijderen?`)) {
                           deleteTester.mutate({ organization_id: t.organization_id, owner_user_id: t.owner_user_id });
@@ -1542,4 +1574,3 @@ function FeedbackPanel() {
     </div>
   );
 }
-
