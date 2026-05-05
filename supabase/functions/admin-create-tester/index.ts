@@ -89,10 +89,37 @@ Deno.serve(async (req) => {
       try { await admin.rpc("seed_demo_data", { p_org_id: orgId }); } catch (_) { /* ignore — needs auth.uid */ }
     }
 
+    // 5. Send credentials email to the tester
+    let emailSent = false;
+    let emailError: string | null = null;
+    try {
+      const origin = req.headers.get("origin") ?? "https://cashmaatje.com";
+      const { error: sendErr } = await admin.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "tester-credentials",
+          recipientEmail: email,
+          idempotencyKey: `tester-credentials-${userId}`,
+          templateData: {
+            name: full_name ?? "",
+            email,
+            password,
+            loginUrl: `${origin}/login`,
+          },
+        },
+      });
+      if (sendErr) throw sendErr;
+      emailSent = true;
+    } catch (e: any) {
+      emailError = e?.message ?? String(e);
+      console.error("send tester credentials email failed", emailError);
+    }
+
     return new Response(JSON.stringify({
       user_id: userId,
       organization_id: orgId,
       email, password,
+      email_sent: emailSent,
+      email_error: emailError,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e: any) {
     console.error(e);
