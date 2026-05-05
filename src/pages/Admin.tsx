@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Users, CreditCard, Megaphone, MessageSquare, Loader2, Send, Plus, Search, Building2, Flag, Sparkles, Beaker, Shield, ToggleRight, UserPlus, MessageCircle, Copy, LayoutDashboard } from "lucide-react";
+import { Users, CreditCard, Megaphone, MessageSquare, Loader2, Send, Plus, Search, Building2, Flag, Sparkles, Beaker, Shield, ToggleRight, UserPlus, MessageCircle, Copy, LayoutDashboard, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
