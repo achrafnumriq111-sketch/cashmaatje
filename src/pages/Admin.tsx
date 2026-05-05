@@ -1258,11 +1258,21 @@ function TesterRow({ t, onResend, onRegen, onDelete }: { t: any; onResend: (uid:
           : <span className="text-muted-foreground/60">nooit</span>}
       </TableCell>
       <TableCell className="text-right whitespace-nowrap">
+        {t.owner_user_id && (
+          <Button
+            size="sm"
+            variant="ghost"
+            title={t.password ? "Genereer nieuw wachtwoord en mail" : "Stel nieuw wachtwoord in en mail"}
+            onClick={() => onRegen(t)}
+          >
+            <KeyRound className="h-4 w-4" />
+          </Button>
+        )}
         {t.password && t.owner_user_id && (
           <Button
             size="sm"
             variant="ghost"
-            title="Inloggegevens opnieuw mailen"
+            title="Bestaande inloggegevens opnieuw mailen"
             onClick={() => onResend(t.owner_user_id)}
           >
             <Mail className="h-4 w-4" />
