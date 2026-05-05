@@ -1248,7 +1248,23 @@ function FeedbackPanel() {
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) throw error;
-      return data;
+      const userIds = Array.from(new Set((data ?? []).map((f: any) => f.user_id).filter(Boolean)));
+      const orgIds = Array.from(new Set((data ?? []).map((f: any) => f.organization_id).filter(Boolean)));
+      const [{ data: profiles }, { data: orgs }] = await Promise.all([
+        userIds.length
+          ? supabase.from("user_profiles").select("id, full_name, email").in("id", userIds)
+          : Promise.resolve({ data: [] as any[] }),
+        orgIds.length
+          ? supabase.from("organizations").select("id, name").in("id", orgIds)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+      const pMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+      const oMap = new Map((orgs ?? []).map((o: any) => [o.id, o]));
+      return (data ?? []).map((f: any) => ({
+        ...f,
+        profile: pMap.get(f.user_id) ?? null,
+        organization: oMap.get(f.organization_id) ?? null,
+      }));
     },
   });
 
