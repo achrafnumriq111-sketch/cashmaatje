@@ -190,14 +190,11 @@ Deno.serve(async (req) => {
       const email = u?.user?.email;
       if (!email) return json({ error: "user has no email" }, 404);
       const origin = req.headers.get("origin") ?? "https://cashmaatje.com";
-      // Generate a recovery link via Auth Admin and email it via Supabase's built-in templates
-      const { data: link, error: linkErr } = await admin.auth.admin.generateLink({
-        type: "recovery",
-        email,
-        options: { redirectTo: `${origin}/reset-password` },
+      const { error: rpErr } = await admin.auth.resetPasswordForEmail(email, {
+        redirectTo: `${origin}/reset-password`,
       });
-      if (linkErr) throw linkErr;
-      return json({ ok: true, email, action_link: link?.properties?.action_link ?? null });
+      if (rpErr) throw rpErr;
+      return json({ ok: true, email });
     }
 
     return json({ error: "unknown action" }, 400);
