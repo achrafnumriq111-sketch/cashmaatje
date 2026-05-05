@@ -1217,7 +1217,7 @@ function ReleasesPanel() {
 }
 
 // ─────────────────────────── Testers ───────────────────────────
-function TesterRow({ t, onResend, onDelete }: { t: any; onResend: (uid: string) => void; onDelete: () => void }) {
+function TesterRow({ t, onResend, onRegen, onDelete }: { t: any; onResend: (uid: string) => void; onRegen: (t: any) => void; onDelete: () => void }) {
   const [show, setShow] = useState(false);
   return (
     <TableRow>
