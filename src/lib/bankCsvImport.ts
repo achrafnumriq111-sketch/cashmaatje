@@ -268,6 +268,8 @@ export async function importBankTransactions(
       }
     }
 
+    const resolvedContactId = contactResolver?.(tx) ?? null;
+
     const { error } = await supabase.from("bank_transactions").insert({
       organization_id: orgId,
       bank_account_id: bankAccountId,
@@ -285,6 +287,7 @@ export async function importBankTransactions(
       match_method: matchedInvoiceId ? "csv_import_auto" : null,
       transaction_hash: hash,
       raw_data: tx.raw,
+      contact_id: resolvedContactId,
     });
 
     if (error) {
