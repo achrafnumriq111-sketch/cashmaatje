@@ -195,11 +195,14 @@ export interface ImportResult {
 
 /**
  * Importeer geparseerde transacties + probeer matchen tegen openstaande facturen.
+ *
+ * `contactResolver` mapt een transactie naar een contact_id (na de sort/match-stap).
  */
 export async function importBankTransactions(
   orgId: string,
   bankAccountId: string,
   txs: ParsedTx[],
+  contactResolver?: (tx: ParsedTx) => string | null,
 ): Promise<ImportResult> {
   const result: ImportResult = { inserted: 0, duplicates: 0, matched: 0, errors: [] };
   if (!txs.length) return result;
