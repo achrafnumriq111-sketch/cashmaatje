@@ -217,7 +217,7 @@ export function AppSidebar({ role }: { role?: UserRole }) {
             group relative
             ${active
               ? "text-secondary-foreground bg-secondary"
-              : "text-muted-foreground hover:text-secondary-foreground hover:bg-secondary/40"
+              : "text-muted-foreground hover:text-secondary-foreground hover:bg-secondary"
             }
           `}
         >
