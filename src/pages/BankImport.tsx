@@ -180,6 +180,7 @@ export default function BankImport() {
                     />
                     <span className="inline-flex items-center gap-1 rounded-md bg-secondary px-3 py-1.5 text-xs font-medium text-foreground hover:bg-secondary/80">
                       Kies bestand
+                    </span>
                   </label>
                 </div>
 
