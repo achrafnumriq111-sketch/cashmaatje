@@ -41,8 +41,22 @@ export default function BankImport() {
     enabled: !!orgId,
   });
 
+  const { data: contacts = [] } = useQuery({
+    queryKey: ["contacts-match", orgId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("contacts")
+        .select("id, name, iban, is_customer, is_supplier")
+        .eq("organization_id", orgId!)
+        .eq("is_active", true);
+      return (data ?? []) as ContactRow[];
+    },
+    enabled: !!orgId,
+  });
+
   const handleFile = async (file: File) => {
     setImportResult(null);
+    setGroups([]);
     const text = await file.text();
     const ext = file.name.toLowerCase().split(".").pop();
     let format = detectStatementFormat(text);
