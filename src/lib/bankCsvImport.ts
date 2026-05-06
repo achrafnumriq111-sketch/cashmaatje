@@ -195,11 +195,14 @@ export interface ImportResult {
 
 /**
  * Importeer geparseerde transacties + probeer matchen tegen openstaande facturen.
+ *
+ * `contactResolver` mapt een transactie naar een contact_id (na de sort/match-stap).
  */
 export async function importBankTransactions(
   orgId: string,
   bankAccountId: string,
   txs: ParsedTx[],
+  contactResolver?: (tx: ParsedTx) => string | null,
 ): Promise<ImportResult> {
   const result: ImportResult = { inserted: 0, duplicates: 0, matched: 0, errors: [] };
   if (!txs.length) return result;
@@ -265,6 +268,8 @@ export async function importBankTransactions(
       }
     }
 
+    const resolvedContactId = contactResolver?.(tx) ?? null;
+
     const { error } = await supabase.from("bank_transactions").insert({
       organization_id: orgId,
       bank_account_id: bankAccountId,
@@ -282,6 +287,7 @@ export async function importBankTransactions(
       match_method: matchedInvoiceId ? "csv_import_auto" : null,
       transaction_hash: hash,
       raw_data: tx.raw,
+      contact_id: resolvedContactId,
     });
 
     if (error) {

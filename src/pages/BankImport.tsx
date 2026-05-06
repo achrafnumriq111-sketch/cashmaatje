@@ -12,6 +12,8 @@ import { useOrganization } from "@/hooks/useOrganization";
 import { supabase } from "@/integrations/supabase/client";
 import { parseBankCsv, importBankTransactions, type ParseResult, type ImportResult } from "@/lib/bankCsvImport";
 import { parseCamt053, parseMt940, detectStatementFormat } from "@/lib/bankStatementParsers";
+import { buildCounterpartyGroups, txGroupKey, type CounterpartyGroup, type ContactRow } from "@/lib/contactMatcher";
+import { ContactMatchStep } from "@/components/transactions/ContactMatchStep";
 import { toast } from "sonner";
 import { SmartEmptyState } from "@/components/ui/smart-empty-state";
 
@@ -20,6 +22,7 @@ export default function BankImport() {
   const orgId = membership?.organizationId;
   const qc = useQueryClient();
   const [parsed, setParsed] = useState<ParseResult | null>(null);
+  const [groups, setGroups] = useState<CounterpartyGroup[]>([]);
   const [accountId, setAccountId] = useState<string>("");
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -38,8 +41,22 @@ export default function BankImport() {
     enabled: !!orgId,
   });
 
+  const { data: contacts = [] } = useQuery({
+    queryKey: ["contacts-match", orgId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("contacts")
+        .select("id, name, iban, is_customer, is_supplier")
+        .eq("organization_id", orgId!)
+        .eq("is_active", true);
+      return (data ?? []) as ContactRow[];
+    },
+    enabled: !!orgId,
+  });
+
   const handleFile = async (file: File) => {
     setImportResult(null);
+    setGroups([]);
     const text = await file.text();
     const ext = file.name.toLowerCase().split(".").pop();
     let format = detectStatementFormat(text);
@@ -57,6 +74,7 @@ export default function BankImport() {
       toast.error("Geen transacties gevonden in dit bestand");
     } else {
       toast.success(`${result.transactions.length} transacties uit ${format.toUpperCase()} gelezen`);
+      setGroups(buildCounterpartyGroups(result.transactions, contacts));
     }
     if (bankAccounts.length === 1) setAccountId(bankAccounts[0].id);
     else if (bankAccounts.find((b) => b.is_primary)) setAccountId(bankAccounts.find((b) => b.is_primary)!.id);
@@ -65,12 +83,40 @@ export default function BankImport() {
   const importMutation = useMutation({
     mutationFn: async () => {
       if (!parsed || !orgId || !accountId) throw new Error("Selecteer een rekening");
-      return importBankTransactions(orgId, accountId, parsed.transactions);
+
+      // Stap 1: Maak nieuwe contacten aan op basis van groep-acties
+      const keyToContactId = new Map<string, string>();
+      for (const g of groups) {
+        if (g.action.kind === "link") {
+          keyToContactId.set(g.key, g.action.contactId);
+        } else if (g.action.kind === "create") {
+          const { data, error } = await supabase
+            .from("contacts")
+            .insert({
+              organization_id: orgId,
+              name: g.action.name,
+              iban: g.action.iban,
+              is_customer: g.action.isCustomer,
+              is_supplier: g.action.isSupplier,
+            })
+            .select("id")
+            .single();
+          if (error) throw new Error(`Contact aanmaken mislukt voor ${g.action.name}: ${error.message}`);
+          keyToContactId.set(g.key, data.id);
+        }
+      }
+
+      // Stap 2: Importeer transacties met contact-resolver
+      return importBankTransactions(orgId, accountId, parsed.transactions, (tx) => {
+        const k = txGroupKey(tx);
+        return keyToContactId.get(k) ?? null;
+      });
     },
     onSuccess: (res) => {
       setImportResult(res);
       qc.invalidateQueries({ queryKey: ["bank-transactions"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["contacts"] });
       toast.success(`${res.inserted} transacties geïmporteerd · ${res.matched} automatisch gematcht`);
     },
     onError: (e: any) => toast.error(e.message ?? "Import mislukt"),
@@ -201,11 +247,45 @@ export default function BankImport() {
                     </Table>
                     {parsed.transactions.length > 8 && (
                       <div className="px-3 py-2 text-xs text-muted-foreground bg-muted/30 border-t border-border">
-                        +{parsed.transactions.length - 8} meer rijen worden geïmporteerd
+                        +{parsed.transactions.length - 8} meer rijen
                       </div>
                     )}
                   </div>
-                  <div className="mt-4 flex gap-2">
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {parsed && groups.length > 0 && (
+            <motion.div variants={cardVariant}>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    3. Sorteer & koppel contacten
+                  </CardTitle>
+                  <CardDescription>
+                    Transacties zijn gegroepeerd per tegenpartij. Bevestig de AI-suggesties, kies een ander contact of maak nieuwe aan.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ContactMatchStep groups={groups} contacts={contacts} onChange={setGroups} />
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {parsed && (
+            <motion.div variants={cardVariant}>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">4. Importeer</CardTitle>
+                  <CardDescription>
+                    Nieuwe contacten worden eerst aangemaakt, daarna worden de transacties geïmporteerd en gekoppeld.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-2">
                     <Button
                       onClick={() => importMutation.mutate()}
                       disabled={importMutation.isPending || !accountId || parsed.transactions.length === 0}
@@ -216,7 +296,7 @@ export default function BankImport() {
                         <><CheckCircle2 className="h-4 w-4 mr-2" />Importeer {parsed.transactions.length} transacties</>
                       )}
                     </Button>
-                    <Button variant="outline" onClick={() => { setParsed(null); setImportResult(null); }}>Annuleer</Button>
+                    <Button variant="outline" onClick={() => { setParsed(null); setGroups([]); setImportResult(null); }}>Annuleer</Button>
                   </div>
                 </CardContent>
               </Card>
