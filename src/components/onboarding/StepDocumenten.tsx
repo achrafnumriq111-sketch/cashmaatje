@@ -52,7 +52,7 @@ export default function StepDocumenten({ data, setData }: Props) {
             </div>
             <div className="flex-1">
               <p className="font-medium text-foreground">Auto-forwarding e-mailadres</p>
-              <p className="text-sm text-muted-foreground">Stuur leveranciersfacturen door naar dit adres. Cash Maatje verwerkt ze automatisch.</p>
+              <p className="text-sm text-muted-foreground">Stuur leveranciersfacturen door naar dit adres. CashMaatje verwerkt ze automatisch.</p>
             </div>
           </div>
           <div className="flex gap-2">

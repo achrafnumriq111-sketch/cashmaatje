@@ -94,7 +94,7 @@ Onderwerp: ${item.document_title}
 Afzender: ${sender}${ref}
 Bedrag: ${amount}${deadline ? `\nDeadline: ${new Date(deadline).toLocaleDateString("nl-NL")}` : ""}
 
-Cash Maatje adviseert: ${item.recommended_action}
+CashMaatje adviseert: ${item.recommended_action}
 
 Kun jij dit binnen 2 werkdagen beoordelen en me adviseren over de juiste vervolgstap?
 

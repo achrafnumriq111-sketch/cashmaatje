@@ -18,7 +18,7 @@ export default function Index() {
       </header>
       <main className="flex flex-col items-center justify-center px-6 py-24">
         <motion.div variants={cardVariant} className="text-center">
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Welkom bij Cash Maatje</h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Welkom bij CashMaatje</h2>
           <p className="mt-2 text-muted-foreground">Your financial management dashboard is ready.</p>
         </motion.div>
       </main>

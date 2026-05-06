@@ -1,6 +1,6 @@
 {
-  "name": "Cash Maatje",
-  "short_name": "Cash Maatje",
+  "name": "CashMaatje",
+  "short_name": "CashMaatje",
   "description": "Belasting & Boekhouding op de automatische piloot",
   "start_url": "/",
   "scope": "/",

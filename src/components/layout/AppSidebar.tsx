@@ -321,8 +321,8 @@ export function AppSidebar({ role }: { role?: UserRole }) {
             className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
             aria-label="Cashmaatje website"
           >
-            <img src={sidebarLogo} alt="Cash Maatje logo" className="w-7 h-7 rounded-lg object-contain" style={{ imageRendering: "pixelated" }} />
-            <span className="text-[15px] font-semibold tracking-tight text-foreground">Cash Maatje</span>
+            <img src={sidebarLogo} alt="CashMaatje logo" className="w-7 h-7 rounded-lg object-contain" style={{ imageRendering: "pixelated" }} />
+            <span className="text-[15px] font-semibold tracking-tight text-foreground">CashMaatje</span>
           </a>
           <button
             onClick={() => setOpen(false)}

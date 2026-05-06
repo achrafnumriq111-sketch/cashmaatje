@@ -17,7 +17,7 @@ import { useI18n, type Language } from "@/lib/i18n";
 import logoImg from "@/assets/logo.png";
 
 /* ──────────────────────────────────────────────────────────────
-   Cash Maatje — Landing (NL default, EN toggle)
+   CashMaatje — Landing (NL default, EN toggle)
    ────────────────────────────────────────────────────────────── */
 
 type Copy = {
@@ -249,8 +249,8 @@ function Nav({ c }: { c: Copy }) {
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/60">
       <div className="mx-auto max-w-6xl px-4 md:px-6 h-16 flex items-center justify-between gap-3">
         <Link to="/" className="flex items-center gap-2 shrink-0">
-          <img src={logoImg} alt="Cash Maatje logo" className="h-7 w-7 rounded-lg object-contain" style={{ imageRendering: "pixelated" }} />
-          <span className="text-[15px] font-semibold tracking-tight text-foreground">Cash Maatje</span>
+          <img src={logoImg} alt="CashMaatje logo" className="h-7 w-7 rounded-lg object-contain" style={{ imageRendering: "pixelated" }} />
+          <span className="text-[15px] font-semibold tracking-tight text-foreground">CashMaatje</span>
         </Link>
         <nav className="hidden md:flex items-center gap-8 text-[14px] text-muted-foreground">
           <a href="#features" className="hover:text-foreground transition-colors">{c.nav.features}</a>
@@ -797,7 +797,7 @@ function Footer() {
           <div className="h-6 w-6 rounded-md bg-primary grid place-items-center">
             <span className="text-primary-foreground text-[11px] font-semibold">C</span>
           </div>
-          <span className="text-[13px] text-muted-foreground">© {new Date().getFullYear()} Cash Maatje</span>
+          <span className="text-[13px] text-muted-foreground">© {new Date().getFullYear()} CashMaatje</span>
         </div>
         <div className="flex items-center gap-6 text-[13px] text-muted-foreground">
           <Link to="/pricing" className="hover:text-foreground">Pricing</Link>

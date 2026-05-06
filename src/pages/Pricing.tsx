@@ -146,7 +146,7 @@ export default function Pricing() {
                   <Sparkles className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-foreground">Cash Maatje</h3>
+                  <h3 className="text-xl font-semibold text-foreground">CashMaatje</h3>
                   <p className="text-xs text-muted-foreground">AI-boekhouding zonder gedoe</p>
                 </div>
               </div>

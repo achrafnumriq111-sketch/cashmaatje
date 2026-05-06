@@ -137,7 +137,7 @@ async function syncStripeCoupon(opts: {
 
   // Wel korting → maak nieuwe coupon met juiste amount_off (idempotent: oude verwijderen daarna)
   const newCoupon = await stripe.coupons.create({
-    name: `Cash Maatje Referral Discount - ${opts.countedReferrals} referrals`,
+    name: `CashMaatje Referral Discount - ${opts.countedReferrals} referrals`,
     amount_off: opts.discountCents,
     currency: "eur",
     duration: "forever",

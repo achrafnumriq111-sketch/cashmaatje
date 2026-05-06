@@ -30,7 +30,7 @@ export default function Register() {
       if (error) throw error;
       // If email confirmation is required there is no session yet.
       if (data.session) {
-        toast.success("Account aangemaakt — welkom bij Cash Maatje");
+        toast.success("Account aangemaakt — welkom bij CashMaatje");
         const { data: roles } = await supabase
           .from("platform_roles")
           .select("role")
@@ -68,7 +68,7 @@ export default function Register() {
           <AuthLogo />
           <div className="text-center">
             <h1 className="text-xl font-semibold tracking-tight text-foreground">Maak je account aan</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Begin met Cash Maatje</p>
+            <p className="mt-1 text-sm text-muted-foreground">Begin met CashMaatje</p>
           </div>
         </div>
 

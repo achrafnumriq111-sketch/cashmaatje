@@ -1,4 +1,4 @@
-// Cash Maatje action executor — voert AI-acties uit met server-side autorisatie
+// CashMaatje action executor — voert AI-acties uit met server-side autorisatie
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {

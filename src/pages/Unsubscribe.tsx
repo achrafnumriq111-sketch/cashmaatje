@@ -53,7 +53,7 @@ export default function Unsubscribe() {
         {state === "valid" && (
           <>
             <h1 className="text-xl font-semibold text-foreground">Uitschrijven bevestigen</h1>
-            <p className="text-sm text-muted-foreground">Klik om geen e-mails meer van Cash Maatje te ontvangen.</p>
+            <p className="text-sm text-muted-foreground">Klik om geen e-mails meer van CashMaatje te ontvangen.</p>
             <Button onClick={confirm} className="w-full">Uitschrijven bevestigen</Button>
           </>
         )}
@@ -62,7 +62,7 @@ export default function Unsubscribe() {
         {state === "done" && <p className="text-sm text-foreground">Je bent uitgeschreven. Bedankt.</p>}
         {state === "invalid" && <p className="text-sm text-red-400">Deze link is ongeldig of verlopen. {message}</p>}
         {state === "error" && <p className="text-sm text-red-400">Er ging iets mis. {message}</p>}
-        <Link to="/" className="text-xs text-muted-foreground hover:text-foreground">Terug naar Cash Maatje</Link>
+        <Link to="/" className="text-xs text-muted-foreground hover:text-foreground">Terug naar CashMaatje</Link>
       </div>
     </div>
   );
