@@ -49,6 +49,8 @@ export default function ThemeStudio() {
       Object.entries(theme.cssVars).forEach(([key, value]) => {
         document.documentElement.style.setProperty(key, value);
       });
+      // Auto-derive readable foreground tokens for any base surfaces in the theme
+      syncForegroundTokens(theme.cssVars as any);
       setAccentColor(theme.colors[2]);
       toast.success(`Thema "${theme.name}" toegepast`);
     }
@@ -77,6 +79,11 @@ export default function ThemeStudio() {
     document.documentElement.style.setProperty("--ring", hsl);
     document.documentElement.style.setProperty("--sidebar-primary", hsl);
     document.documentElement.style.setProperty("--sidebar-accent", hsl);
+    syncForegroundTokens({
+      "--primary": hsl,
+      "--sidebar-primary": hsl,
+      "--sidebar-accent": hsl,
+    });
   };
 
   return (
