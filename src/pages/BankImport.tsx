@@ -182,8 +182,38 @@ export default function BankImport() {
                       Kies bestand
                     </span>
                   </label>
-                </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
 
+          {parsed && groups.length > 0 && (
+            <motion.div variants={cardVariant}>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    3. Sorteer & koppel contacten
+                  </CardTitle>
+                  <CardDescription>
+                    Transacties zijn gegroepeerd per tegenpartij. Bevestig de AI-suggesties of kies handmatig.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ContactMatchStep groups={groups} contacts={contacts} onChange={setGroups} />
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {parsed && (
+            <motion.div variants={cardVariant}>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">4. Importeer</CardTitle>
+                </CardHeader>
+                <CardContent>
                 {bankAccounts.length > 1 && (
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1 block">Bankrekening</label>
