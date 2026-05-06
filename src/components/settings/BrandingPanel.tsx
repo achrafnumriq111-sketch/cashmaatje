@@ -45,7 +45,6 @@ export default function BrandingPanel() {
   const orgId = membership?.organizationId;
   const [branding, setBranding] = useState<OrgBranding>({ logo_url: null, brand_primary: "#10B981", brand_secondary: "#1f2937" });
   const [uploading, setUploading] = useState(false);
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!orgId) return;
@@ -97,24 +96,6 @@ export default function BrandingPanel() {
     toast.success("Logo verwijderd");
   };
 
-  const saveColors = async () => {
-    if (!orgId) return;
-    setSaving(true);
-    try {
-      const { data: cur } = await supabase.from("organizations").select("settings").eq("id", orgId).single();
-      const settings = ((cur?.settings as any) ?? {});
-      settings.brand_primary = branding.brand_primary;
-      settings.brand_secondary = branding.brand_secondary;
-      const { error } = await supabase.from("organizations").update({ settings }).eq("id", orgId);
-      if (error) throw error;
-      applyBrandColors({ primary: branding.brand_primary, secondary: branding.brand_secondary });
-      toast.success("Kleuren opgeslagen");
-    } catch (e: any) {
-      toast.error(e?.message ?? "Opslaan mislukt");
-    } finally {
-      setSaving(false);
-    }
-  };
 
   return (
     <Card className="arcory-glass">
@@ -152,33 +133,9 @@ export default function BrandingPanel() {
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <Label>Primaire kleur</Label>
-            <div className="flex gap-2 mt-1">
-              <input type="color" value={branding.brand_primary ?? "#10B981"}
-                onChange={(e) => setBranding({ ...branding, brand_primary: e.target.value })}
-                className="w-12 h-10 rounded-lg cursor-pointer border border-border" />
-              <Input value={branding.brand_primary ?? ""}
-                onChange={(e) => setBranding({ ...branding, brand_primary: e.target.value })}
-                className="font-mono text-xs" />
-            </div>
-          </div>
-          <div>
-            <Label>Secundaire kleur</Label>
-            <div className="flex gap-2 mt-1">
-              <input type="color" value={branding.brand_secondary ?? "#1f2937"}
-                onChange={(e) => setBranding({ ...branding, brand_secondary: e.target.value })}
-                className="w-12 h-10 rounded-lg cursor-pointer border border-border" />
-              <Input value={branding.brand_secondary ?? ""}
-                onChange={(e) => setBranding({ ...branding, brand_secondary: e.target.value })}
-                className="font-mono text-xs" />
-            </div>
-          </div>
-        </div>
-        <div className="flex justify-end">
-          <Button onClick={saveColors} disabled={saving}>{saving ? "Opslaan..." : "Kleuren opslaan"}</Button>
-        </div>
+        <p className="text-xs text-muted-foreground">
+          Kleuren stel je in via <a href="/instellingen/thema" className="text-primary underline">Thema</a>.
+        </p>
       </CardContent>
     </Card>
   );

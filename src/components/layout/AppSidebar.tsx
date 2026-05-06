@@ -216,8 +216,8 @@ export function AppSidebar({ role }: { role?: UserRole }) {
             text-[13.5px] transition-colors duration-150 ease-out
             group relative
             ${active
-              ? "text-foreground bg-secondary/70"
-              : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
+              ? "text-secondary-foreground bg-secondary"
+              : "text-muted-foreground hover:text-secondary-foreground hover:bg-secondary/40"
             }
           `}
         >
@@ -228,11 +228,11 @@ export function AppSidebar({ role }: { role?: UserRole }) {
           />
           <span
             className={`w-4 h-4 flex items-center justify-center flex-shrink-0 transition-colors
-              ${active ? "text-foreground" : "text-muted-foreground/80 group-hover:text-foreground"}`}
+              ${active ? "text-secondary-foreground" : "text-muted-foreground/80 group-hover:text-foreground"}`}
           >
             {item.icon}
           </span>
-          <span className={`flex-1 text-left truncate ${active ? "font-medium" : ""}`}>
+          <span className={`flex-1 text-left truncate ${active ? "font-medium text-secondary-foreground" : ""}`}>
             {t(item.labelKey)}
           </span>
           {item.children && (
@@ -267,7 +267,7 @@ export function AppSidebar({ role }: { role?: UserRole }) {
                         w-full text-left px-3 py-1.5 rounded-lg text-[12.5px]
                         transition-colors duration-150 flex items-center justify-between gap-2
                         ${childActive
-                          ? "text-foreground font-medium bg-[hsl(var(--primary-soft))]"
+                          ? "text-primary-foreground font-medium bg-primary"
                           : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
                         }
                       `}
