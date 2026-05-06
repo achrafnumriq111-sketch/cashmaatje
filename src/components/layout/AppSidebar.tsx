@@ -217,7 +217,7 @@ export function AppSidebar({ role }: { role?: UserRole }) {
             group relative
             ${active
               ? "text-secondary-foreground bg-secondary"
-              : "text-muted-foreground hover:text-secondary-foreground hover:bg-secondary/40"
+              : "text-muted-foreground hover:text-secondary-foreground hover:bg-secondary"
             }
           `}
         >
@@ -268,7 +268,7 @@ export function AppSidebar({ role }: { role?: UserRole }) {
                         transition-colors duration-150 flex items-center justify-between gap-2
                         ${childActive
                           ? "text-primary-foreground font-medium bg-primary"
-                          : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
+                          : "text-muted-foreground hover:text-secondary-foreground hover:bg-secondary"
                         }
                       `}
                     >

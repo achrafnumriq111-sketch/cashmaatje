@@ -24,6 +24,7 @@ export function applyBrandColors(opts: { primary?: string | null; secondary?: st
       root.style.setProperty("--primary", hsl);
       root.style.setProperty("--ring", hsl);
       root.style.setProperty("--sidebar-primary", hsl);
+      root.style.setProperty("--sidebar-ring", hsl);
       changes["--primary"] = hsl;
       changes["--sidebar-primary"] = hsl;
     }
@@ -33,8 +34,10 @@ export function applyBrandColors(opts: { primary?: string | null; secondary?: st
     if (hsl) {
       root.style.setProperty("--secondary", hsl);
       root.style.setProperty("--accent", hsl);
+      root.style.setProperty("--sidebar-accent", hsl);
       changes["--secondary"] = hsl;
       changes["--accent"] = hsl;
+      changes["--sidebar-accent"] = hsl;
     }
   }
   syncForegroundTokens(changes as any);
