@@ -152,33 +152,9 @@ export default function BrandingPanel() {
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <Label>Primaire kleur</Label>
-            <div className="flex gap-2 mt-1">
-              <input type="color" value={branding.brand_primary ?? "#10B981"}
-                onChange={(e) => setBranding({ ...branding, brand_primary: e.target.value })}
-                className="w-12 h-10 rounded-lg cursor-pointer border border-border" />
-              <Input value={branding.brand_primary ?? ""}
-                onChange={(e) => setBranding({ ...branding, brand_primary: e.target.value })}
-                className="font-mono text-xs" />
-            </div>
-          </div>
-          <div>
-            <Label>Secundaire kleur</Label>
-            <div className="flex gap-2 mt-1">
-              <input type="color" value={branding.brand_secondary ?? "#1f2937"}
-                onChange={(e) => setBranding({ ...branding, brand_secondary: e.target.value })}
-                className="w-12 h-10 rounded-lg cursor-pointer border border-border" />
-              <Input value={branding.brand_secondary ?? ""}
-                onChange={(e) => setBranding({ ...branding, brand_secondary: e.target.value })}
-                className="font-mono text-xs" />
-            </div>
-          </div>
-        </div>
-        <div className="flex justify-end">
-          <Button onClick={saveColors} disabled={saving}>{saving ? "Opslaan..." : "Kleuren opslaan"}</Button>
-        </div>
+        <p className="text-xs text-muted-foreground">
+          Kleuren stel je in via <a href="/instellingen/thema" className="text-primary underline">Thema</a>.
+        </p>
       </CardContent>
     </Card>
   );
