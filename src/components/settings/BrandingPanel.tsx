@@ -96,24 +96,6 @@ export default function BrandingPanel() {
     toast.success("Logo verwijderd");
   };
 
-  const saveColors = async () => {
-    if (!orgId) return;
-    setSaving(true);
-    try {
-      const { data: cur } = await supabase.from("organizations").select("settings").eq("id", orgId).single();
-      const settings = ((cur?.settings as any) ?? {});
-      settings.brand_primary = branding.brand_primary;
-      settings.brand_secondary = branding.brand_secondary;
-      const { error } = await supabase.from("organizations").update({ settings }).eq("id", orgId);
-      if (error) throw error;
-      applyBrandColors({ primary: branding.brand_primary, secondary: branding.brand_secondary });
-      toast.success("Kleuren opgeslagen");
-    } catch (e: any) {
-      toast.error(e?.message ?? "Opslaan mislukt");
-    } finally {
-      setSaving(false);
-    }
-  };
 
   return (
     <Card className="arcory-glass">
