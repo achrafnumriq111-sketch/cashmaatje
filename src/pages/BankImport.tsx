@@ -74,6 +74,7 @@ export default function BankImport() {
       toast.error("Geen transacties gevonden in dit bestand");
     } else {
       toast.success(`${result.transactions.length} transacties uit ${format.toUpperCase()} gelezen`);
+      setGroups(buildCounterpartyGroups(result.transactions, contacts));
     }
     if (bankAccounts.length === 1) setAccountId(bankAccounts[0].id);
     else if (bankAccounts.find((b) => b.is_primary)) setAccountId(bankAccounts.find((b) => b.is_primary)!.id);
@@ -82,12 +83,40 @@ export default function BankImport() {
   const importMutation = useMutation({
     mutationFn: async () => {
       if (!parsed || !orgId || !accountId) throw new Error("Selecteer een rekening");
-      return importBankTransactions(orgId, accountId, parsed.transactions);
+
+      // Stap 1: Maak nieuwe contacten aan op basis van groep-acties
+      const keyToContactId = new Map<string, string>();
+      for (const g of groups) {
+        if (g.action.kind === "link") {
+          keyToContactId.set(g.key, g.action.contactId);
+        } else if (g.action.kind === "create") {
+          const { data, error } = await supabase
+            .from("contacts")
+            .insert({
+              organization_id: orgId,
+              name: g.action.name,
+              iban: g.action.iban,
+              is_customer: g.action.isCustomer,
+              is_supplier: g.action.isSupplier,
+            })
+            .select("id")
+            .single();
+          if (error) throw new Error(`Contact aanmaken mislukt voor ${g.action.name}: ${error.message}`);
+          keyToContactId.set(g.key, data.id);
+        }
+      }
+
+      // Stap 2: Importeer transacties met contact-resolver
+      return importBankTransactions(orgId, accountId, parsed.transactions, (tx) => {
+        const k = txGroupKey(tx);
+        return keyToContactId.get(k) ?? null;
+      });
     },
     onSuccess: (res) => {
       setImportResult(res);
       qc.invalidateQueries({ queryKey: ["bank-transactions"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["contacts"] });
       toast.success(`${res.inserted} transacties geïmporteerd · ${res.matched} automatisch gematcht`);
     },
     onError: (e: any) => toast.error(e.message ?? "Import mislukt"),
