@@ -228,11 +228,11 @@ export function AppSidebar({ role }: { role?: UserRole }) {
           />
           <span
             className={`w-4 h-4 flex items-center justify-center flex-shrink-0 transition-colors
-              ${active ? "text-foreground" : "text-muted-foreground/80 group-hover:text-foreground"}`}
+              ${active ? "text-secondary-foreground" : "text-muted-foreground/80 group-hover:text-foreground"}`}
           >
             {item.icon}
           </span>
-          <span className={`flex-1 text-left truncate ${active ? "font-medium" : ""}`}>
+          <span className={`flex-1 text-left truncate ${active ? "font-medium text-secondary-foreground" : ""}`}>
             {t(item.labelKey)}
           </span>
           {item.children && (
