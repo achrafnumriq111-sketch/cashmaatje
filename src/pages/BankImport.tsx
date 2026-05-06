@@ -180,40 +180,9 @@ export default function BankImport() {
                     />
                     <span className="inline-flex items-center gap-1 rounded-md bg-secondary px-3 py-1.5 text-xs font-medium text-foreground hover:bg-secondary/80">
                       Kies bestand
-                    </span>
                   </label>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
+                </div>
 
-          {parsed && groups.length > 0 && (
-            <motion.div variants={cardVariant}>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    3. Sorteer & koppel contacten
-                  </CardTitle>
-                  <CardDescription>
-                    Transacties zijn gegroepeerd per tegenpartij. Bevestig de AI-suggesties of kies handmatig.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ContactMatchStep groups={groups} contacts={contacts} onChange={setGroups} />
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-
-          {parsed && (
-            <motion.div variants={cardVariant}>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">4. Importeer</CardTitle>
-                </CardHeader>
-                <CardContent>
                 {bankAccounts.length > 1 && (
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1 block">Bankrekening</label>
@@ -277,11 +246,45 @@ export default function BankImport() {
                     </Table>
                     {parsed.transactions.length > 8 && (
                       <div className="px-3 py-2 text-xs text-muted-foreground bg-muted/30 border-t border-border">
-                        +{parsed.transactions.length - 8} meer rijen worden geïmporteerd
+                        +{parsed.transactions.length - 8} meer rijen
                       </div>
                     )}
                   </div>
-                  <div className="mt-4 flex gap-2">
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {parsed && groups.length > 0 && (
+            <motion.div variants={cardVariant}>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    3. Sorteer & koppel contacten
+                  </CardTitle>
+                  <CardDescription>
+                    Transacties zijn gegroepeerd per tegenpartij. Bevestig de AI-suggesties, kies een ander contact of maak nieuwe aan.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ContactMatchStep groups={groups} contacts={contacts} onChange={setGroups} />
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {parsed && (
+            <motion.div variants={cardVariant}>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">4. Importeer</CardTitle>
+                  <CardDescription>
+                    Nieuwe contacten worden eerst aangemaakt, daarna worden de transacties geïmporteerd en gekoppeld.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-2">
                     <Button
                       onClick={() => importMutation.mutate()}
                       disabled={importMutation.isPending || !accountId || parsed.transactions.length === 0}
@@ -292,7 +295,7 @@ export default function BankImport() {
                         <><CheckCircle2 className="h-4 w-4 mr-2" />Importeer {parsed.transactions.length} transacties</>
                       )}
                     </Button>
-                    <Button variant="outline" onClick={() => { setParsed(null); setImportResult(null); }}>Annuleer</Button>
+                    <Button variant="outline" onClick={() => { setParsed(null); setGroups([]); setImportResult(null); }}>Annuleer</Button>
                   </div>
                 </CardContent>
               </Card>
