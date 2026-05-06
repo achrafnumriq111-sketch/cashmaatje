@@ -12,6 +12,8 @@ import { useOrganization } from "@/hooks/useOrganization";
 import { supabase } from "@/integrations/supabase/client";
 import { parseBankCsv, importBankTransactions, type ParseResult, type ImportResult } from "@/lib/bankCsvImport";
 import { parseCamt053, parseMt940, detectStatementFormat } from "@/lib/bankStatementParsers";
+import { buildCounterpartyGroups, txGroupKey, type CounterpartyGroup, type ContactRow } from "@/lib/contactMatcher";
+import { ContactMatchStep } from "@/components/transactions/ContactMatchStep";
 import { toast } from "sonner";
 import { SmartEmptyState } from "@/components/ui/smart-empty-state";
 
@@ -20,6 +22,7 @@ export default function BankImport() {
   const orgId = membership?.organizationId;
   const qc = useQueryClient();
   const [parsed, setParsed] = useState<ParseResult | null>(null);
+  const [groups, setGroups] = useState<CounterpartyGroup[]>([]);
   const [accountId, setAccountId] = useState<string>("");
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [isDragging, setIsDragging] = useState(false);
