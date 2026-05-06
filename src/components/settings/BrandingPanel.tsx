@@ -45,7 +45,6 @@ export default function BrandingPanel() {
   const orgId = membership?.organizationId;
   const [branding, setBranding] = useState<OrgBranding>({ logo_url: null, brand_primary: "#10B981", brand_secondary: "#1f2937" });
   const [uploading, setUploading] = useState(false);
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!orgId) return;
