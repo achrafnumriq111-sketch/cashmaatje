@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Check, Palette, Monitor, Type, Layers, Image, Sparkles } from "lucide-react";
 import { pageTransition, staggerContainer, cardVariant } from "@/lib/animations";
 import { toast } from "sonner";
+import { syncForegroundTokens } from "@/lib/contrastColors";
 
 interface ThemeConfig {
   id: string;
