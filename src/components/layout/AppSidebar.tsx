@@ -216,8 +216,8 @@ export function AppSidebar({ role }: { role?: UserRole }) {
             text-[13.5px] transition-colors duration-150 ease-out
             group relative
             ${active
-              ? "text-foreground bg-secondary/70"
-              : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
+              ? "text-secondary-foreground bg-secondary"
+              : "text-muted-foreground hover:text-secondary-foreground hover:bg-secondary/40"
             }
           `}
         >
