@@ -41,8 +41,8 @@ export default function ReferralCenter() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "Probeer Cash Maatje",
-          text: `Bespaar tijd op je administratie. Gebruik mijn link om te starten met Cash Maatje.`,
+          title: "Probeer CashMaatje",
+          text: `Bespaar tijd op je administratie. Gebruik mijn link om te starten met CashMaatje.`,
           url: summary.referralUrl,
         });
       } catch {/* cancelled */}

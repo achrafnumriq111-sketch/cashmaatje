@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
 
   <div class="summary-box">
     <h3>Situatie in één blik</h3>
-    <p style="margin:6px 0 0 0; font-size:14px;">Deze ondernemer heeft ${open.length} openstaande administratieve zaken via Cash Maatje "FIX THE CHAOS" geanalyseerd. Totaal openstaand bedrag: <b>${fmtMoney(totalDue)}</b>.</p>
+    <p style="margin:6px 0 0 0; font-size:14px;">Deze ondernemer heeft ${open.length} openstaande administratieve zaken via CashMaatje "FIX THE CHAOS" geanalyseerd. Totaal openstaand bedrag: <b>${fmtMoney(totalDue)}</b>.</p>
     <div class="grid">
       <div class="stat"><div class="lbl">Open</div><div class="val">${open.length}</div></div>
       <div class="stat"><div class="lbl">Urgent</div><div class="val">${open.filter((i)=>i.priority==="red").length}</div></div>
@@ -197,7 +197,7 @@ Deno.serve(async (req) => {
     <li>Zijn er nog niet-geüploade brieven die we moeten ontvangen?</li>
   </ul>
 
-  <p class="muted" style="margin-top: 40px;">Gegenereerd door Cash Maatje — FIX THE CHAOS. Vragen? Stuur dit document naar je accountant en plan een 30-min sessie.</p>
+  <p class="muted" style="margin-top: 40px;">Gegenereerd door CashMaatje — FIX THE CHAOS. Vragen? Stuur dit document naar je accountant en plan een 30-min sessie.</p>
 </body></html>`;
 
     const fileName = `handover-${new Date().toISOString().slice(0, 10)}-${crypto.randomUUID().slice(0, 8)}.html`;

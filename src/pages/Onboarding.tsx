@@ -251,7 +251,7 @@ export default function Onboarding() {
         );
       }
 
-      toast.success("Organisatie aangemaakt! Welkom bij Cash Maatje.");
+      toast.success("Organisatie aangemaakt! Welkom bij CashMaatje.");
       // Force full reload to ensure fresh organization state
       window.location.href = "/";
     } catch (e: any) {
@@ -278,7 +278,7 @@ export default function Onboarding() {
       {/* Header */}
       <div className="border-b border-border px-6 py-4">
         <div className="mx-auto flex max-w-2xl items-center justify-between">
-          <h1 className="text-lg font-semibold text-foreground">Cash Maatje instellen</h1>
+          <h1 className="text-lg font-semibold text-foreground">CashMaatje instellen</h1>
           <span className="text-sm text-muted-foreground">
             Stap {step + 1} van {STEPS.length}
           </span>
@@ -331,7 +331,7 @@ export default function Onboarding() {
               </Button>
             ) : (
               <Button onClick={finish} disabled={submitting || !canProceed()}>
-                {submitting ? "Bezig…" : "Start met Cash Maatje"}
+                {submitting ? "Bezig…" : "Start met CashMaatje"}
               </Button>
             )}
           </div>

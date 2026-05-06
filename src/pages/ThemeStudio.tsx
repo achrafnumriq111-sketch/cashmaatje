@@ -20,7 +20,7 @@ interface ThemeConfig {
 }
 
 const themes: ThemeConfig[] = [
-  { id: "dark", name: "Cash Maatje Dark", desc: "Standaard donker thema met emerald accent", colors: ["#0a0a0a", "#171717", "#10B981", "#27272a"], cssVars: { "--background": "0 0% 3.9%", "--primary": "160 84% 39%", "--card": "0 0% 7.8%" } },
+  { id: "dark", name: "CashMaatje Dark", desc: "Standaard donker thema met emerald accent", colors: ["#0a0a0a", "#171717", "#10B981", "#27272a"], cssVars: { "--background": "0 0% 3.9%", "--primary": "160 84% 39%", "--card": "0 0% 7.8%" } },
   { id: "arctic", name: "Arctic Light", desc: "Helder licht thema, witte achtergrond", colors: ["#ffffff", "#f8fafc", "#0EA5E9", "#e2e8f0"], cssVars: { "--background": "0 0% 100%", "--foreground": "222 47% 11%", "--primary": "199 89% 48%", "--card": "0 0% 100%", "--card-foreground": "222 47% 11%", "--muted": "210 40% 96%", "--muted-foreground": "215 16% 47%", "--border": "214 32% 91%" } },
   { id: "midnight", name: "Midnight Blue", desc: "Diepblauw, koel en strak", colors: ["#0a0f1a", "#111827", "#3B82F6", "#1e293b"], cssVars: { "--background": "222 47% 5%", "--primary": "217 91% 60%", "--card": "222 47% 8%" } },
   { id: "sunset", name: "Sunset Glow", desc: "Warm oranje/roze accent op donker", colors: ["#1a0a14", "#2d1320", "#F97316", "#3d1f2a"], cssVars: { "--background": "340 35% 6%", "--primary": "20 95% 55%", "--card": "340 35% 10%" } },
@@ -82,7 +82,7 @@ export default function ThemeStudio() {
     <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-6">
       <motion.div variants={cardVariant}>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Theme Studio</h1>
-        <p className="text-sm text-muted-foreground mt-1">Personaliseer je Cash Maatje ervaring</p>
+        <p className="text-sm text-muted-foreground mt-1">Personaliseer je CashMaatje ervaring</p>
       </motion.div>
 
       <Tabs defaultValue="themes">
