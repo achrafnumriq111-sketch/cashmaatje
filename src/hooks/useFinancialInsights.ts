@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useOrganization } from "./useOrganization";
+import { supabase } from "@/integrations/supabase/client";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/financial-insights`;
 
@@ -25,11 +26,14 @@ export function useFinancialInsights() {
       setIsLoading(true);
 
       try {
+        const { data: sess } = await supabase.auth.getSession();
+        const token = sess.session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
         const resp = await fetch(CHAT_URL, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            Authorization: `Bearer ${token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
           body: JSON.stringify({ analysisType, organizationId: orgId, data: additionalData }),
         });
