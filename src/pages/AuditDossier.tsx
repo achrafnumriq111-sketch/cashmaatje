@@ -60,6 +60,22 @@ export default function AuditDossier() {
 
   const handleExport = () => exportToExcel(sections, exportColumns, `audit-dossier-${year}`);
 
+  const handleDownloadDossier = () => {
+    const payload = {
+      year,
+      generated_at: new Date().toISOString(),
+      completeness_pct: completeness,
+      sections,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `audit-dossier-${year}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" className="space-y-6">
       <motion.div variants={cardVariant} className="flex items-center justify-between flex-wrap gap-4">
@@ -77,7 +93,7 @@ export default function AuditDossier() {
             </SelectContent>
           </Select>
           <ExportBtn variant="outline" size="sm" onClick={handleExport} className="gap-1.5"><FileSpreadsheet className="h-4 w-4" />Export Excel</ExportBtn>
-          <Button size="sm" className="gap-1.5" disabled={loading}>
+          <Button size="sm" className="gap-1.5" disabled={loading} onClick={handleDownloadDossier}>
             <FileDown className="h-4 w-4" />Download Dossier
           </Button>
         </div>

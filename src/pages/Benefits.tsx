@@ -333,7 +333,7 @@ export default function Benefits() {
               </Card>
 
               <div className="flex justify-end">
-                <Button onClick={() => { save(profile); toast({ title: "Opgeslagen", description: "Berekeningen bijgewerkt." }); }} disabled={saving}>
+                <Button onClick={async () => { await save(profile); toast({ title: "Opgeslagen", description: "Berekeningen bijgewerkt." }); }} disabled={saving}>
                   <Save className="h-4 w-4 mr-1.5" /> Opslaan
                 </Button>
               </div>
