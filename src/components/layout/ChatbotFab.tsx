@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n";
 import { useOrganization } from "@/hooks/useOrganization";
 import { toast } from "sonner";
 import { ActionConfirmCard, parseActions } from "./ChatActionCard";
+import { supabase } from "@/integrations/supabase/client";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -55,11 +56,14 @@ export function ChatbotFab() {
 
     try {
       const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cash-maatje-chat`;
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const resp = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({ messages: apiMessages, organization_id: membership?.organizationId ?? null }),
       });

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -107,7 +108,7 @@ export default function StakeholderCRM() {
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Stakeholder CRM</h1>
           <p className="text-sm text-muted-foreground mt-1">Relatiebeheer, pipeline en contactbeheer</p>
         </div>
-        <Button className="gap-1.5"><Plus className="h-4 w-4" />Nieuw contact</Button>
+        <Button asChild className="gap-1.5"><Link to="/relaties"><Plus className="h-4 w-4" />Nieuw contact</Link></Button>
       </motion.div>
 
       {/* Stats */}
