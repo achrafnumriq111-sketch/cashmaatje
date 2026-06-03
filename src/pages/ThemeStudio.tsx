@@ -187,8 +187,8 @@ export default function ThemeStudio() {
                 <div>
                   <Label className="text-xs">Sidebar glow kleur</Label>
                   <div className="flex gap-2 mt-1">
-                    <input type="color" value={sidebarGlow} onChange={e => setSidebarGlow(e.target.value)} className="w-12 h-10 rounded-lg cursor-pointer border border-border" />
-                    <Input value={sidebarGlow} onChange={e => setSidebarGlow(e.target.value)} className="font-mono text-xs" />
+                    <input type="color" value={sidebarGlow} onChange={e => { setSidebarGlow(e.target.value); persist({ sidebarGlow: e.target.value }); }} className="w-12 h-10 rounded-lg cursor-pointer border border-border" />
+                    <Input value={sidebarGlow} onChange={e => { setSidebarGlow(e.target.value); persist({ sidebarGlow: e.target.value }); }} className="font-mono text-xs" />
                   </div>
                 </div>
               </CardContent>
@@ -204,7 +204,7 @@ export default function ThemeStudio() {
                     {typographyOptions.map(t => (
                       <button
                         key={t.id}
-                        onClick={() => setTypography(t.id)}
+                        onClick={() => { setTypography(t.id); persist({ typography: t.id }); }}
                         className={`flex items-center justify-between p-2.5 rounded-lg border transition-all ${typography === t.id ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/20"}`}
                       >
                         <span className="text-xs font-medium text-foreground">{t.name}</span>
@@ -215,7 +215,7 @@ export default function ThemeStudio() {
                 </div>
                 <div>
                   <Label className="text-xs">Kaart stijl</Label>
-                  <Select value={cardStyle} onValueChange={setCardStyle}>
+                  <Select value={cardStyle} onValueChange={(v) => { setCardStyle(v); persist({ cardStyle: v }); }}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="glass">Glasmorfisme</SelectItem>
