@@ -35,12 +35,66 @@ const typographyOptions = [
   { id: "sans", name: "DM Sans", preview: "Soft & Rounded" },
 ];
 
+const STORAGE_KEY = "cashmaatje.theme.v1";
+
+function hexToHsl(color: string) {
+  const r = parseInt(color.slice(1, 3), 16) / 255;
+  const g = parseInt(color.slice(3, 5), 16) / 255;
+  const b = parseInt(color.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0;
+  const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+  return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+}
+
 export default function ThemeStudio() {
   const [activeTheme, setActiveTheme] = useState("dark");
   const [accentColor, setAccentColor] = useState("#10B981");
   const [sidebarGlow, setSidebarGlow] = useState("#10B981");
   const [cardStyle, setCardStyle] = useState("glass");
   const [typography, setTypography] = useState("inter");
+
+  const persist = (patch: Record<string, any>) => {
+    try {
+      const prev = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...prev, ...patch }));
+    } catch {}
+  };
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      if (saved.activeTheme) {
+        const theme = themes.find(t => t.id === saved.activeTheme);
+        if (theme) {
+          Object.entries(theme.cssVars).forEach(([key, value]) => document.documentElement.style.setProperty(key, value));
+          syncForegroundTokens(theme.cssVars as any);
+          setActiveTheme(saved.activeTheme);
+        }
+      }
+      if (saved.accentColor) {
+        const hsl = hexToHsl(saved.accentColor);
+        document.documentElement.style.setProperty("--primary", hsl);
+        document.documentElement.style.setProperty("--ring", hsl);
+        document.documentElement.style.setProperty("--sidebar-primary", hsl);
+        document.documentElement.style.setProperty("--sidebar-accent", hsl);
+        syncForegroundTokens({ "--primary": hsl, "--sidebar-primary": hsl, "--sidebar-accent": hsl });
+        setAccentColor(saved.accentColor);
+      }
+      if (saved.sidebarGlow) setSidebarGlow(saved.sidebarGlow);
+      if (saved.cardStyle) setCardStyle(saved.cardStyle);
+      if (saved.typography) setTypography(saved.typography);
+    } catch {}
+  }, []);
 
   const applyTheme = (themeId: string) => {
     setActiveTheme(themeId);
@@ -49,32 +103,16 @@ export default function ThemeStudio() {
       Object.entries(theme.cssVars).forEach(([key, value]) => {
         document.documentElement.style.setProperty(key, value);
       });
-      // Auto-derive readable foreground tokens for any base surfaces in the theme
       syncForegroundTokens(theme.cssVars as any);
       setAccentColor(theme.colors[2]);
+      persist({ activeTheme: themeId, accentColor: theme.colors[2] });
       toast.success(`Thema "${theme.name}" toegepast`);
     }
   };
 
   const applyAccentColor = (color: string) => {
     setAccentColor(color);
-    // Convert hex to HSL for CSS variable
-    const r = parseInt(color.slice(1, 3), 16) / 255;
-    const g = parseInt(color.slice(3, 5), 16) / 255;
-    const b = parseInt(color.slice(5, 7), 16) / 255;
-    const max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h = 0, s = 0;
-    const l = (max + min) / 2;
-    if (max !== min) {
-      const d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      switch (max) {
-        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
-        case g: h = ((b - r) / d + 2) / 6; break;
-        case b: h = ((r - g) / d + 4) / 6; break;
-      }
-    }
-    const hsl = `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+    const hsl = hexToHsl(color);
     document.documentElement.style.setProperty("--primary", hsl);
     document.documentElement.style.setProperty("--ring", hsl);
     document.documentElement.style.setProperty("--sidebar-primary", hsl);
@@ -84,6 +122,7 @@ export default function ThemeStudio() {
       "--sidebar-primary": hsl,
       "--sidebar-accent": hsl,
     });
+    persist({ accentColor: color });
   };
 
   return (
