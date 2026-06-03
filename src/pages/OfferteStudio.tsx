@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { pageTransition, staggerContainer, cardVariant } from "@/lib/animations";
 import { useContacts } from "@/hooks/useContacts";
+import { useSaveQuote, generateQuotePdf } from "@/hooks/useQuotes";
 import { toast } from "sonner";
 
 interface QuoteLine {
