@@ -540,6 +540,74 @@ export type Database = {
           },
         ]
       }
+      automation_workflows: {
+        Row: {
+          action_expr: string | null
+          active: boolean
+          condition_expr: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          email_template_body: string | null
+          email_template_subject: string | null
+          icon: string | null
+          id: string
+          last_run_at: string | null
+          organization_id: string
+          title: string
+          total_runs: number
+          trigger_label: string | null
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          action_expr?: string | null
+          active?: boolean
+          condition_expr?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          email_template_body?: string | null
+          email_template_subject?: string | null
+          icon?: string | null
+          id?: string
+          last_run_at?: string | null
+          organization_id: string
+          title: string
+          total_runs?: number
+          trigger_label?: string | null
+          trigger_type: string
+          updated_at?: string
+        }
+        Update: {
+          action_expr?: string | null
+          active?: boolean
+          condition_expr?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          email_template_body?: string | null
+          email_template_subject?: string | null
+          icon?: string | null
+          id?: string
+          last_run_at?: string | null
+          organization_id?: string
+          title?: string
+          total_runs?: number
+          trigger_label?: string | null
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_workflows_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bank_accounts: {
         Row: {
           account_id: string | null
@@ -4225,6 +4293,109 @@ export type Database = {
           },
           {
             foreignKeyName: "quarterly_checklist_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes: {
+        Row: {
+          accepted_at: string | null
+          branding: Json
+          client_email: string | null
+          client_name: string
+          contact_id: string | null
+          converted_invoice_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          lines: Json
+          notes: string | null
+          organization_id: string
+          payment_terms: string | null
+          quote_date: string
+          quote_number: string
+          rejected_at: string | null
+          sent_at: string | null
+          status: string
+          subtotal: number
+          total_amount: number
+          total_vat: number
+          updated_at: string
+          valid_until: string | null
+          validity_days: number
+        }
+        Insert: {
+          accepted_at?: string | null
+          branding?: Json
+          client_email?: string | null
+          client_name: string
+          contact_id?: string | null
+          converted_invoice_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lines?: Json
+          notes?: string | null
+          organization_id: string
+          payment_terms?: string | null
+          quote_date?: string
+          quote_number: string
+          rejected_at?: string | null
+          sent_at?: string | null
+          status?: string
+          subtotal?: number
+          total_amount?: number
+          total_vat?: number
+          updated_at?: string
+          valid_until?: string | null
+          validity_days?: number
+        }
+        Update: {
+          accepted_at?: string | null
+          branding?: Json
+          client_email?: string | null
+          client_name?: string
+          contact_id?: string | null
+          converted_invoice_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lines?: Json
+          notes?: string | null
+          organization_id?: string
+          payment_terms?: string | null
+          quote_date?: string
+          quote_number?: string
+          rejected_at?: string | null
+          sent_at?: string | null
+          status?: string
+          subtotal?: number
+          total_amount?: number
+          total_vat?: number
+          updated_at?: string
+          valid_until?: string | null
+          validity_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_converted_invoice_id_fkey"
+            columns: ["converted_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"

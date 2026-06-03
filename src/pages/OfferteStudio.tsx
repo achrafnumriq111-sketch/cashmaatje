@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { pageTransition, staggerContainer, cardVariant } from "@/lib/animations";
 import { useContacts } from "@/hooks/useContacts";
+import { useSaveQuote, generateQuotePdf } from "@/hooks/useQuotes";
 import { toast } from "sonner";
 
 interface QuoteLine {
@@ -134,6 +135,8 @@ export default function OfferteStudio() {
 
   const defaultFilters = { search: "", type: "all" as const, country: "", riskStatus: "all" as const };
   const { data: contacts } = useContacts(defaultFilters);
+  const saveQuote = useSaveQuote();
+  const [savedQuoteId, setSavedQuoteId] = useState<string | null>(null);
 
   const addLine = (type: QuoteLine["type"]) => {
     setLines([...lines, {
@@ -204,10 +207,95 @@ export default function OfferteStudio() {
           <p className="text-sm text-muted-foreground mt-1">Ontwerp, verstuur en beheer professionele offertes</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => toast.success("PDF geëxporteerd")}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={async () => {
+              if (!clientName) {
+                toast.error("Selecteer eerst een klant");
+                return;
+              }
+              try {
+                const saved = await saveQuote.mutateAsync({
+                  id: savedQuoteId ?? undefined,
+                  client_name: clientName,
+                  client_email: clientEmail,
+                  validity_days: validityDays,
+                  payment_terms: paymentTerms,
+                  lines,
+                  branding: branding as any,
+                  status: quoteStatus,
+                  quote_date: new Date().toISOString().slice(0, 10),
+                });
+                setSavedQuoteId(saved.id);
+                toast.success(`Offerte ${saved.quote_number} opgeslagen`);
+              } catch (e: any) {
+                toast.error(e.message ?? "Opslaan mislukt");
+              }
+            }}
+            disabled={saveQuote.isPending}
+          >
+            <FileText className="h-4 w-4" />
+            {saveQuote.isPending ? "Opslaan..." : "Opslaan"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={async () => {
+              try {
+                await generateQuotePdf({
+                  quote_number: savedQuoteId ? "OFFERTE" : "CONCEPT",
+                  client_name: clientName || "—",
+                  client_email: clientEmail,
+                  quote_date: new Date().toISOString().slice(0, 10),
+                  valid_until: new Date(Date.now() + validityDays * 86400_000)
+                    .toISOString()
+                    .slice(0, 10),
+                  payment_terms: paymentTerms,
+                  lines,
+                  branding: branding as any,
+                  subtotal,
+                  total_vat: totalVat,
+                  total_amount: total,
+                });
+                toast.success("PDF gedownload");
+              } catch (e: any) {
+                toast.error(e.message ?? "PDF mislukt");
+              }
+            }}
+          >
             <Download className="h-4 w-4" />Export PDF
           </Button>
-          <Button size="sm" className="gap-1.5" onClick={() => { setQuoteStatus("sent"); toast.success("Offerte verstuurd"); }}>
+          <Button
+            size="sm"
+            className="gap-1.5"
+            onClick={async () => {
+              if (!clientName) {
+                toast.error("Selecteer eerst een klant");
+                return;
+              }
+              try {
+                const saved = await saveQuote.mutateAsync({
+                  id: savedQuoteId ?? undefined,
+                  client_name: clientName,
+                  client_email: clientEmail,
+                  validity_days: validityDays,
+                  payment_terms: paymentTerms,
+                  lines,
+                  branding: branding as any,
+                  status: "sent",
+                  quote_date: new Date().toISOString().slice(0, 10),
+                });
+                setSavedQuoteId(saved.id);
+                setQuoteStatus("sent");
+                toast.success(`Offerte ${saved.quote_number} verstuurd`);
+              } catch (e: any) {
+                toast.error(e.message ?? "Versturen mislukt");
+              }
+            }}
+          >
             <Send className="h-4 w-4" />Verstuur
           </Button>
         </div>
