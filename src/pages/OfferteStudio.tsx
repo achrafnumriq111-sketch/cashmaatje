@@ -135,6 +135,8 @@ export default function OfferteStudio() {
 
   const defaultFilters = { search: "", type: "all" as const, country: "", riskStatus: "all" as const };
   const { data: contacts } = useContacts(defaultFilters);
+  const saveQuote = useSaveQuote();
+  const [savedQuoteId, setSavedQuoteId] = useState<string | null>(null);
 
   const addLine = (type: QuoteLine["type"]) => {
     setLines([...lines, {
