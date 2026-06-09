@@ -778,6 +778,12 @@ function OrganizationsPanel() {
           Test sandbox-organisaties krijgen automatisch toegang tot alle feature flags die "test orgs" toestaan. Gebruik dit om nieuwe versies te valideren voor breed uitrollen.
         </p>
       </CardContent>
+      <ClientDetailDialog
+        orgId={detailOrg?.id ?? null}
+        orgName={detailOrg?.name}
+        open={!!detailOrg}
+        onClose={() => setDetailOrg(null)}
+      />
     </Card>
   );
 }
