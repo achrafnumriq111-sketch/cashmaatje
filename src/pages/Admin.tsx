@@ -561,6 +561,7 @@ function SupportPanel() {
 function OrganizationsPanel() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
+  const [detailOrg, setDetailOrg] = useState<{ id: string; name: string } | null>(null);
 
   const { data: orgs, isLoading } = useQuery({
     queryKey: ["admin_orgs"],
