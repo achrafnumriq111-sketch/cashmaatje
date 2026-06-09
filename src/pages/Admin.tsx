@@ -729,6 +729,14 @@ function OrganizationsPanel() {
                       <Button
                         size="sm"
                         variant="ghost"
+                        title="Bekijk klantoverzicht"
+                        onClick={() => setDetailOrg({ id: o.id, name: o.name })}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
                         title="Stuur reset-wachtwoord-link naar eigenaar"
                         disabled={resetPw.isPending}
                         onClick={() => {
