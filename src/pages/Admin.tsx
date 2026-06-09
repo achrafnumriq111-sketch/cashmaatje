@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { ClientDetailDialog } from "@/components/admin/ClientDetailDialog";
 
 export default function Admin() {
   const { data: role, isLoading } = usePlatformRole();
@@ -561,6 +562,7 @@ function SupportPanel() {
 function OrganizationsPanel() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
+  const [detailOrg, setDetailOrg] = useState<{ id: string; name: string } | null>(null);
 
   const { data: orgs, isLoading } = useQuery({
     queryKey: ["admin_orgs"],
@@ -728,6 +730,14 @@ function OrganizationsPanel() {
                       <Button
                         size="sm"
                         variant="ghost"
+                        title="Bekijk klantoverzicht"
+                        onClick={() => setDetailOrg({ id: o.id, name: o.name })}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
                         title="Stuur reset-wachtwoord-link naar eigenaar"
                         disabled={resetPw.isPending}
                         onClick={() => {
@@ -769,6 +779,12 @@ function OrganizationsPanel() {
           Test sandbox-organisaties krijgen automatisch toegang tot alle feature flags die "test orgs" toestaan. Gebruik dit om nieuwe versies te valideren voor breed uitrollen.
         </p>
       </CardContent>
+      <ClientDetailDialog
+        orgId={detailOrg?.id ?? null}
+        orgName={detailOrg?.name}
+        open={!!detailOrg}
+        onClose={() => setDetailOrg(null)}
+      />
     </Card>
   );
 }
