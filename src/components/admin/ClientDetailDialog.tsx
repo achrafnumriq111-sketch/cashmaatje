@@ -22,7 +22,7 @@ export function ClientDetailDialog({ orgId, orgName, open, onClose }: Props) {
       if (!orgId) return null;
       const [org, members, invoices, txs, docs, subs] = await Promise.all([
         supabase.from("organizations").select("*").eq("id", orgId).single(),
-        supabase.from("organization_members").select("user_id, role, is_owner, joined_at").eq("organization_id", orgId),
+        supabase.from("organization_members").select("user_id, role, is_owner").eq("organization_id", orgId),
         supabase.from("invoices").select("id, invoice_type, total_amount, amount_due, status, invoice_date").eq("organization_id", orgId),
         supabase.from("bank_transactions").select("id, amount, status, transaction_date").eq("organization_id", orgId).limit(2000),
         supabase.from("documents").select("id, status, created_at").eq("organization_id", orgId).limit(2000),
