@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { ClientDetailDialog } from "@/components/admin/ClientDetailDialog";
 
 export default function Admin() {
   const { data: role, isLoading } = usePlatformRole();
