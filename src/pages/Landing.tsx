@@ -617,34 +617,175 @@ function Testimonials({ c }: { c: Copy }) {
   );
 }
 
-/* ── Pricing ─────────────────────────────────────────────────────── */
+/* ── Toeslagen Check ────────────────────────────────────────────── */
 
-function PricingSection({ c }: { c: Copy }) {
+function ToeslagenCheck({ c }: { c: Copy }) {
+  const t = c.toeslagen;
+  const [income, setIncome] = useState<number>(28000);
+  const [hasPartner, setHasPartner] = useState(false);
+  const [partnerIncome, setPartnerIncome] = useState<number>(0);
+  const [kids, setKids] = useState<number>(0);
+  const [rent, setRent] = useState<number>(0);
+  const [daycare, setDaycare] = useState<number>(0);
+
+  const results = useMemo(() => {
+    const totalIncome = income + (hasPartner ? partnerIncome : 0);
+    const zorgCap = hasPartner ? 47000 : 37500;
+    const zorgMax = hasPartner ? 243 : 127;
+    const zorg = totalIncome > 0 && totalIncome < zorgCap
+      ? Math.round(zorgMax * Math.max(0, 1 - totalIncome / zorgCap))
+      : 0;
+    const huurCap = hasPartner ? 33000 : 24000;
+    const huur = rent >= 250 && rent <= 880 && totalIncome > 0 && totalIncome < huurCap
+      ? Math.round(Math.min(420, (rent - 250) * 0.65) * Math.max(0.2, 1 - totalIncome / huurCap))
+      : 0;
+    const kgbCap = hasPartner ? 50000 : 37500;
+    const kgb = kids > 0 && totalIncome < kgbCap
+      ? Math.round(kids * 105 * Math.max(0.4, 1 - totalIncome / (kgbCap * 1.4)))
+      : 0;
+    const kov = daycare > 0 && totalIncome < 200000
+      ? Math.round(daycare * 8.5 * Math.max(0.33, 1 - totalIncome / 250000))
+      : 0;
+    return { zorg, huur, kgb, kov };
+  }, [income, hasPartner, partnerIncome, kids, rent, daycare]);
+
+  const items: { k: ToeslagKey; v: number }[] = [
+    { k: "zorg", v: results.zorg },
+    { k: "huur", v: results.huur },
+    { k: "kgb",  v: results.kgb },
+    { k: "kov",  v: results.kov },
+  ];
+  const eligible = items.filter((i) => i.v > 0);
+  const total = eligible.reduce((s, i) => s + i.v, 0);
+
+  const inputClass =
+    "w-full bg-popover border border-white/10 rounded-2xl px-4 py-3 text-body-sm text-bone placeholder:text-frost/60 focus:outline-none focus:border-white/30 transition";
+
   return (
-    <section id="pricing" className="bg-carbon border-y border-white/5">
-      <div className="mx-auto max-w-3xl px-6 py-32">
-        <SectionHeading eyebrow={c.pricing.eyebrow} titleA={c.pricing.titleA} titleB={c.pricing.titleB} sub={c.pricing.sub} />
+    <section id="toeslagen" className="relative bg-carbon border-y border-white/5">
+      <div className="mx-auto max-w-[1200px] px-6 py-28">
+        <SectionHeading eyebrow={t.eyebrow} titleA={t.titleA} titleB={t.titleB} sub={t.sub} />
+        <div className="grid lg:grid-cols-[1.05fr_1fr] gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6 }}
+            className="rounded-[30px] bg-card border border-white/5 p-8 shadow-feature"
+          >
+            <div className="space-y-5">
+              <div>
+                <label className="block text-micro text-frost mb-2">{t.income}</label>
+                <input type="number" inputMode="numeric" value={income || ""} onChange={(e) => setIncome(Number(e.target.value) || 0)} placeholder={t.incomePh} className={inputClass} />
+              </div>
+              <div className="flex items-center justify-between gap-4 py-1">
+                <label className="flex items-center gap-3 cursor-pointer select-none">
+                  <button type="button" onClick={() => setHasPartner((v) => !v)} className={`relative w-10 h-6 rounded-full transition ${hasPartner ? "bg-bone" : "bg-white/10"}`} aria-pressed={hasPartner}>
+                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-carbon transition ${hasPartner ? "translate-x-4" : ""}`} />
+                  </button>
+                  <span className="text-body-sm text-bone">{t.partner}</span>
+                </label>
+              </div>
+              {hasPartner && (
+                <div>
+                  <label className="block text-micro text-frost mb-2">{t.partnerIncome}</label>
+                  <input type="number" inputMode="numeric" value={partnerIncome || ""} onChange={(e) => setPartnerIncome(Number(e.target.value) || 0)} placeholder={t.incomePh} className={inputClass} />
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-micro text-frost mb-2">{t.kids}</label>
+                  <input type="number" min={0} value={kids || ""} onChange={(e) => setKids(Math.max(0, Number(e.target.value) || 0))} placeholder="0" className={inputClass} />
+                </div>
+                <div>
+                  <label className="block text-micro text-frost mb-2">{t.rent}</label>
+                  <input type="number" value={rent || ""} onChange={(e) => setRent(Number(e.target.value) || 0)} placeholder={t.rentPh} className={inputClass} />
+                </div>
+              </div>
+              <div>
+                <label className="block text-micro text-frost mb-2">{t.daycare}</label>
+                <input type="number" value={daycare || ""} onChange={(e) => setDaycare(Number(e.target.value) || 0)} placeholder={t.daycarePh} className={inputClass} />
+              </div>
+            </div>
+          </motion.div>
 
-        <div className="rounded-[30px] bg-card border border-white/5 p-10 shadow-feature">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="rounded-[30px] bg-card border border-white/5 p-8 shadow-feature flex flex-col"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-micro text-frost">{t.resultTitle}</p>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-white/15 text-[10px] font-stamp text-bone">
+                <Sparkles className="w-3 h-3" /> AI
+              </span>
+            </div>
+            <div className="flex items-end gap-3 mb-6">
+              <span className="font-display text-[64px] font-light leading-none text-bone">€{total}</span>
+              <span className="text-body-sm text-frost pb-2">{t.perMonth}</span>
+            </div>
+            <div className="space-y-2 mb-6">
+              {items.map((i) => {
+                const isEligible = i.v > 0;
+                const label = t.labels[i.k];
+                return (
+                  <div key={i.k} className={`flex items-center justify-between py-3 px-4 rounded-2xl border transition ${isEligible ? "bg-amethyst/10 border-amethyst/30" : "bg-popover/60 border-white/5 opacity-55"}`}>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${isEligible ? "bg-amethyst animate-pulse" : "bg-white/20"}`} />
+                      <div className="min-w-0">
+                        <p className="text-body-sm text-bone truncate">{label.name}</p>
+                        <p className="text-[10px] font-stamp text-frost">{label.tag}</p>
+                      </div>
+                    </div>
+                    <span className={`font-display text-[18px] font-light ${isEligible ? "text-bone" : "text-frost/60"}`}>{isEligible ? `€${i.v}` : "—"}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {eligible.length > 0 ? (
+              <div className="mt-auto"><PillCTA to="/register">{t.apply}</PillCTA></div>
+            ) : (
+              <p className="mt-auto text-caption text-frost">{t.noRight}</p>
+            )}
+            <p className="mt-5 text-[10px] text-frost/70 leading-relaxed">{t.foot}</p>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Plan + Referral (merged) ───────────────────────────────────── */
+
+function PlanReferralSection({ c }: { c: Copy }) {
+  const p = c.plan;
+  return (
+    <section id="plan" className="bg-carbon border-y border-white/5">
+      <div className="mx-auto max-w-[1200px] px-6 py-32">
+        <SectionHeading eyebrow={p.eyebrow} titleA={p.titleA} titleB={p.titleB} sub={p.sub} />
+
+        <div className="rounded-[30px] bg-card border border-white/5 p-10 shadow-feature max-w-3xl mx-auto">
           <div className="flex items-start justify-between flex-wrap gap-6 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-5 flex-wrap">
-                <span className="px-2.5 py-1 rounded-full border border-white/15 text-[10px] font-stamp text-bone">{c.pricing.allIn}</span>
-                <span className="px-2.5 py-1 rounded-full bg-white text-carbon text-[10px] font-stamp">{c.pricing.firstFree}</span>
+                <span className="px-2.5 py-1 rounded-full border border-white/15 text-[10px] font-stamp text-bone">{p.allIn}</span>
+                <span className="px-2.5 py-1 rounded-full bg-white text-carbon text-[10px] font-stamp">{p.firstFree}</span>
               </div>
               <div className="flex items-end gap-3">
                 <span className="font-display text-[80px] font-light leading-none text-bone">€0</span>
-                <span className="text-body-sm text-frost pb-3">{c.pricing.firstMonth}</span>
+                <span className="text-body-sm text-frost pb-3">{p.firstMonth}</span>
               </div>
               <p className="mt-4 text-body-sm text-frost">
-                {c.pricing.thenA}<span className="text-bone">{c.pricing.thenB}</span>{c.pricing.thenC}
+                {p.thenA}<span className="text-bone">{p.thenB}</span>{p.thenC}
               </p>
             </div>
-            <PillCTA to="/register">{c.pricing.cta}</PillCTA>
+            <PillCTA to="/register">{p.cta}</PillCTA>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-3 mb-8">
-            {c.pricing.features.map((f) => (
+            {p.features.map((f) => (
               <div key={f} className="flex items-start gap-2.5 text-body-sm text-bone">
                 <Check className="w-4 h-4 mt-0.5 text-bone shrink-0" />
                 <span>{f}</span>
@@ -654,64 +795,68 @@ function PricingSection({ c }: { c: Copy }) {
 
           <div className="rounded-2xl bg-popover border border-white/5 p-5 grid sm:grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-micro text-frost">{c.pricing.base}</p>
+              <p className="text-micro text-frost">{p.base}</p>
               <p className="font-display text-[24px] font-light text-bone mt-2">€25,99</p>
             </div>
             <div>
-              <p className="text-micro text-frost">{c.pricing.perRef}</p>
+              <p className="text-micro text-frost">{p.perRef}</p>
               <p className="font-display text-[24px] font-light text-bone mt-2">−€1,00</p>
             </div>
             <div>
-              <p className="text-micro text-frost">{c.pricing.floor}</p>
+              <p className="text-micro text-frost">{p.floor}</p>
               <p className="font-display text-[24px] font-light text-bone mt-2">€15,99</p>
             </div>
           </div>
 
-          <p className="mt-8 text-center text-caption text-frost">{c.pricing.foot}</p>
+          <p className="mt-8 text-center text-caption text-frost">{p.foot}</p>
+        </div>
+
+        <div className="my-20 flex items-center gap-6 max-w-3xl mx-auto">
+          <div className="flex-1 h-px bg-white/10" />
+          <span className="text-micro text-frost">REFERRAL</span>
+          <div className="flex-1 h-px bg-white/10" />
+        </div>
+
+        <div className="max-w-3xl mx-auto text-center mb-12">
+          <h3 className="font-display text-[36px] font-light text-bone leading-tight">{p.referralHeading}</h3>
+          <p className="mt-4 text-body text-frost max-w-md mx-auto">{p.referralSub}</p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
+          {p.steps.map((s, i) => (
+            <div key={s.t} className="rounded-[30px] border border-white/5 bg-card p-8">
+              <p className="font-mono text-caption text-frost mb-5">{String(i + 1).padStart(2, "0")}</p>
+              <h4 className="font-display text-[22px] font-light text-bone">{s.t}</h4>
+              <p className="mt-3 text-body-sm text-frost">{s.d}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="rounded-[30px] border border-white/5 bg-card p-8 max-w-2xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2 text-body-sm text-frost">
+              <Users className="w-4 h-4" /> Jouw prijs
+            </div>
+            <span className="px-2 py-0.5 rounded-full border border-white/15 text-[10px] font-stamp text-bone">{p.live}</span>
+          </div>
+          <div className="space-y-2">
+            {p.rows.map((row, i) => {
+              const best = i === p.rows.length - 1;
+              return (
+                <div key={row.r} className={`flex items-center justify-between py-4 px-5 rounded-2xl ${best ? "bg-amethyst/15 border border-amethyst/30" : "bg-popover"}`}>
+                  <span className="text-body-sm text-bone">{row.r}</span>
+                  <span className={`font-display text-[24px] font-light ${best ? "text-amethyst" : "text-bone"}`}>{row.p}</span>
+                </div>
+              );
+            })}
+          </div>
+          <p className="mt-6 text-caption text-frost text-center">{p.rowsFoot}</p>
         </div>
       </div>
     </section>
   );
 }
 
-/* ── Referral ────────────────────────────────────────────────────── */
-
-function ReferralSection({ c }: { c: Copy }) {
-  return (
-    <section id="referral" className="mx-auto max-w-[1200px] px-6 py-32">
-      <SectionHeading eyebrow={c.referral.eyebrow} titleA={c.referral.titleA} titleB={c.referral.titleB} sub={c.referral.sub} />
-      <div className="grid md:grid-cols-3 gap-6 mb-12">
-        {c.referral.steps.map((s, i) => (
-          <div key={s.t} className="rounded-[30px] border border-white/5 bg-card p-8">
-            <p className="font-mono text-caption text-frost mb-5">{String(i + 1).padStart(2, "0")}</p>
-            <h3 className="font-display text-[24px] font-light text-bone">{s.t}</h3>
-            <p className="mt-3 text-body-sm text-frost">{s.d}</p>
-          </div>
-        ))}
-      </div>
-      <div className="rounded-[30px] border border-white/5 bg-card p-8 max-w-2xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2 text-body-sm text-frost">
-            <Users className="w-4 h-4" /> Jouw prijs
-          </div>
-          <span className="px-2 py-0.5 rounded-full border border-white/15 text-[10px] font-stamp text-bone">{c.referral.live}</span>
-        </div>
-        <div className="space-y-2">
-          {c.referral.rows.map((row, i) => {
-            const best = i === c.referral.rows.length - 1;
-            return (
-              <div key={row.r} className={`flex items-center justify-between py-4 px-5 rounded-2xl ${best ? "bg-amethyst/15 border border-amethyst/30" : "bg-popover"}`}>
-                <span className="text-body-sm text-bone">{row.r}</span>
-                <span className={`font-display text-[24px] font-light ${best ? "text-amethyst" : "text-bone"}`}>{row.p}</span>
-              </div>
-            );
-          })}
-        </div>
-        <p className="mt-6 text-caption text-frost text-center">{c.referral.foot}</p>
-      </div>
-    </section>
-  );
-}
 
 /* ── Final CTA ───────────────────────────────────────────────────── */
 
