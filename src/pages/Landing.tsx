@@ -396,29 +396,91 @@ function BenefitsSection({ c }: { c: Copy }) {
 
 function Features({ c }: { c: Copy }) {
   const cards = [
-    { label: c.feature.invoicing, bg: "bg-amethyst", textColor: "text-white", value: "€ 28.540", sub: "deze maand" },
-    { label: c.feature.expenses, bg: "bg-orchid", textColor: "text-carbon", value: "186 bonnen", sub: "automatisch geboekt" },
-    { label: c.feature.dashboard, bg: "bg-sky-wash", textColor: "text-carbon", value: "+24%", sub: "vs vorige maand" },
-    { label: c.feature.tax, bg: "bg-deep-iris", textColor: "text-white", value: "€ 5.420", sub: "gereserveerd" },
+    {
+      label: c.feature.invoicing,
+      img: textureSand,
+      mock: (
+        <div className="rounded-2xl bg-graphite/85 backdrop-blur-xl border border-white/8 p-5 shadow-feature">
+          <p className="text-[9px] font-stamp text-frost mb-3">FACTUUR · 2026-0142</p>
+          <p className="font-display text-[28px] font-light text-bone leading-none">€ 4.250,00</p>
+          <p className="mt-1 text-caption text-frost">verstuurd · 2 dagen geleden</p>
+          <div className="mt-4 flex items-center justify-between">
+            <span className="text-[10px] font-stamp text-bone bg-white/10 px-2 py-1 rounded-full">BETAALD</span>
+            <span className="text-caption text-frost">21% BTW</span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      label: c.feature.expenses,
+      img: textureMarble,
+      mock: (
+        <div className="rounded-2xl bg-graphite/85 backdrop-blur-xl border border-white/8 p-5 shadow-feature">
+          <p className="text-[9px] font-stamp text-frost mb-3">BONNEN DEZE MAAND</p>
+          <p className="font-display text-[28px] font-light text-bone leading-none">186</p>
+          <p className="mt-1 text-caption text-frost">automatisch geboekt</p>
+          <div className="mt-4 h-1 bg-white/8 rounded-full overflow-hidden">
+            <div className="h-full w-[82%] bg-bone rounded-full" />
+          </div>
+          <p className="mt-2 text-caption text-frost">82% AI-zekerheid</p>
+        </div>
+      ),
+    },
+    {
+      label: c.feature.dashboard,
+      img: textureWater,
+      mock: (
+        <div className="rounded-2xl bg-graphite/85 backdrop-blur-xl border border-white/8 p-5 shadow-feature">
+          <p className="text-[9px] font-stamp text-frost mb-3">CASHFLOW · NOV</p>
+          <p className="font-display text-[28px] font-light text-bone leading-none">+€ 12.840</p>
+          <svg viewBox="0 0 120 32" className="mt-3 w-full h-8" fill="none">
+            <path d="M0 24 L20 18 L40 22 L60 12 L80 16 L100 6 L120 10" stroke="#9f9fa0" strokeWidth="1.5" />
+            <circle cx="120" cy="10" r="2.5" fill="#f5f5f7" />
+          </svg>
+          <p className="mt-2 text-caption text-frost">+24% vs vorige maand</p>
+        </div>
+      ),
+    },
+    {
+      label: c.feature.tax,
+      img: textureLavender,
+      mock: (
+        <div className="rounded-2xl bg-graphite/85 backdrop-blur-xl border border-white/8 p-5 shadow-feature">
+          <p className="text-[9px] font-stamp text-frost mb-3">BTW-RESERVE · Q4</p>
+          <p className="font-display text-[28px] font-light text-bone leading-none">€ 5.420</p>
+          <p className="mt-1 text-caption text-frost">gereserveerd · dekking 100%</p>
+          <div className="mt-4 flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-bone animate-pulse" />
+            <span className="text-caption text-frost">aangifte 31 jan</span>
+          </div>
+        </div>
+      ),
+    },
   ];
   return (
     <section id="features" className="mx-auto max-w-[1200px] px-6 py-32">
       <SectionHeading titleA={c.featuresHeading.titleA} titleB={c.featuresHeading.titleB} sub={c.featuresHeading.sub} />
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid md:grid-cols-2 gap-6">
         {cards.map((card, i) => (
           <motion.div
             key={card.label}
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.6, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
-            className={`origin-feature-card ${card.bg} ${card.textColor} min-h-[280px] flex flex-col justify-between`}
+            transition={{ duration: 0.8, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+            className="relative overflow-hidden rounded-[30px] min-h-[420px] flex flex-col justify-end p-8 group"
           >
-            <p className="text-micro opacity-90">{card.label}</p>
-            <div>
-              <p className="font-display text-[40px] font-light leading-none">{card.value}</p>
-              <p className="mt-2 text-body-sm opacity-85">{card.sub}</p>
-            </div>
+            <img
+              src={card.img}
+              alt=""
+              loading="lazy"
+              width={1024}
+              height={1280}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-[1.04]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30" />
+            <p className="absolute top-7 left-8 text-[10px] font-stamp text-white/90">{card.label.toUpperCase()}</p>
+            <div className="relative max-w-[300px]">{card.mock}</div>
           </motion.div>
         ))}
       </div>
