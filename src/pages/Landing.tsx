@@ -313,10 +313,10 @@ function Nav({ c }: { c: Copy }) {
 
         <nav className="hidden md:flex items-center gap-1 px-3 py-1.5 rounded-lg">
           {[
+            { href: "#toeslagen", label: c.nav.toeslagen },
             { href: "#features", label: c.nav.features },
             { href: "#ai", label: c.nav.ai },
-            { href: "#referral", label: c.nav.referral },
-            { href: "#pricing", label: c.nav.pricing },
+            { href: "#plan", label: c.nav.plan },
           ].map((l) => (
             <a key={l.href} href={l.href} className="px-3 py-1.5 rounded-lg text-[11px] font-stamp text-white/85 hover:text-white transition-colors">
               {l.label}
