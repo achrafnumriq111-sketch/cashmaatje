@@ -23,6 +23,7 @@
     /* PRIMARY = white pill CTA */
     --primary: 0 0% 100%;               /* #ffffff Paper White */
     --primary-foreground: 220 4% 4%;    /* #090a0b Carbon */
+    --primary-soft: 0 0% 18%;           /* legacy alias → Graphite tint */
 
     --secondary: 210 1% 25%;            /* #3f4041 Slate */
     --secondary-foreground: 240 11% 96%;
