@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useState, useMemo } from "react";
-import { ArrowRight, Check, Star, Users, Sparkles } from "lucide-react";
+import { ArrowRight, Check, Star, Users, Sparkles, Info } from "lucide-react";
 import { useI18n, type Language } from "@/lib/i18n";
 import duskSky from "@/assets/dusk-sky.jpg";
 import textureSand from "@/assets/texture-sand.jpg";
@@ -32,6 +32,7 @@ type Copy = {
     kids: string; rent: string; rentPh: string; daycare: string; daycarePh: string;
     resultTitle: string; perMonth: string; noRight: string; eligible: string;
     apply: string; foot: string;
+    rulesHint: string; sourceLabel: string; sourceUrl: string;
     labels: Record<ToeslagKey, { name: string; tag: string }>;
   };
   plan: {
@@ -103,6 +104,9 @@ const copy: Record<Language, Copy> = {
       eligible: "Recht op",
       apply: "Direct aanvragen in dashboard",
       foot: "Indicatie op basis van Belastingdienst-thresholds 2026. Geen rechten te ontlenen.",
+      rulesHint: "Zorgtoeslag verschijnt bij inkomen onder de grens. Huurtoeslag vanaf €250 huur. Kinderopvangtoeslag bij opvanguren > 0. Kindgebonden budget met kinderen < 18 en inkomen onder de grens. Geen indicatie = geen vermoedelijk recht op basis van deze velden.",
+      sourceLabel: "Bron: Belastingdienst",
+      sourceUrl: "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/toeslagen/",
       labels: {
         zorg: { name: "Zorgtoeslag", tag: "MAANDELIJKS" },
         huur: { name: "Huurtoeslag", tag: "MAANDELIJKS" },
@@ -202,6 +206,9 @@ const copy: Record<Language, Copy> = {
       eligible: "Eligible",
       apply: "Apply directly in dashboard",
       foot: "Indication based on Belastingdienst thresholds 2026. No rights can be derived.",
+      rulesHint: "Healthcare allowance appears when income is below the threshold. Rent allowance from €250 rent. Childcare allowance when daycare hours > 0. Child budget with children < 18 and income below the threshold. No indication = likely no entitlement based on these fields.",
+      sourceLabel: "Source: Belastingdienst",
+      sourceUrl: "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/toeslagen/",
       labels: {
         zorg: { name: "Healthcare allowance", tag: "MONTHLY" },
         huur: { name: "Rent allowance", tag: "MONTHLY" },
@@ -708,6 +715,13 @@ function ToeslagenCheck({ c }: { c: Copy }) {
               <div>
                 <label className="block text-micro text-frost mb-2">{t.daycare}</label>
                 <input type="number" value={daycare || ""} onChange={(e) => setDaycare(Number(e.target.value) || 0)} placeholder={t.daycarePh} className={inputClass} />
+              </div>
+              <div className="rounded-2xl bg-popover/60 border border-white/5 p-4">
+                <div className="flex items-start gap-2.5">
+                  <Info className="w-4 h-4 text-frost shrink-0 mt-0.5" />
+                  <p className="text-[11px] font-stamp text-frost leading-relaxed">{t.rulesHint}</p>
+                </div>
+                <a href={t.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-[11px] font-stamp text-bone underline underline-offset-2 decoration-white/20 hover:decoration-white/60 transition">{t.sourceLabel}</a>
               </div>
             </div>
           </motion.div>
