@@ -917,13 +917,13 @@ export default function Landing() {
     <div className="min-h-screen bg-obsidian text-bone">
       <Nav c={c} />
       <Hero c={c} />
+      <ToeslagenCheck c={c} />
       <TrustStrip c={c} />
       <BenefitsSection c={c} />
       <Features c={c} />
       <AiSection c={c} />
       <Testimonials c={c} />
-      <PricingSection c={c} />
-      <ReferralSection c={c} />
+      <PlanReferralSection c={c} />
       <FinalCta c={c} />
       <Footer />
     </div>
