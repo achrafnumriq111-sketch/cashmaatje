@@ -32,6 +32,7 @@ type Copy = {
     kids: string; rent: string; rentPh: string; daycare: string; daycarePh: string;
     resultTitle: string; perMonth: string; noRight: string; eligible: string;
     apply: string; foot: string;
+    rulesHint: string; sourceLabel: string; sourceUrl: string;
     labels: Record<ToeslagKey, { name: string; tag: string }>;
   };
   plan: {
