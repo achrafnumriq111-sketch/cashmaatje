@@ -50,7 +50,7 @@ type Copy = {
 
 const copy: Record<Language, Copy> = {
   nl: {
-    nav: { features: "PRODUCTEN", ai: "AI", referral: "REFERRAL", pricing: "PRIJZEN", signin: "INLOGGEN", start: "Probeer gratis" },
+    nav: { features: "PRODUCTEN", ai: "AI", toeslagen: "TOESLAGEN", plan: "PLAN", signin: "INLOGGEN", start: "Probeer gratis" },
     hero: {
       badge: "Eerste maand gratis · geen creditcard",
       titleA: "Jouw geld.",
