@@ -15,8 +15,10 @@ import textureMarble from "@/assets/texture-marble.jpg";
    Chromatic illuminated feature cards. Editorial finance.
    ────────────────────────────────────────────────────────────────── */
 
+type ToeslagKey = "zorg" | "huur" | "kgb" | "kov";
+
 type Copy = {
-  nav: { features: string; ai: string; referral: string; pricing: string; signin: string; start: string };
+  nav: { features: string; ai: string; toeslagen: string; plan: string; signin: string; start: string };
   hero: { badge: string; titleA: string; titleB: string; sub: string; cta: string; seeHow: string; disclaimer: string };
   trust: { line: string; reviews: string };
   benefits: { items: { eyebrow: string; title: string; desc: string }[] };
@@ -24,12 +26,25 @@ type Copy = {
   feature: { invoicing: string; expenses: string; dashboard: string; tax: string };
   ai: { eyebrow: string; titleA: string; titleB: string; sub: string };
   testimonials: { items: { q: string; n: string; r: string }[] };
-  pricing: {
-    eyebrow: string; titleA: string; titleB: string; sub: string; allIn: string; firstFree: string;
-    firstMonth: string; thenA: string; thenB: string; thenC: string; cta: string; features: string[];
-    base: string; perRef: string; floor: string; foot: string;
+  toeslagen: {
+    eyebrow: string; titleA: string; titleB: string; sub: string;
+    income: string; incomePh: string; partner: string; partnerIncome: string;
+    kids: string; rent: string; rentPh: string; daycare: string; daycarePh: string;
+    resultTitle: string; perMonth: string; noRight: string; eligible: string;
+    apply: string; foot: string;
+    labels: Record<ToeslagKey, { name: string; tag: string }>;
   };
-  referral: { eyebrow: string; titleA: string; titleB: string; sub: string; steps: { t: string; d: string }[]; live: string; rows: { r: string; p: string }[]; foot: string };
+  plan: {
+    eyebrow: string; titleA: string; titleB: string; sub: string;
+    allIn: string; firstFree: string; firstMonth: string;
+    thenA: string; thenB: string; thenC: string; cta: string;
+    features: string[];
+    referralHeading: string; referralSub: string;
+    base: string; perRef: string; floor: string;
+    steps: { t: string; d: string }[];
+    live: string; rows: { r: string; p: string }[]; rowsFoot: string;
+    foot: string;
+  };
   finalCta: { titleA: string; titleB: string; sub: string; cta: string; bullets: string[] };
 };
 
