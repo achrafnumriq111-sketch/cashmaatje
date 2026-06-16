@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Check, Star, Users } from "lucide-react";
+import { useState, useMemo } from "react";
+import { ArrowRight, Check, Star, Users, Sparkles } from "lucide-react";
 import { useI18n, type Language } from "@/lib/i18n";
 import duskSky from "@/assets/dusk-sky.jpg";
 import textureSand from "@/assets/texture-sand.jpg";
@@ -14,8 +15,10 @@ import textureMarble from "@/assets/texture-marble.jpg";
    Chromatic illuminated feature cards. Editorial finance.
    ────────────────────────────────────────────────────────────────── */
 
+type ToeslagKey = "zorg" | "huur" | "kgb" | "kov";
+
 type Copy = {
-  nav: { features: string; ai: string; referral: string; pricing: string; signin: string; start: string };
+  nav: { features: string; ai: string; toeslagen: string; plan: string; signin: string; start: string };
   hero: { badge: string; titleA: string; titleB: string; sub: string; cta: string; seeHow: string; disclaimer: string };
   trust: { line: string; reviews: string };
   benefits: { items: { eyebrow: string; title: string; desc: string }[] };
@@ -23,18 +26,31 @@ type Copy = {
   feature: { invoicing: string; expenses: string; dashboard: string; tax: string };
   ai: { eyebrow: string; titleA: string; titleB: string; sub: string };
   testimonials: { items: { q: string; n: string; r: string }[] };
-  pricing: {
-    eyebrow: string; titleA: string; titleB: string; sub: string; allIn: string; firstFree: string;
-    firstMonth: string; thenA: string; thenB: string; thenC: string; cta: string; features: string[];
-    base: string; perRef: string; floor: string; foot: string;
+  toeslagen: {
+    eyebrow: string; titleA: string; titleB: string; sub: string;
+    income: string; incomePh: string; partner: string; partnerIncome: string;
+    kids: string; rent: string; rentPh: string; daycare: string; daycarePh: string;
+    resultTitle: string; perMonth: string; noRight: string; eligible: string;
+    apply: string; foot: string;
+    labels: Record<ToeslagKey, { name: string; tag: string }>;
   };
-  referral: { eyebrow: string; titleA: string; titleB: string; sub: string; steps: { t: string; d: string }[]; live: string; rows: { r: string; p: string }[]; foot: string };
+  plan: {
+    eyebrow: string; titleA: string; titleB: string; sub: string;
+    allIn: string; firstFree: string; firstMonth: string;
+    thenA: string; thenB: string; thenC: string; cta: string;
+    features: string[];
+    referralHeading: string; referralSub: string;
+    base: string; perRef: string; floor: string;
+    steps: { t: string; d: string }[];
+    live: string; rows: { r: string; p: string }[]; rowsFoot: string;
+    foot: string;
+  };
   finalCta: { titleA: string; titleB: string; sub: string; cta: string; bullets: string[] };
 };
 
 const copy: Record<Language, Copy> = {
   nl: {
-    nav: { features: "PRODUCTEN", ai: "AI", referral: "REFERRAL", pricing: "PRIJZEN", signin: "INLOGGEN", start: "Probeer gratis" },
+    nav: { features: "PRODUCTEN", ai: "AI", toeslagen: "TOESLAGEN", plan: "PLAN", signin: "INLOGGEN", start: "Probeer gratis" },
     hero: {
       badge: "Eerste maand gratis · geen creditcard",
       titleA: "Jouw geld.",
@@ -67,11 +83,40 @@ const copy: Record<Language, Copy> = {
         { q: "De rust die dit geeft is letterlijk geld waard.", n: "Lisa B.", r: "Holding directeur" },
       ],
     },
-    pricing: {
-      eyebrow: "PRIJZEN", titleA: "Eén plan.", titleB: "Alles erin.",
-      sub: "Eerste maand gratis. Daarna €25,99 — zakt naar €15,99 met 10 actieve referrals.",
-      allIn: "ALL-IN PLAN", firstFree: "1E MAAND GRATIS",
-      firstMonth: "eerste maand", thenA: "Daarna ", thenB: "€25,99/maand", thenC: " — vanaf €15,99 met 10 actieve referrals.",
+    toeslagen: {
+      eyebrow: "TOESLAGEN CHECK",
+      titleA: "Recht op",
+      titleB: "toeslagen?",
+      sub: "Vul 4 velden in. Zie binnen 5 seconden welke toeslagen jij kan claimen — en vraag ze direct aan vanuit je dashboard.",
+      income: "Bruto jaarinkomen",
+      incomePh: "bv. 28000",
+      partner: "Met fiscaal partner",
+      partnerIncome: "Inkomen partner",
+      kids: "Aantal kinderen < 18",
+      rent: "Maandhuur (€)",
+      rentPh: "bv. 850",
+      daycare: "Opvang uren/maand",
+      daycarePh: "bv. 80",
+      resultTitle: "Jouw indicatie",
+      perMonth: "/mnd",
+      noRight: "Vul je gegevens in om je indicatie te zien.",
+      eligible: "Recht op",
+      apply: "Direct aanvragen in dashboard",
+      foot: "Indicatie op basis van Belastingdienst-thresholds 2026. Geen rechten te ontlenen.",
+      labels: {
+        zorg: { name: "Zorgtoeslag", tag: "MAANDELIJKS" },
+        huur: { name: "Huurtoeslag", tag: "MAANDELIJKS" },
+        kgb:  { name: "Kindgebonden budget", tag: "PER KIND" },
+        kov:  { name: "Kinderopvangtoeslag", tag: "PER UUR" },
+      },
+    },
+    plan: {
+      eyebrow: "PLAN & REFERRAL",
+      titleA: "Eén prijs.",
+      titleB: "Zakt met elke vriend.",
+      sub: "Eerste maand gratis. Daarna €25,99 — zakt €1 per actieve referral, tot €15,99.",
+      allIn: "ALL-IN PLAN", firstFree: "1E MAAND GRATIS", firstMonth: "eerste maand",
+      thenA: "Daarna ", thenB: "€25,99/maand", thenC: " — vanaf €15,99 met 10 actieve referrals.",
       cta: "Probeer 1 maand gratis",
       features: [
         "Onbeperkt facturen & bonnen",
@@ -83,14 +128,9 @@ const copy: Record<Language, Copy> = {
         "Automation Center & Process Flows",
         "Accountant-toegang + API",
       ],
+      referralHeading: "Deel het. Je prijs zakt mee.",
+      referralSub: "Voor elke actieve referral gaat je maandprijs €1 omlaag, tot €15,99.",
       base: "BASIS", perRef: "PER REFERRAL", floor: "VLOER",
-      foot: "Eerste maand gratis · Geen creditcard · Altijd opzegbaar · Excl. BTW",
-    },
-    referral: {
-      eyebrow: "REFERRAL",
-      titleA: "Deel het.",
-      titleB: "Je prijs zakt mee.",
-      sub: "Voor elke actieve referral gaat je maandprijs €1 omlaag, tot €15,99.",
       steps: [
         { t: "Deel je link", d: "Eigen referralcode in je dashboard." },
         { t: "Vriend start", d: "Eerste maand gratis voor jullie beiden." },
@@ -102,7 +142,8 @@ const copy: Record<Language, Copy> = {
         { r: "5 referrals", p: "€20,99" },
         { r: "10 referrals", p: "€15,99" },
       ],
-      foot: "Voorbeeld — verrekening per actieve referral, per maand.",
+      rowsFoot: "Voorbeeld — verrekening per actieve referral, per maand.",
+      foot: "Eerste maand gratis · Geen creditcard · Altijd opzegbaar · Excl. BTW",
     },
     finalCta: {
       titleA: "Begin bij",
@@ -113,7 +154,7 @@ const copy: Record<Language, Copy> = {
     },
   },
   en: {
-    nav: { features: "PRODUCTS", ai: "AI", referral: "REFERRAL", pricing: "PRICING", signin: "LOG IN", start: "Get started" },
+    nav: { features: "PRODUCTS", ai: "AI", toeslagen: "BENEFITS", plan: "PLAN", signin: "LOG IN", start: "Get started" },
     hero: {
       badge: "First month free · no credit card",
       titleA: "Own your",
@@ -141,11 +182,40 @@ const copy: Record<Language, Copy> = {
         { q: "The peace of mind is literally worth money.", n: "Lisa B.", r: "Holding director" },
       ],
     },
-    pricing: {
-      eyebrow: "PRICING", titleA: "One plan.", titleB: "Everything in.",
-      sub: "First month free. Then €25.99 — drops to €15.99 with 10 active referrals.",
-      allIn: "ALL-IN PLAN", firstFree: "1ST MONTH FREE",
-      firstMonth: "first month", thenA: "Then ", thenB: "€25.99/month", thenC: " — as low as €15.99 with 10 active referrals.",
+    toeslagen: {
+      eyebrow: "BENEFITS CHECK",
+      titleA: "Eligible for",
+      titleB: "Dutch benefits?",
+      sub: "Fill in 4 fields. See which government benefits you can claim within 5 seconds — and apply directly from your dashboard.",
+      income: "Gross annual income",
+      incomePh: "e.g. 28000",
+      partner: "With fiscal partner",
+      partnerIncome: "Partner income",
+      kids: "Children under 18",
+      rent: "Monthly rent (€)",
+      rentPh: "e.g. 850",
+      daycare: "Childcare hrs/month",
+      daycarePh: "e.g. 80",
+      resultTitle: "Your indication",
+      perMonth: "/mo",
+      noRight: "Fill in your details to see the indication.",
+      eligible: "Eligible",
+      apply: "Apply directly in dashboard",
+      foot: "Indication based on Belastingdienst thresholds 2026. No rights can be derived.",
+      labels: {
+        zorg: { name: "Healthcare allowance", tag: "MONTHLY" },
+        huur: { name: "Rent allowance", tag: "MONTHLY" },
+        kgb:  { name: "Child budget", tag: "PER CHILD" },
+        kov:  { name: "Childcare allowance", tag: "PER HOUR" },
+      },
+    },
+    plan: {
+      eyebrow: "PLAN & REFERRAL",
+      titleA: "One price.",
+      titleB: "Drops with every friend.",
+      sub: "First month free. Then €25.99 — drops €1 per active referral, down to €15.99.",
+      allIn: "ALL-IN PLAN", firstFree: "1ST MONTH FREE", firstMonth: "first month",
+      thenA: "Then ", thenB: "€25.99/month", thenC: " — as low as €15.99 with 10 active referrals.",
       cta: "Try free for 1 month",
       features: [
         "Unlimited invoices & expenses",
@@ -157,14 +227,9 @@ const copy: Record<Language, Copy> = {
         "Automation Center & Process Flows",
         "Accountant access + API",
       ],
+      referralHeading: "Share it. Your price drops.",
+      referralSub: "Every active referral lowers your monthly price by €1, down to €15.99.",
       base: "BASE", perRef: "PER REFERRAL", floor: "FLOOR",
-      foot: "First month free · No credit card · Cancel anytime · Excl. VAT",
-    },
-    referral: {
-      eyebrow: "REFERRAL",
-      titleA: "Share it.",
-      titleB: "Your price drops.",
-      sub: "Every active referral lowers your monthly price by €1, down to €15.99.",
       steps: [
         { t: "Share your link", d: "Your own referral code in the dashboard." },
         { t: "Friend signs up", d: "First month free for both of you." },
@@ -176,7 +241,8 @@ const copy: Record<Language, Copy> = {
         { r: "5 referrals", p: "€20.99" },
         { r: "10 referrals", p: "€15.99" },
       ],
-      foot: "Example — applied per active referral, per month.",
+      rowsFoot: "Example — applied per active referral, per month.",
+      foot: "First month free · No credit card · Cancel anytime · Excl. VAT",
     },
     finalCta: {
       titleA: "Start with",
@@ -247,10 +313,10 @@ function Nav({ c }: { c: Copy }) {
 
         <nav className="hidden md:flex items-center gap-1 px-3 py-1.5 rounded-lg">
           {[
+            { href: "#toeslagen", label: c.nav.toeslagen },
             { href: "#features", label: c.nav.features },
             { href: "#ai", label: c.nav.ai },
-            { href: "#referral", label: c.nav.referral },
-            { href: "#pricing", label: c.nav.pricing },
+            { href: "#plan", label: c.nav.plan },
           ].map((l) => (
             <a key={l.href} href={l.href} className="px-3 py-1.5 rounded-lg text-[11px] font-stamp text-white/85 hover:text-white transition-colors">
               {l.label}
@@ -551,34 +617,175 @@ function Testimonials({ c }: { c: Copy }) {
   );
 }
 
-/* ── Pricing ─────────────────────────────────────────────────────── */
+/* ── Toeslagen Check ────────────────────────────────────────────── */
 
-function PricingSection({ c }: { c: Copy }) {
+function ToeslagenCheck({ c }: { c: Copy }) {
+  const t = c.toeslagen;
+  const [income, setIncome] = useState<number>(28000);
+  const [hasPartner, setHasPartner] = useState(false);
+  const [partnerIncome, setPartnerIncome] = useState<number>(0);
+  const [kids, setKids] = useState<number>(0);
+  const [rent, setRent] = useState<number>(0);
+  const [daycare, setDaycare] = useState<number>(0);
+
+  const results = useMemo(() => {
+    const totalIncome = income + (hasPartner ? partnerIncome : 0);
+    const zorgCap = hasPartner ? 47000 : 37500;
+    const zorgMax = hasPartner ? 243 : 127;
+    const zorg = totalIncome > 0 && totalIncome < zorgCap
+      ? Math.round(zorgMax * Math.max(0, 1 - totalIncome / zorgCap))
+      : 0;
+    const huurCap = hasPartner ? 33000 : 24000;
+    const huur = rent >= 250 && rent <= 880 && totalIncome > 0 && totalIncome < huurCap
+      ? Math.round(Math.min(420, (rent - 250) * 0.65) * Math.max(0.2, 1 - totalIncome / huurCap))
+      : 0;
+    const kgbCap = hasPartner ? 50000 : 37500;
+    const kgb = kids > 0 && totalIncome < kgbCap
+      ? Math.round(kids * 105 * Math.max(0.4, 1 - totalIncome / (kgbCap * 1.4)))
+      : 0;
+    const kov = daycare > 0 && totalIncome < 200000
+      ? Math.round(daycare * 8.5 * Math.max(0.33, 1 - totalIncome / 250000))
+      : 0;
+    return { zorg, huur, kgb, kov };
+  }, [income, hasPartner, partnerIncome, kids, rent, daycare]);
+
+  const items: { k: ToeslagKey; v: number }[] = [
+    { k: "zorg", v: results.zorg },
+    { k: "huur", v: results.huur },
+    { k: "kgb",  v: results.kgb },
+    { k: "kov",  v: results.kov },
+  ];
+  const eligible = items.filter((i) => i.v > 0);
+  const total = eligible.reduce((s, i) => s + i.v, 0);
+
+  const inputClass =
+    "w-full bg-popover border border-white/10 rounded-2xl px-4 py-3 text-body-sm text-bone placeholder:text-frost/60 focus:outline-none focus:border-white/30 transition";
+
   return (
-    <section id="pricing" className="bg-carbon border-y border-white/5">
-      <div className="mx-auto max-w-3xl px-6 py-32">
-        <SectionHeading eyebrow={c.pricing.eyebrow} titleA={c.pricing.titleA} titleB={c.pricing.titleB} sub={c.pricing.sub} />
+    <section id="toeslagen" className="relative bg-carbon border-y border-white/5">
+      <div className="mx-auto max-w-[1200px] px-6 py-28">
+        <SectionHeading eyebrow={t.eyebrow} titleA={t.titleA} titleB={t.titleB} sub={t.sub} />
+        <div className="grid lg:grid-cols-[1.05fr_1fr] gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6 }}
+            className="rounded-[30px] bg-card border border-white/5 p-8 shadow-feature"
+          >
+            <div className="space-y-5">
+              <div>
+                <label className="block text-micro text-frost mb-2">{t.income}</label>
+                <input type="number" inputMode="numeric" value={income || ""} onChange={(e) => setIncome(Number(e.target.value) || 0)} placeholder={t.incomePh} className={inputClass} />
+              </div>
+              <div className="flex items-center justify-between gap-4 py-1">
+                <label className="flex items-center gap-3 cursor-pointer select-none">
+                  <button type="button" onClick={() => setHasPartner((v) => !v)} className={`relative w-10 h-6 rounded-full transition ${hasPartner ? "bg-bone" : "bg-white/10"}`} aria-pressed={hasPartner}>
+                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-carbon transition ${hasPartner ? "translate-x-4" : ""}`} />
+                  </button>
+                  <span className="text-body-sm text-bone">{t.partner}</span>
+                </label>
+              </div>
+              {hasPartner && (
+                <div>
+                  <label className="block text-micro text-frost mb-2">{t.partnerIncome}</label>
+                  <input type="number" inputMode="numeric" value={partnerIncome || ""} onChange={(e) => setPartnerIncome(Number(e.target.value) || 0)} placeholder={t.incomePh} className={inputClass} />
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-micro text-frost mb-2">{t.kids}</label>
+                  <input type="number" min={0} value={kids || ""} onChange={(e) => setKids(Math.max(0, Number(e.target.value) || 0))} placeholder="0" className={inputClass} />
+                </div>
+                <div>
+                  <label className="block text-micro text-frost mb-2">{t.rent}</label>
+                  <input type="number" value={rent || ""} onChange={(e) => setRent(Number(e.target.value) || 0)} placeholder={t.rentPh} className={inputClass} />
+                </div>
+              </div>
+              <div>
+                <label className="block text-micro text-frost mb-2">{t.daycare}</label>
+                <input type="number" value={daycare || ""} onChange={(e) => setDaycare(Number(e.target.value) || 0)} placeholder={t.daycarePh} className={inputClass} />
+              </div>
+            </div>
+          </motion.div>
 
-        <div className="rounded-[30px] bg-card border border-white/5 p-10 shadow-feature">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="rounded-[30px] bg-card border border-white/5 p-8 shadow-feature flex flex-col"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-micro text-frost">{t.resultTitle}</p>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-white/15 text-[10px] font-stamp text-bone">
+                <Sparkles className="w-3 h-3" /> AI
+              </span>
+            </div>
+            <div className="flex items-end gap-3 mb-6">
+              <span className="font-display text-[64px] font-light leading-none text-bone">€{total}</span>
+              <span className="text-body-sm text-frost pb-2">{t.perMonth}</span>
+            </div>
+            <div className="space-y-2 mb-6">
+              {items.map((i) => {
+                const isEligible = i.v > 0;
+                const label = t.labels[i.k];
+                return (
+                  <div key={i.k} className={`flex items-center justify-between py-3 px-4 rounded-2xl border transition ${isEligible ? "bg-amethyst/10 border-amethyst/30" : "bg-popover/60 border-white/5 opacity-55"}`}>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${isEligible ? "bg-amethyst animate-pulse" : "bg-white/20"}`} />
+                      <div className="min-w-0">
+                        <p className="text-body-sm text-bone truncate">{label.name}</p>
+                        <p className="text-[10px] font-stamp text-frost">{label.tag}</p>
+                      </div>
+                    </div>
+                    <span className={`font-display text-[18px] font-light ${isEligible ? "text-bone" : "text-frost/60"}`}>{isEligible ? `€${i.v}` : "—"}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {eligible.length > 0 ? (
+              <div className="mt-auto"><PillCTA to="/register">{t.apply}</PillCTA></div>
+            ) : (
+              <p className="mt-auto text-caption text-frost">{t.noRight}</p>
+            )}
+            <p className="mt-5 text-[10px] text-frost/70 leading-relaxed">{t.foot}</p>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Plan + Referral (merged) ───────────────────────────────────── */
+
+function PlanReferralSection({ c }: { c: Copy }) {
+  const p = c.plan;
+  return (
+    <section id="plan" className="bg-carbon border-y border-white/5">
+      <div className="mx-auto max-w-[1200px] px-6 py-32">
+        <SectionHeading eyebrow={p.eyebrow} titleA={p.titleA} titleB={p.titleB} sub={p.sub} />
+
+        <div className="rounded-[30px] bg-card border border-white/5 p-10 shadow-feature max-w-3xl mx-auto">
           <div className="flex items-start justify-between flex-wrap gap-6 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-5 flex-wrap">
-                <span className="px-2.5 py-1 rounded-full border border-white/15 text-[10px] font-stamp text-bone">{c.pricing.allIn}</span>
-                <span className="px-2.5 py-1 rounded-full bg-white text-carbon text-[10px] font-stamp">{c.pricing.firstFree}</span>
+                <span className="px-2.5 py-1 rounded-full border border-white/15 text-[10px] font-stamp text-bone">{p.allIn}</span>
+                <span className="px-2.5 py-1 rounded-full bg-white text-carbon text-[10px] font-stamp">{p.firstFree}</span>
               </div>
               <div className="flex items-end gap-3">
                 <span className="font-display text-[80px] font-light leading-none text-bone">€0</span>
-                <span className="text-body-sm text-frost pb-3">{c.pricing.firstMonth}</span>
+                <span className="text-body-sm text-frost pb-3">{p.firstMonth}</span>
               </div>
               <p className="mt-4 text-body-sm text-frost">
-                {c.pricing.thenA}<span className="text-bone">{c.pricing.thenB}</span>{c.pricing.thenC}
+                {p.thenA}<span className="text-bone">{p.thenB}</span>{p.thenC}
               </p>
             </div>
-            <PillCTA to="/register">{c.pricing.cta}</PillCTA>
+            <PillCTA to="/register">{p.cta}</PillCTA>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-3 mb-8">
-            {c.pricing.features.map((f) => (
+            {p.features.map((f) => (
               <div key={f} className="flex items-start gap-2.5 text-body-sm text-bone">
                 <Check className="w-4 h-4 mt-0.5 text-bone shrink-0" />
                 <span>{f}</span>
@@ -588,64 +795,68 @@ function PricingSection({ c }: { c: Copy }) {
 
           <div className="rounded-2xl bg-popover border border-white/5 p-5 grid sm:grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-micro text-frost">{c.pricing.base}</p>
+              <p className="text-micro text-frost">{p.base}</p>
               <p className="font-display text-[24px] font-light text-bone mt-2">€25,99</p>
             </div>
             <div>
-              <p className="text-micro text-frost">{c.pricing.perRef}</p>
+              <p className="text-micro text-frost">{p.perRef}</p>
               <p className="font-display text-[24px] font-light text-bone mt-2">−€1,00</p>
             </div>
             <div>
-              <p className="text-micro text-frost">{c.pricing.floor}</p>
+              <p className="text-micro text-frost">{p.floor}</p>
               <p className="font-display text-[24px] font-light text-bone mt-2">€15,99</p>
             </div>
           </div>
 
-          <p className="mt-8 text-center text-caption text-frost">{c.pricing.foot}</p>
+          <p className="mt-8 text-center text-caption text-frost">{p.foot}</p>
+        </div>
+
+        <div className="my-20 flex items-center gap-6 max-w-3xl mx-auto">
+          <div className="flex-1 h-px bg-white/10" />
+          <span className="text-micro text-frost">REFERRAL</span>
+          <div className="flex-1 h-px bg-white/10" />
+        </div>
+
+        <div className="max-w-3xl mx-auto text-center mb-12">
+          <h3 className="font-display text-[36px] font-light text-bone leading-tight">{p.referralHeading}</h3>
+          <p className="mt-4 text-body text-frost max-w-md mx-auto">{p.referralSub}</p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
+          {p.steps.map((s, i) => (
+            <div key={s.t} className="rounded-[30px] border border-white/5 bg-card p-8">
+              <p className="font-mono text-caption text-frost mb-5">{String(i + 1).padStart(2, "0")}</p>
+              <h4 className="font-display text-[22px] font-light text-bone">{s.t}</h4>
+              <p className="mt-3 text-body-sm text-frost">{s.d}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="rounded-[30px] border border-white/5 bg-card p-8 max-w-2xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2 text-body-sm text-frost">
+              <Users className="w-4 h-4" /> Jouw prijs
+            </div>
+            <span className="px-2 py-0.5 rounded-full border border-white/15 text-[10px] font-stamp text-bone">{p.live}</span>
+          </div>
+          <div className="space-y-2">
+            {p.rows.map((row, i) => {
+              const best = i === p.rows.length - 1;
+              return (
+                <div key={row.r} className={`flex items-center justify-between py-4 px-5 rounded-2xl ${best ? "bg-amethyst/15 border border-amethyst/30" : "bg-popover"}`}>
+                  <span className="text-body-sm text-bone">{row.r}</span>
+                  <span className={`font-display text-[24px] font-light ${best ? "text-amethyst" : "text-bone"}`}>{row.p}</span>
+                </div>
+              );
+            })}
+          </div>
+          <p className="mt-6 text-caption text-frost text-center">{p.rowsFoot}</p>
         </div>
       </div>
     </section>
   );
 }
 
-/* ── Referral ────────────────────────────────────────────────────── */
-
-function ReferralSection({ c }: { c: Copy }) {
-  return (
-    <section id="referral" className="mx-auto max-w-[1200px] px-6 py-32">
-      <SectionHeading eyebrow={c.referral.eyebrow} titleA={c.referral.titleA} titleB={c.referral.titleB} sub={c.referral.sub} />
-      <div className="grid md:grid-cols-3 gap-6 mb-12">
-        {c.referral.steps.map((s, i) => (
-          <div key={s.t} className="rounded-[30px] border border-white/5 bg-card p-8">
-            <p className="font-mono text-caption text-frost mb-5">{String(i + 1).padStart(2, "0")}</p>
-            <h3 className="font-display text-[24px] font-light text-bone">{s.t}</h3>
-            <p className="mt-3 text-body-sm text-frost">{s.d}</p>
-          </div>
-        ))}
-      </div>
-      <div className="rounded-[30px] border border-white/5 bg-card p-8 max-w-2xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2 text-body-sm text-frost">
-            <Users className="w-4 h-4" /> Jouw prijs
-          </div>
-          <span className="px-2 py-0.5 rounded-full border border-white/15 text-[10px] font-stamp text-bone">{c.referral.live}</span>
-        </div>
-        <div className="space-y-2">
-          {c.referral.rows.map((row, i) => {
-            const best = i === c.referral.rows.length - 1;
-            return (
-              <div key={row.r} className={`flex items-center justify-between py-4 px-5 rounded-2xl ${best ? "bg-amethyst/15 border border-amethyst/30" : "bg-popover"}`}>
-                <span className="text-body-sm text-bone">{row.r}</span>
-                <span className={`font-display text-[24px] font-light ${best ? "text-amethyst" : "text-bone"}`}>{row.p}</span>
-              </div>
-            );
-          })}
-        </div>
-        <p className="mt-6 text-caption text-frost text-center">{c.referral.foot}</p>
-      </div>
-    </section>
-  );
-}
 
 /* ── Final CTA ───────────────────────────────────────────────────── */
 
@@ -706,13 +917,13 @@ export default function Landing() {
     <div className="min-h-screen bg-obsidian text-bone">
       <Nav c={c} />
       <Hero c={c} />
+      <ToeslagenCheck c={c} />
       <TrustStrip c={c} />
       <BenefitsSection c={c} />
       <Features c={c} />
       <AiSection c={c} />
       <Testimonials c={c} />
-      <PricingSection c={c} />
-      <ReferralSection c={c} />
+      <PlanReferralSection c={c} />
       <FinalCta c={c} />
       <Footer />
     </div>
