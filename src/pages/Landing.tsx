@@ -3,6 +3,10 @@ import { motion } from "framer-motion";
 import { ArrowRight, Check, Star, Users } from "lucide-react";
 import { useI18n, type Language } from "@/lib/i18n";
 import duskSky from "@/assets/dusk-sky.jpg";
+import textureSand from "@/assets/texture-sand.jpg";
+import textureWater from "@/assets/texture-water.jpg";
+import textureLavender from "@/assets/texture-lavender.jpg";
+import textureMarble from "@/assets/texture-marble.jpg";
 
 /* ──────────────────────────────────────────────────────────────────
    CashMaatje — Landing (Origin Financial design system)
@@ -268,53 +272,56 @@ function Nav({ c }: { c: Copy }) {
 
 function Hero({ c }: { c: Copy }) {
   return (
-    <section className="relative overflow-hidden min-h-screen flex items-end pb-32">
-      {/* Full-bleed dusk-sky atmosphere */}
+    <section className="relative overflow-hidden min-h-[100vh] flex items-center">
+      {/* Full-bleed dusk-sky — sky stays bright on top, only fades to obsidian at the bottom */}
       <img
         src={duskSky}
         alt=""
         className="absolute inset-0 w-full h-full object-cover"
         width={1920}
         height={1280}
+        fetchPriority="high"
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-obsidian/85 via-obsidian/30 to-obsidian" />
+      {/* Top: subtle nav scrim for legibility. Bottom: long fade into obsidian for the next section to bleed into. */}
+      <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-obsidian/40 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-[55vh] bg-gradient-to-b from-transparent via-obsidian/70 to-obsidian" />
 
-      <div className="relative mx-auto max-w-[1200px] px-6 w-full">
+      <div className="relative mx-auto max-w-[1200px] px-6 w-full pt-24 pb-40">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
           className="text-center"
         >
-          <div className="inline-flex items-center px-3 py-1 rounded-full bg-obsidian/50 border border-white/25 backdrop-blur-sm mb-10">
+          <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/25 backdrop-blur-md mb-10">
             <span className="text-[10px] font-stamp text-white">{c.hero.badge}</span>
           </div>
 
-          <h1 className="text-display text-bone mx-auto max-w-5xl">
+          <h1 className="text-display text-bone mx-auto max-w-5xl drop-shadow-[0_2px_30px_rgba(0,0,0,0.35)]">
             <span className="text-italic-display">{c.hero.titleA}</span>{" "}
             <span className="font-display">{c.hero.titleB}</span>
           </h1>
 
-          <p className="mt-8 text-subheading text-frost max-w-xl mx-auto">{c.hero.sub}</p>
+          <p className="mt-8 text-subheading text-white/85 max-w-xl mx-auto drop-shadow-[0_1px_20px_rgba(0,0,0,0.3)]">{c.hero.sub}</p>
 
           <div className="mt-10 flex items-center justify-center gap-4 flex-wrap">
             <PillCTA to="/register">{c.hero.cta}</PillCTA>
             <a href="#features" className="origin-pill-ghost">{c.hero.seeHow}</a>
           </div>
 
-          <p className="mt-8 text-caption text-mist max-w-md mx-auto">{c.hero.disclaimer}</p>
+          <p className="mt-8 text-caption text-white/65 max-w-md mx-auto">{c.hero.disclaimer}</p>
 
           {/* Floating chat input (signature interaction) */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-16 max-w-[700px] mx-auto"
+            transition={{ duration: 1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-16 max-w-[640px] mx-auto"
           >
-            <div className="flex items-center gap-3 bg-graphite/80 backdrop-blur-xl border border-white/8 rounded-[30px] px-5 py-4">
-              <span className="text-frost text-body flex-1 text-left">Hoe staat mijn BTW dit kwartaal?</span>
-              <button className="w-8 h-8 rounded-full bg-white grid place-items-center hover:scale-105 transition-transform">
-                <ArrowRight className="w-3.5 h-3.5 text-carbon" />
+            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-2xl border border-white/20 rounded-full px-5 py-3.5 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.5)]">
+              <span className="text-white/85 text-body flex-1 text-left">Hoe staat mijn BTW dit kwartaal?</span>
+              <button className="w-9 h-9 rounded-full bg-white/30 backdrop-blur grid place-items-center hover:bg-white/45 transition">
+                <ArrowRight className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
               </button>
             </div>
           </motion.div>
@@ -389,29 +396,91 @@ function BenefitsSection({ c }: { c: Copy }) {
 
 function Features({ c }: { c: Copy }) {
   const cards = [
-    { label: c.feature.invoicing, bg: "bg-amethyst", textColor: "text-white", value: "€ 28.540", sub: "deze maand" },
-    { label: c.feature.expenses, bg: "bg-orchid", textColor: "text-carbon", value: "186 bonnen", sub: "automatisch geboekt" },
-    { label: c.feature.dashboard, bg: "bg-sky-wash", textColor: "text-carbon", value: "+24%", sub: "vs vorige maand" },
-    { label: c.feature.tax, bg: "bg-deep-iris", textColor: "text-white", value: "€ 5.420", sub: "gereserveerd" },
+    {
+      label: c.feature.invoicing,
+      img: textureSand,
+      mock: (
+        <div className="rounded-2xl bg-graphite/85 backdrop-blur-xl border border-white/8 p-5 shadow-feature">
+          <p className="text-[9px] font-stamp text-frost mb-3">FACTUUR · 2026-0142</p>
+          <p className="font-display text-[28px] font-light text-bone leading-none">€ 4.250,00</p>
+          <p className="mt-1 text-caption text-frost">verstuurd · 2 dagen geleden</p>
+          <div className="mt-4 flex items-center justify-between">
+            <span className="text-[10px] font-stamp text-bone bg-white/10 px-2 py-1 rounded-full">BETAALD</span>
+            <span className="text-caption text-frost">21% BTW</span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      label: c.feature.expenses,
+      img: textureMarble,
+      mock: (
+        <div className="rounded-2xl bg-graphite/85 backdrop-blur-xl border border-white/8 p-5 shadow-feature">
+          <p className="text-[9px] font-stamp text-frost mb-3">BONNEN DEZE MAAND</p>
+          <p className="font-display text-[28px] font-light text-bone leading-none">186</p>
+          <p className="mt-1 text-caption text-frost">automatisch geboekt</p>
+          <div className="mt-4 h-1 bg-white/8 rounded-full overflow-hidden">
+            <div className="h-full w-[82%] bg-bone rounded-full" />
+          </div>
+          <p className="mt-2 text-caption text-frost">82% AI-zekerheid</p>
+        </div>
+      ),
+    },
+    {
+      label: c.feature.dashboard,
+      img: textureWater,
+      mock: (
+        <div className="rounded-2xl bg-graphite/85 backdrop-blur-xl border border-white/8 p-5 shadow-feature">
+          <p className="text-[9px] font-stamp text-frost mb-3">CASHFLOW · NOV</p>
+          <p className="font-display text-[28px] font-light text-bone leading-none">+€ 12.840</p>
+          <svg viewBox="0 0 120 32" className="mt-3 w-full h-8" fill="none">
+            <path d="M0 24 L20 18 L40 22 L60 12 L80 16 L100 6 L120 10" stroke="#9f9fa0" strokeWidth="1.5" />
+            <circle cx="120" cy="10" r="2.5" fill="#f5f5f7" />
+          </svg>
+          <p className="mt-2 text-caption text-frost">+24% vs vorige maand</p>
+        </div>
+      ),
+    },
+    {
+      label: c.feature.tax,
+      img: textureLavender,
+      mock: (
+        <div className="rounded-2xl bg-graphite/85 backdrop-blur-xl border border-white/8 p-5 shadow-feature">
+          <p className="text-[9px] font-stamp text-frost mb-3">BTW-RESERVE · Q4</p>
+          <p className="font-display text-[28px] font-light text-bone leading-none">€ 5.420</p>
+          <p className="mt-1 text-caption text-frost">gereserveerd · dekking 100%</p>
+          <div className="mt-4 flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-bone animate-pulse" />
+            <span className="text-caption text-frost">aangifte 31 jan</span>
+          </div>
+        </div>
+      ),
+    },
   ];
   return (
     <section id="features" className="mx-auto max-w-[1200px] px-6 py-32">
       <SectionHeading titleA={c.featuresHeading.titleA} titleB={c.featuresHeading.titleB} sub={c.featuresHeading.sub} />
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid md:grid-cols-2 gap-6">
         {cards.map((card, i) => (
           <motion.div
             key={card.label}
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.6, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
-            className={`origin-feature-card ${card.bg} ${card.textColor} min-h-[280px] flex flex-col justify-between`}
+            transition={{ duration: 0.8, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+            className="relative overflow-hidden rounded-[30px] min-h-[420px] flex flex-col justify-end p-8 group"
           >
-            <p className="text-micro opacity-90">{card.label}</p>
-            <div>
-              <p className="font-display text-[40px] font-light leading-none">{card.value}</p>
-              <p className="mt-2 text-body-sm opacity-85">{card.sub}</p>
-            </div>
+            <img
+              src={card.img}
+              alt=""
+              loading="lazy"
+              width={1024}
+              height={1280}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-[1.04]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30" />
+            <p className="absolute top-7 left-8 text-[10px] font-stamp text-white/90">{card.label.toUpperCase()}</p>
+            <div className="relative max-w-[300px]">{card.mock}</div>
           </motion.div>
         ))}
       </div>
