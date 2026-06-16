@@ -154,7 +154,7 @@ const copy: Record<Language, Copy> = {
     },
   },
   en: {
-    nav: { features: "PRODUCTS", ai: "AI", referral: "REFERRAL", pricing: "PRICING", signin: "LOG IN", start: "Get started" },
+    nav: { features: "PRODUCTS", ai: "AI", toeslagen: "BENEFITS", plan: "PLAN", signin: "LOG IN", start: "Get started" },
     hero: {
       badge: "First month free · no credit card",
       titleA: "Own your",
