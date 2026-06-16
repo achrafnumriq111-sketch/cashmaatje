@@ -635,9 +635,12 @@ function ToeslagenCheck({ c }: { c: Copy }) {
     const zorg = totalIncome > 0 && totalIncome < zorgCap
       ? Math.round(zorgMax * Math.max(0, 1 - totalIncome / zorgCap))
       : 0;
+    // Huurtoeslag 2026: geen maximale huurgrens meer, berekening capt op € 932,93.
+    // Basishuur ~€ 250. Inkomensgrens indicatief (afhankelijk van huur/huishouden).
     const huurCap = hasPartner ? 33000 : 24000;
-    const huur = rent >= 250 && rent <= 880 && totalIncome > 0 && totalIncome < huurCap
-      ? Math.round(Math.min(420, (rent - 250) * 0.65) * Math.max(0.2, 1 - totalIncome / huurCap))
+    const rentForCalc = Math.min(rent, 932.93);
+    const huur = rent >= 250 && totalIncome > 0 && totalIncome < huurCap
+      ? Math.round(Math.min(480, (rentForCalc - 250) * 0.65) * Math.max(0.2, 1 - totalIncome / huurCap))
       : 0;
     const kgbCap = hasPartner ? 50000 : 37500;
     const kgb = kids > 0 && totalIncome < kgbCap
