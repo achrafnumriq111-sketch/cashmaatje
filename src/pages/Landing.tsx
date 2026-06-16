@@ -3,6 +3,10 @@ import { motion } from "framer-motion";
 import { ArrowRight, Check, Star, Users } from "lucide-react";
 import { useI18n, type Language } from "@/lib/i18n";
 import duskSky from "@/assets/dusk-sky.jpg";
+import textureSand from "@/assets/texture-sand.jpg";
+import textureWater from "@/assets/texture-water.jpg";
+import textureLavender from "@/assets/texture-lavender.jpg";
+import textureMarble from "@/assets/texture-marble.jpg";
 
 /* ──────────────────────────────────────────────────────────────────
    CashMaatje — Landing (Origin Financial design system)
