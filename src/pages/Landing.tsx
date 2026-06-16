@@ -716,6 +716,13 @@ function ToeslagenCheck({ c }: { c: Copy }) {
                 <label className="block text-micro text-frost mb-2">{t.daycare}</label>
                 <input type="number" value={daycare || ""} onChange={(e) => setDaycare(Number(e.target.value) || 0)} placeholder={t.daycarePh} className={inputClass} />
               </div>
+              <div className="rounded-2xl bg-popover/60 border border-white/5 p-4">
+                <div className="flex items-start gap-2.5">
+                  <Info className="w-4 h-4 text-frost shrink-0 mt-0.5" />
+                  <p className="text-[11px] font-stamp text-frost leading-relaxed">{t.rulesHint}</p>
+                </div>
+                <a href={t.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-[11px] font-stamp text-bone underline underline-offset-2 decoration-white/20 hover:decoration-white/60 transition">{t.sourceLabel}</a>
+              </div>
             </div>
           </motion.div>
 
