@@ -83,6 +83,9 @@ import Benefits from "./pages/Benefits";
 import TimeRegistration from "./pages/TimeRegistration";
 import Agenda from "./pages/Agenda";
 import UsersAndRoles from "./pages/UsersAndRoles";
+import Security from "./pages/Security";
+import PublicCompliance from "./pages/PublicCompliance";
+import About from "./pages/About";
 
 
 const queryClient = new QueryClient();
@@ -123,6 +126,9 @@ const App = () => (
           <Routes>
             <Route path="/landing" element={<Navigate to="/" replace />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/security" element={<Security />} />
+            <Route path="/compliance" element={<PublicCompliance />} />
+            <Route path="/about" element={<About />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
