@@ -272,53 +272,56 @@ function Nav({ c }: { c: Copy }) {
 
 function Hero({ c }: { c: Copy }) {
   return (
-    <section className="relative overflow-hidden min-h-screen flex items-end pb-32">
-      {/* Full-bleed dusk-sky atmosphere */}
+    <section className="relative overflow-hidden min-h-[100vh] flex items-center">
+      {/* Full-bleed dusk-sky — sky stays bright on top, only fades to obsidian at the bottom */}
       <img
         src={duskSky}
         alt=""
         className="absolute inset-0 w-full h-full object-cover"
         width={1920}
         height={1280}
+        fetchPriority="high"
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-obsidian/85 via-obsidian/30 to-obsidian" />
+      {/* Top: subtle nav scrim for legibility. Bottom: long fade into obsidian for the next section to bleed into. */}
+      <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-obsidian/40 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-[55vh] bg-gradient-to-b from-transparent via-obsidian/70 to-obsidian" />
 
-      <div className="relative mx-auto max-w-[1200px] px-6 w-full">
+      <div className="relative mx-auto max-w-[1200px] px-6 w-full pt-24 pb-40">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
           className="text-center"
         >
-          <div className="inline-flex items-center px-3 py-1 rounded-full bg-obsidian/50 border border-white/25 backdrop-blur-sm mb-10">
+          <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/25 backdrop-blur-md mb-10">
             <span className="text-[10px] font-stamp text-white">{c.hero.badge}</span>
           </div>
 
-          <h1 className="text-display text-bone mx-auto max-w-5xl">
+          <h1 className="text-display text-bone mx-auto max-w-5xl drop-shadow-[0_2px_30px_rgba(0,0,0,0.35)]">
             <span className="text-italic-display">{c.hero.titleA}</span>{" "}
             <span className="font-display">{c.hero.titleB}</span>
           </h1>
 
-          <p className="mt-8 text-subheading text-frost max-w-xl mx-auto">{c.hero.sub}</p>
+          <p className="mt-8 text-subheading text-white/85 max-w-xl mx-auto drop-shadow-[0_1px_20px_rgba(0,0,0,0.3)]">{c.hero.sub}</p>
 
           <div className="mt-10 flex items-center justify-center gap-4 flex-wrap">
             <PillCTA to="/register">{c.hero.cta}</PillCTA>
             <a href="#features" className="origin-pill-ghost">{c.hero.seeHow}</a>
           </div>
 
-          <p className="mt-8 text-caption text-mist max-w-md mx-auto">{c.hero.disclaimer}</p>
+          <p className="mt-8 text-caption text-white/65 max-w-md mx-auto">{c.hero.disclaimer}</p>
 
           {/* Floating chat input (signature interaction) */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-16 max-w-[700px] mx-auto"
+            transition={{ duration: 1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-16 max-w-[640px] mx-auto"
           >
-            <div className="flex items-center gap-3 bg-graphite/80 backdrop-blur-xl border border-white/8 rounded-[30px] px-5 py-4">
-              <span className="text-frost text-body flex-1 text-left">Hoe staat mijn BTW dit kwartaal?</span>
-              <button className="w-8 h-8 rounded-full bg-white grid place-items-center hover:scale-105 transition-transform">
-                <ArrowRight className="w-3.5 h-3.5 text-carbon" />
+            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-2xl border border-white/20 rounded-full px-5 py-3.5 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.5)]">
+              <span className="text-white/85 text-body flex-1 text-left">Hoe staat mijn BTW dit kwartaal?</span>
+              <button className="w-9 h-9 rounded-full bg-white/30 backdrop-blur grid place-items-center hover:bg-white/45 transition">
+                <ArrowRight className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
               </button>
             </div>
           </motion.div>
