@@ -104,6 +104,9 @@ const copy: Record<Language, Copy> = {
       eligible: "Recht op",
       apply: "Direct aanvragen in dashboard",
       foot: "Indicatie op basis van Belastingdienst-thresholds 2026. Geen rechten te ontlenen.",
+      rulesHint: "Zorgtoeslag verschijnt bij inkomen onder de grens. Huurtoeslag vanaf €250 huur. Kinderopvangtoeslag bij opvanguren > 0. Kindgebonden budget met kinderen < 18 en inkomen onder de grens. Geen indicatie = geen vermoedelijk recht op basis van deze velden.",
+      sourceLabel: "Bron: Belastingdienst",
+      sourceUrl: "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/toeslagen/",
       labels: {
         zorg: { name: "Zorgtoeslag", tag: "MAANDELIJKS" },
         huur: { name: "Huurtoeslag", tag: "MAANDELIJKS" },
@@ -203,6 +206,9 @@ const copy: Record<Language, Copy> = {
       eligible: "Eligible",
       apply: "Apply directly in dashboard",
       foot: "Indication based on Belastingdienst thresholds 2026. No rights can be derived.",
+      rulesHint: "Healthcare allowance appears when income is below the threshold. Rent allowance from €250 rent. Childcare allowance when daycare hours > 0. Child budget with children < 18 and income below the threshold. No indication = likely no entitlement based on these fields.",
+      sourceLabel: "Source: Belastingdienst",
+      sourceUrl: "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/toeslagen/",
       labels: {
         zorg: { name: "Healthcare allowance", tag: "MONTHLY" },
         huur: { name: "Rent allowance", tag: "MONTHLY" },
