@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useState, useMemo } from "react";
-import { ArrowRight, Check, Star, Users, Sparkles } from "lucide-react";
+import { ArrowRight, Check, Star, Users, Sparkles, Info } from "lucide-react";
 import { useI18n, type Language } from "@/lib/i18n";
 import duskSky from "@/assets/dusk-sky.jpg";
 import textureSand from "@/assets/texture-sand.jpg";
