@@ -11,6 +11,7 @@ import { toast } from "sonner";
 
 import StepBedrijfsprofiel from "@/components/onboarding/StepBedrijfsprofiel";
 import StepBelasting from "@/components/onboarding/StepBelasting";
+import StepHuisstijl from "@/components/onboarding/StepHuisstijl";
 import StepBankrekeningen from "@/components/onboarding/StepBankrekeningen";
 import StepImport from "@/components/onboarding/StepImport";
 import StepDocumenten from "@/components/onboarding/StepDocumenten";
@@ -21,6 +22,7 @@ import StepGereedheid from "@/components/onboarding/StepGereedheid";
 const STEPS = [
   { title: "Bedrijfsprofiel", skippable: false },
   { title: "Belastinginstellingen", skippable: false },
+  { title: "Huisstijl & facturen", skippable: true },
   { title: "Bankrekeningen", skippable: true },
   { title: "Data importeren", skippable: true },
   { title: "Documenten", skippable: true },
