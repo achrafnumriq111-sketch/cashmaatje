@@ -35,6 +35,13 @@ export interface OnboardingData {
   pendingOpeningBalance?: { account_code: string; debit: number; credit: number; description: string }[];
   pendingBankRows?: any[];
   pendingContacts?: any[];
+  logoFile?: File;
+  numbering: {
+    prefix: string;
+    format: string;
+    yearlyReset: boolean;
+    nextSeq: number;
+  };
   documents?: {
     autoOcr: boolean;
     autoCategorize: boolean;
