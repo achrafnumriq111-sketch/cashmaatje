@@ -11,6 +11,7 @@ import { toast } from "sonner";
 
 import StepBedrijfsprofiel from "@/components/onboarding/StepBedrijfsprofiel";
 import StepBelasting from "@/components/onboarding/StepBelasting";
+import StepHuisstijl from "@/components/onboarding/StepHuisstijl";
 import StepBankrekeningen from "@/components/onboarding/StepBankrekeningen";
 import StepImport from "@/components/onboarding/StepImport";
 import StepDocumenten from "@/components/onboarding/StepDocumenten";
@@ -21,6 +22,7 @@ import StepGereedheid from "@/components/onboarding/StepGereedheid";
 const STEPS = [
   { title: "Bedrijfsprofiel", skippable: false },
   { title: "Belastinginstellingen", skippable: false },
+  { title: "Huisstijl & facturen", skippable: true },
   { title: "Bankrekeningen", skippable: true },
   { title: "Data importeren", skippable: true },
   { title: "Documenten", skippable: true },
@@ -33,6 +35,13 @@ export interface OnboardingData {
   pendingOpeningBalance?: { account_code: string; debit: number; credit: number; description: string }[];
   pendingBankRows?: any[];
   pendingContacts?: any[];
+  logoFile?: File;
+  numbering: {
+    prefix: string;
+    format: string;
+    yearlyReset: boolean;
+    nextSeq: number;
+  };
   documents?: {
     autoOcr: boolean;
     autoCategorize: boolean;
@@ -77,6 +86,12 @@ export interface OnboardingData {
 }
 
 const defaultData: OnboardingData = {
+  numbering: {
+    prefix: "F",
+    format: "{prefix}{year}-{seq:4}",
+    yearlyReset: true,
+    nextSeq: 1,
+  },
   company: {
     name: "",
     legalForm: "eenmanszaak",
@@ -187,10 +202,35 @@ export default function Onboarding() {
         p_vat_frequency: data.tax.vatFrequency as any,
         p_fiscal_year_start_month: data.tax.fiscalYearStartMonth,
         p_kor_eligible: data.tax.vatScheme === "kor",
-        p_settings: { ai: data.ai, processing: data.documents ?? null, industry: data.company.industry || null },
+        p_settings: {
+          ai: data.ai,
+          processing: data.documents ?? null,
+          industry: data.company.industry || null,
+          invoice_prefix: data.numbering.prefix,
+          invoice_number_format: data.numbering.format,
+          invoice_yearly_reset: data.numbering.yearlyReset,
+          invoice_next_seq: data.numbering.nextSeq,
+        },
       });
 
       if (setupErr) throw setupErr;
+
+      // Upload logo (if user picked one)
+      if (data.logoFile) {
+        try {
+          const ext = data.logoFile.name.split(".").pop()?.toLowerCase() ?? "png";
+          const path = `${orgId}/logo-${Date.now()}.${ext}`;
+          const { error: upErr } = await supabase.storage
+            .from("branding")
+            .upload(path, data.logoFile, { upsert: true });
+          if (!upErr) {
+            const { data: pub } = supabase.storage.from("branding").getPublicUrl(path);
+            await supabase.from("organizations").update({ logo_url: pub.publicUrl }).eq("id", orgId);
+          }
+        } catch (e) {
+          console.warn("logo upload failed", e);
+        }
+      }
 
       // Apply industry preset (extra accounts) if industry was chosen
       if (data.company.industry) {
@@ -264,6 +304,7 @@ export default function Onboarding() {
   const stepComponents = [
     <StepBedrijfsprofiel data={data} setData={setData} />,
     <StepBelasting data={data} setData={setData} />,
+    <StepHuisstijl data={data} setData={setData} />,
     <StepBankrekeningen data={data} setData={setData} />,
     <StepImport data={data} setData={setData} />,
     <StepDocumenten data={data} setData={setData} />,
