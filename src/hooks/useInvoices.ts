@@ -186,29 +186,30 @@ export function useCreateInvoice() {
 
       const totalAmount = Math.round((subtotal + totalVat) * 100) / 100;
 
-      // Generate invoice number BEFORE insert (unique constraint requires non-empty unique value)
-      const prefix = input.invoice_type === "sales" ? "VK" : "IK";
-      const year = new Date(input.invoice_date).getFullYear();
-      const { count: existingCount } = await supabase
-        .from("invoices")
-        .select("*", { count: "exact", head: true })
-        .eq("organization_id", orgId)
-        .eq("invoice_type", input.invoice_type)
-        .gte("invoice_date", `${year}-01-01`)
-        .lte("invoice_date", `${year}-12-31`);
-
-      // Try a few times in case of race
-      let invoice: { id: string } | null = null;
+      // Generate invoice number via server-side RPC (advisory lock, race-safe, per-org format).
+      // Falls back to legacy timestamp scheme if the RPC fails for any reason.
       let invoiceNumber = "";
+      let invoice: { id: string } | null = null;
       let lastErr: { message?: string; code?: string } | null = null;
 
-      for (let attempt = 0; attempt < 5; attempt++) {
-        invoiceNumber = `${prefix}${year}-${String((existingCount ?? 0) + 1 + attempt).padStart(4, "0")}`;
+      try {
+        const { data: rpcNumber, error: rpcErr } = await supabase.rpc("next_invoice_number", { p_org_id: orgId });
+        if (rpcErr) throw rpcErr;
+        invoiceNumber = String(rpcNumber);
+      } catch (e) {
+        // Fallback: oude logica (uniek genoeg voor edge cases)
+        const prefix = input.invoice_type === "sales" ? "VK" : "IK";
+        const year = new Date(input.invoice_date).getFullYear();
+        invoiceNumber = `${prefix}${year}-${Date.now().toString().slice(-6)}`;
+      }
+
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const candidate = attempt === 0 ? invoiceNumber : `${invoiceNumber}-${attempt}`;
         const { data, error } = await supabase
           .from("invoices")
           .insert({
             organization_id: orgId,
-            invoice_number: invoiceNumber,
+            invoice_number: candidate,
             invoice_type: input.invoice_type,
             status: input.status === "sent" ? "sent" : "draft",
             contact_id: input.contact_id,
@@ -234,10 +235,10 @@ export function useCreateInvoice() {
 
         if (!error && data) {
           invoice = data;
+          invoiceNumber = candidate;
           break;
         }
         lastErr = error;
-        // Only retry on unique violation
         if (error?.code !== "23505") break;
       }
 
@@ -773,5 +774,57 @@ export function suggestVatTreatment(contact: {
   if (isEU && !contact.btw_number) return "high";
   return "export";
 }
+
+/* ---------- Email versturen ---------- */
+export function useSendInvoiceEmail() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (args: { invoice_id: string; recipient_email?: string; message?: string }) => {
+      const { data, error } = await supabase.functions.invoke("send-invoice-email", { body: args });
+      if (error) throw new Error(error.message || "Mailen mislukt");
+      if (data?.error) throw new Error(data.error);
+      return data as { ok: true; sentTo: string };
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["invoices"] }); },
+  });
+}
+
+/* ---------- Stripe betaallink genereren ---------- */
+export function useCreateInvoicePaymentLink() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (args: { invoice_id: string; return_url?: string; environment?: "sandbox" | "live" }) => {
+      const { data, error } = await supabase.functions.invoke("create-invoice-payment-link", {
+        body: {
+          invoice_id: args.invoice_id,
+          return_url: args.return_url || window.location.origin + "/facturen/verkoop",
+          environment: args.environment || "sandbox",
+        },
+      });
+      if (error) throw new Error(error.message || "Betaallink genereren mislukt");
+      if (data?.error) throw new Error(data.error);
+      return data as { url: string; reused?: boolean };
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["invoices"] }); },
+  });
+}
+
+/* ---------- Volledige factuur ophalen (voor UBL) ---------- */
+export function useInvoiceWithLines(invoiceId: string | null) {
+  return useQuery({
+    queryKey: ["invoice-detail", invoiceId],
+    enabled: !!invoiceId,
+    queryFn: async () => {
+      const [{ data: invoice, error: e1 }, { data: lines, error: e2 }] = await Promise.all([
+        supabase.from("invoices").select("*").eq("id", invoiceId!).single(),
+        supabase.from("invoice_lines").select("*").eq("invoice_id", invoiceId!).order("line_number"),
+      ]);
+      if (e1) throw e1;
+      if (e2) throw e2;
+      return { invoice, lines: lines || [] };
+    },
+  });
+}
+
 
 export { VAT_PERCENTAGES };

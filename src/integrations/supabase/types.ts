@@ -2939,6 +2939,7 @@ export type Database = {
           document_id: string | null
           due_date: string | null
           duplicate_hash: string | null
+          email_message: string | null
           exchange_rate: number | null
           id: string
           invoice_date: string
@@ -2949,9 +2950,13 @@ export type Database = {
           ocr_data: Json | null
           organization_id: string
           paid_date: string | null
+          payment_link_provider: string | null
+          payment_link_session_id: string | null
+          payment_link_url: string | null
           payment_method: string | null
           payment_reference: string | null
           potential_duplicate_of: string | null
+          sent_at: string | null
           status: Database["public"]["Enums"]["invoice_status"]
           subtotal: number
           tags: string[] | null
@@ -2973,6 +2978,7 @@ export type Database = {
           document_id?: string | null
           due_date?: string | null
           duplicate_hash?: string | null
+          email_message?: string | null
           exchange_rate?: number | null
           id?: string
           invoice_date: string
@@ -2983,9 +2989,13 @@ export type Database = {
           ocr_data?: Json | null
           organization_id: string
           paid_date?: string | null
+          payment_link_provider?: string | null
+          payment_link_session_id?: string | null
+          payment_link_url?: string | null
           payment_method?: string | null
           payment_reference?: string | null
           potential_duplicate_of?: string | null
+          sent_at?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal?: number
           tags?: string[] | null
@@ -3007,6 +3017,7 @@ export type Database = {
           document_id?: string | null
           due_date?: string | null
           duplicate_hash?: string | null
+          email_message?: string | null
           exchange_rate?: number | null
           id?: string
           invoice_date?: string
@@ -3017,9 +3028,13 @@ export type Database = {
           ocr_data?: Json | null
           organization_id?: string
           paid_date?: string | null
+          payment_link_provider?: string | null
+          payment_link_session_id?: string | null
+          payment_link_url?: string | null
           payment_method?: string | null
           payment_reference?: string | null
           potential_duplicate_of?: string | null
+          sent_at?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal?: number
           tags?: string[] | null
@@ -6287,6 +6302,7 @@ export type Database = {
         }
         Returns: number
       }
+      next_invoice_number: { Args: { p_org_id: string }; Returns: string }
       post_memorial_journal: {
         Args: { p_memorial_id: string }
         Returns: string

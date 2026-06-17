@@ -24,10 +24,11 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import {
   Building2, Banknote, Sparkles, FileText, Users, CreditCard,
-  Lock, AlertTriangle, Loader2, Plus, Copy, Check, Trash2, Mail, Palette,
+  Lock, AlertTriangle, Loader2, Plus, Copy, Check, Trash2, Mail, Palette, Hash,
 } from "lucide-react";
 import { EditOrgDialog } from "@/components/layout/EditOrgDialog";
 import BrandingPanel from "@/components/settings/BrandingPanel";
+import { InvoiceNumberingTab } from "@/components/settings/InvoiceNumberingTab";
 import type { Database } from "@/integrations/supabase/types";
 
 type UserRole = Database["public"]["Enums"]["user_role"];
@@ -79,6 +80,7 @@ export default function Settings() {
           <TabsTrigger value="bank"><Banknote className="h-3.5 w-3.5 mr-1.5" />Bankrekeningen</TabsTrigger>
           <TabsTrigger value="ai"><Sparkles className="h-3.5 w-3.5 mr-1.5" />AI</TabsTrigger>
           <TabsTrigger value="documenten"><FileText className="h-3.5 w-3.5 mr-1.5" />Documenten</TabsTrigger>
+          <TabsTrigger value="facturatie"><Hash className="h-3.5 w-3.5 mr-1.5" />Facturatie</TabsTrigger>
           <TabsTrigger value="team"><Users className="h-3.5 w-3.5 mr-1.5" />Team</TabsTrigger>
           <TabsTrigger value="abonnement"><CreditCard className="h-3.5 w-3.5 mr-1.5" />Abonnement</TabsTrigger>
           <TabsTrigger value="beveiliging"><Lock className="h-3.5 w-3.5 mr-1.5" />Beveiliging</TabsTrigger>
@@ -90,6 +92,7 @@ export default function Settings() {
         <TabsContent value="bank"><BankAccountsTab canManage={canManage} /></TabsContent>
         <TabsContent value="ai"><AiTab canManage={canManage} /></TabsContent>
         <TabsContent value="documenten"><DocumentsTab canManage={canManage} /></TabsContent>
+        <TabsContent value="facturatie"><InvoiceNumberingTab canManage={canManage} /></TabsContent>
         <TabsContent value="team"><TeamTab isOwner={isOwner} canManage={canManage} /></TabsContent>
         <TabsContent value="abonnement"><SubscriptionTab /></TabsContent>
         <TabsContent value="beveiliging"><SecurityTab /></TabsContent>
