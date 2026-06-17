@@ -89,7 +89,7 @@ export default function Psd2TestImport() {
         description: tx.description,
         counterparty_name: tx.counterparty,
         counterparty_iban: tx.iban,
-        status: "new",
+        status: "new" as const,
       }));
       const { error } = await supabase.from("bank_transactions").insert(rows);
       if (error) throw error;
