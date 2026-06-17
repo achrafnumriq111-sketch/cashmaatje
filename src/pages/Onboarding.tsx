@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Progress } from "@/components/ui/progress";
+import StepProgress from "@/components/onboarding/StepProgress";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, SkipForward } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -375,7 +375,11 @@ export default function Onboarding() {
           </span>
         </div>
         <div className="mx-auto mt-3 max-w-2xl">
-          <Progress value={progress} className="h-1.5" />
+          <StepProgress
+            steps={stepIndicators}
+            current={step}
+            onJump={(i) => i <= step && setStep(i)}
+          />
         </div>
       </div>
 
