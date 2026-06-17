@@ -218,6 +218,11 @@ export default function Onboarding() {
           invoice_number_format: data.numbering.format,
           invoice_yearly_reset: data.numbering.yearlyReset,
           invoice_next_seq: data.numbering.nextSeq,
+          onboarding: {
+            completed_at: new Date().toISOString(),
+            bank_method: data.bankMethod ?? "psd2",
+            steps_completed: ["company", "tax", "branding", "bank", "import", "documents", "ai"],
+          },
         },
       });
 
@@ -300,8 +305,12 @@ export default function Onboarding() {
       }
 
       toast.success("Organisatie aangemaakt! Welkom bij CashMaatje.");
-      // Force full reload to ensure fresh organization state
-      window.location.href = "/";
+      // Redirect op basis van gekozen bankmethode
+      const dest =
+        data.bankMethod === "csv" ? "/bank/import?onboarding=1"
+        : data.bankMethod === "psd2" ? "/bank/import?onboarding=1&method=psd2"
+        : "/";
+      window.location.href = dest;
     } catch (e: any) {
       toast.error(e.message || "Er ging iets mis");
     } finally {
