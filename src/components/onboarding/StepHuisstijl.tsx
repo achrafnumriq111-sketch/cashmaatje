@@ -4,9 +4,10 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Upload, X, ImageIcon, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Upload, X, ImageIcon, AlertCircle, CheckCircle2, FileDown } from "lucide-react";
 import type { OnboardingData } from "@/pages/Onboarding";
 import { previewInvoiceNumbers } from "@/lib/validators";
+import { generateSampleInvoicePdf } from "@/lib/invoicePdfPreview";
 
 interface Props {
   data: OnboardingData;
