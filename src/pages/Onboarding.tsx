@@ -215,6 +215,23 @@ export default function Onboarding() {
 
       if (setupErr) throw setupErr;
 
+      // Upload logo (if user picked one)
+      if (data.logoFile) {
+        try {
+          const ext = data.logoFile.name.split(".").pop()?.toLowerCase() ?? "png";
+          const path = `${orgId}/logo-${Date.now()}.${ext}`;
+          const { error: upErr } = await supabase.storage
+            .from("branding")
+            .upload(path, data.logoFile, { upsert: true });
+          if (!upErr) {
+            const { data: pub } = supabase.storage.from("branding").getPublicUrl(path);
+            await supabase.from("organizations").update({ logo_url: pub.publicUrl }).eq("id", orgId);
+          }
+        } catch (e) {
+          console.warn("logo upload failed", e);
+        }
+      }
+
       // Apply industry preset (extra accounts) if industry was chosen
       if (data.company.industry) {
         try {
