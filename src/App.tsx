@@ -74,6 +74,7 @@ import RecurringInvoices from "./pages/RecurringInvoices";
 import QuarterlyChecklist from "./pages/QuarterlyChecklist";
 import ExportCenter from "./pages/ExportCenter";
 import BankImport from "./pages/BankImport";
+import Psd2TestImport from "./pages/Psd2TestImport";
 import ScenarioSimulator from "./pages/ScenarioSimulator";
 import FinancialHealth from "./pages/FinancialHealth";
 import AccountantPortal from "./pages/AccountantPortal";
@@ -159,6 +160,7 @@ const App = () => (
               <Route path="facturen/terugkerend" element={<RecurringInvoices />} />
               <Route path="exports" element={<ExportCenter />} />
               <Route path="bank/import" element={<BankImport />} />
+              <Route path="bank/psd2-test" element={<Psd2TestImport />} />
               <Route path="insights/scenario" element={<ScenarioSimulator />} />
               <Route path="insights/health" element={<FinancialHealth />} />
               <Route path="accountant" element={<AccountantPortal />} />
