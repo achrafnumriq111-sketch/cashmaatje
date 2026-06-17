@@ -304,6 +304,7 @@ export default function Onboarding() {
   const stepComponents = [
     <StepBedrijfsprofiel data={data} setData={setData} />,
     <StepBelasting data={data} setData={setData} />,
+    <StepHuisstijl data={data} setData={setData} />,
     <StepBankrekeningen data={data} setData={setData} />,
     <StepImport data={data} setData={setData} />,
     <StepDocumenten data={data} setData={setData} />,
