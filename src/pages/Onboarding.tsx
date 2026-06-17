@@ -202,7 +202,15 @@ export default function Onboarding() {
         p_vat_frequency: data.tax.vatFrequency as any,
         p_fiscal_year_start_month: data.tax.fiscalYearStartMonth,
         p_kor_eligible: data.tax.vatScheme === "kor",
-        p_settings: { ai: data.ai, processing: data.documents ?? null, industry: data.company.industry || null },
+        p_settings: {
+          ai: data.ai,
+          processing: data.documents ?? null,
+          industry: data.company.industry || null,
+          invoice_prefix: data.numbering.prefix,
+          invoice_number_format: data.numbering.format,
+          invoice_yearly_reset: data.numbering.yearlyReset,
+          invoice_next_seq: data.numbering.nextSeq,
+        },
       });
 
       if (setupErr) throw setupErr;
