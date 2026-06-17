@@ -1,50 +1,85 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Upload, X, ImageIcon } from "lucide-react";
+import { Upload, X, ImageIcon, AlertCircle, CheckCircle2 } from "lucide-react";
 import type { OnboardingData } from "@/pages/Onboarding";
+import { previewInvoiceNumbers } from "@/lib/validators";
 
 interface Props {
   data: OnboardingData;
   setData: React.Dispatch<React.SetStateAction<OnboardingData>>;
 }
 
-function previewNumber(n: OnboardingData["numbering"]): string {
-  const year = new Date().getFullYear();
-  return n.format
-    .replace("{prefix}", n.prefix)
-    .replace("{year}", String(year))
-    .replace(/\{seq:(\d+)\}/g, (_, w) => String(n.nextSeq).padStart(parseInt(w), "0"))
-    .replace("{seq}", String(n.nextSeq));
-}
+const ACCEPTED = ["image/png", "image/jpeg", "image/svg+xml", "image/webp"];
+const MAX_BYTES = 2 * 1024 * 1024;
 
 export default function StepHuisstijl({ data, setData }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [logoError, setLogoError] = useState<string | null>(null);
+  const [logoInfo, setLogoInfo] = useState<{ w: number; h: number } | null>(null);
+
+  // Restore preview when navigating back
+  useEffect(() => {
+    if (data.logoFile && !preview) {
+      const reader = new FileReader();
+      reader.onload = () => setPreview(reader.result as string);
+      reader.readAsDataURL(data.logoFile);
+    }
+  }, [data.logoFile, preview]);
 
   const onPick = (f: File | null) => {
+    setLogoError(null);
+    setLogoInfo(null);
     if (!f) return;
-    if (f.size > 2 * 1024 * 1024) {
-      alert("Logo mag max 2MB zijn");
+    if (!ACCEPTED.includes(f.type)) {
+      setLogoError("Alleen PNG, JPG, SVG of WebP toegestaan");
+      return;
+    }
+    if (f.size > MAX_BYTES) {
+      setLogoError(`Max 2MB (huidig: ${(f.size / 1024 / 1024).toFixed(1)}MB)`);
       return;
     }
     setData((d) => ({ ...d, logoFile: f }));
     const reader = new FileReader();
-    reader.onload = () => setPreview(reader.result as string);
+    reader.onload = () => {
+      const url = reader.result as string;
+      setPreview(url);
+      // Dimensie check (skip SVG)
+      if (f.type !== "image/svg+xml") {
+        const img = new Image();
+        img.onload = () => {
+          setLogoInfo({ w: img.width, h: img.height });
+          if (img.width < 100 || img.height < 100) {
+            setLogoError("Logo is erg klein — minimaal 100×100px aanbevolen voor scherpte op facturen");
+          }
+        };
+        img.src = url;
+      }
+    };
     reader.readAsDataURL(f);
   };
 
   const removeLogo = () => {
     setData((d) => ({ ...d, logoFile: undefined }));
     setPreview(null);
+    setLogoError(null);
+    setLogoInfo(null);
     if (fileRef.current) fileRef.current.value = "";
   };
 
   const updateN = <K extends keyof OnboardingData["numbering"]>(k: K, v: OnboardingData["numbering"][K]) =>
     setData((d) => ({ ...d, numbering: { ...d.numbering, [k]: v } }));
+
+  const nextThree = previewInvoiceNumbers(data.numbering, 3);
+  const nextYear = previewInvoiceNumbers(
+    { ...data.numbering, nextSeq: data.numbering.yearlyReset ? 1 : data.numbering.nextSeq + 3 },
+    1,
+    new Date().getFullYear() + 1,
+  )[0];
 
   return (
     <div className="space-y-6">
@@ -56,31 +91,51 @@ export default function StepHuisstijl({ data, setData }: Props) {
       <Card>
         <CardContent className="pt-6 space-y-4">
           <Label>Bedrijfslogo</Label>
-          <div className="flex items-center gap-4">
-            <div className="h-20 w-20 rounded-xl border border-border bg-muted/30 flex items-center justify-center overflow-hidden">
+          <div className="flex items-start gap-4">
+            <div className="h-24 w-24 shrink-0 rounded-xl border border-border bg-muted/30 flex items-center justify-center overflow-hidden">
               {preview ? (
-                <img src={preview} alt="Logo" className="h-full w-full object-contain" />
+                <img src={preview} alt="Logo preview" className="h-full w-full object-contain" />
               ) : (
-                <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                <div className="flex flex-col items-center gap-1 text-muted-foreground">
+                  <ImageIcon className="h-7 w-7" />
+                  <span className="text-[10px]">Standaard</span>
+                </div>
               )}
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 flex-1">
               <input
                 ref={fileRef}
                 type="file"
-                accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                accept={ACCEPTED.join(",")}
                 className="hidden"
                 onChange={(e) => onPick(e.target.files?.[0] ?? null)}
               />
-              <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
-                <Upload className="h-4 w-4 mr-2" /> {preview ? "Vervangen" : "Logo uploaden"}
-              </Button>
-              {preview && (
-                <Button type="button" variant="ghost" size="sm" onClick={removeLogo} className="text-muted-foreground">
-                  <X className="h-4 w-4 mr-2" /> Verwijderen
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
+                  <Upload className="h-4 w-4 mr-2" /> {preview ? "Vervangen" : "Logo uploaden"}
                 </Button>
+                {preview && (
+                  <Button type="button" variant="ghost" size="sm" onClick={removeLogo} className="text-muted-foreground">
+                    <X className="h-4 w-4 mr-2" /> Verwijderen
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">PNG, JPG, SVG of WebP — max 2MB, vierkant werkt het best.</p>
+              {logoInfo && !logoError && (
+                <p className="flex items-center gap-1.5 text-xs text-emerald-500">
+                  <CheckCircle2 className="h-3 w-3" /> {logoInfo.w}×{logoInfo.h}px — geschikt voor facturen
+                </p>
               )}
-              <p className="text-xs text-muted-foreground">PNG, JPG, SVG of WebP. Max 2MB.</p>
+              {logoError && (
+                <p className="flex items-center gap-1.5 text-xs text-destructive">
+                  <AlertCircle className="h-3 w-3" /> {logoError}
+                </p>
+              )}
+              {!preview && (
+                <p className="text-xs text-muted-foreground italic">
+                  Geen logo? Facturen tonen automatisch je bedrijfsnaam als fallback.
+                </p>
+              )}
             </div>
           </div>
         </CardContent>
@@ -132,24 +187,38 @@ export default function StepHuisstijl({ data, setData }: Props) {
             />
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="seq">Volgend nummer</Label>
-              <Input
-                id="seq"
-                type="number"
-                min={1}
-                value={data.numbering.nextSeq}
-                onChange={(e) => updateN("nextSeq", parseInt(e.target.value) || 1)}
-              />
-              <p className="text-xs text-muted-foreground">Pas aan bij overstap van ander systeem.</p>
+          <div className="space-y-2">
+            <Label htmlFor="seq">Volgend nummer</Label>
+            <Input
+              id="seq"
+              type="number"
+              min={1}
+              value={data.numbering.nextSeq}
+              onChange={(e) => updateN("nextSeq", parseInt(e.target.value) || 1)}
+            />
+            <p className="text-xs text-muted-foreground">Pas aan bij overstap van ander systeem.</p>
+          </div>
+
+          {/* Live preview */}
+          <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+            <p className="text-xs font-medium text-foreground">Voorbeeld eerstvolgende facturen</p>
+            <div className="flex flex-wrap gap-2">
+              {nextThree.map((n, i) => (
+                <span
+                  key={i}
+                  className={`font-mono text-sm px-2.5 py-1 rounded-md border ${
+                    i === 0 ? "border-primary bg-primary/10 text-foreground" : "border-border bg-background text-muted-foreground"
+                  }`}
+                >
+                  {n}
+                  {i === 0 && <span className="ml-1.5 text-[10px] uppercase text-primary">eerste</span>}
+                </span>
+              ))}
             </div>
-            <div className="space-y-2">
-              <Label>Voorbeeld</Label>
-              <div className="h-10 flex items-center px-3 rounded-md border border-border bg-muted/30 font-mono text-sm">
-                {previewNumber(data.numbering)}
-              </div>
-            </div>
+            <p className="text-xs text-muted-foreground">
+              Eerste factuur volgend jaar: <code className="font-mono text-foreground">{nextYear}</code>
+              {data.numbering.yearlyReset ? " (reset)" : " (doorlopend)"}
+            </p>
           </div>
         </CardContent>
       </Card>

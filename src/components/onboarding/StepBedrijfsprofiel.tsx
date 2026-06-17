@@ -1,7 +1,9 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertCircle } from "lucide-react";
 import type { OnboardingData } from "@/pages/Onboarding";
+import { validateKvK, validateBTW, validatePostcode, validateEmail } from "@/lib/validators";
 
 const LEGAL_FORMS = [
   { value: "eenmanszaak", label: "Eenmanszaak" },
@@ -30,16 +32,32 @@ interface Props {
   setData: React.Dispatch<React.SetStateAction<OnboardingData>>;
 }
 
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return (
+    <p className="flex items-center gap-1.5 text-xs text-destructive">
+      <AlertCircle className="h-3 w-3" />
+      {message}
+    </p>
+  );
+}
+
 export default function StepBedrijfsprofiel({ data, setData }: Props) {
   const update = (field: keyof OnboardingData["company"], value: string) => {
     setData((d) => ({ ...d, company: { ...d.company, [field]: value } }));
   };
 
   const formatBtw = (v: string) => {
-    const digits = v.replace(/[^0-9bB]/g, "").toUpperCase();
-    if (digits.length <= 2) return `NL${digits}`;
-    return `NL${digits.slice(0, 12)}`;
+    const cleaned = v.replace(/[^0-9bB]/g, "").toUpperCase();
+    if (cleaned.length === 0) return "";
+    return `NL${cleaned.slice(0, 12)}`;
   };
+
+  const kvkError = validateKvK(data.company.kvkNumber).error;
+  const btwError = validateBTW(data.company.btwNumber).error;
+  const postcodeError = validatePostcode(data.company.addressPostalCode).error;
+  const emailError = validateEmail(data.company.email).error;
+  const nameError = !data.company.name?.trim() ? "Bedrijfsnaam is verplicht" : undefined;
 
   return (
     <div className="space-y-6">
@@ -51,7 +69,14 @@ export default function StepBedrijfsprofiel({ data, setData }: Props) {
       <div className="grid gap-4">
         <div className="space-y-2">
           <Label htmlFor="name">Bedrijfsnaam *</Label>
-          <Input id="name" value={data.company.name} onChange={(e) => update("name", e.target.value)} placeholder="Bijv. Jansen Consultancy" />
+          <Input
+            id="name"
+            value={data.company.name}
+            onChange={(e) => update("name", e.target.value)}
+            placeholder="Bijv. Jansen Consultancy"
+            aria-invalid={!!nameError}
+          />
+          <FieldError message={nameError} />
         </div>
 
         <div className="space-y-2">
@@ -82,11 +107,27 @@ export default function StepBedrijfsprofiel({ data, setData }: Props) {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="kvk">KVK-nummer</Label>
-            <Input id="kvk" value={data.company.kvkNumber} onChange={(e) => update("kvkNumber", e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="12345678" maxLength={8} />
+            <Input
+              id="kvk"
+              value={data.company.kvkNumber}
+              onChange={(e) => update("kvkNumber", e.target.value.replace(/\D/g, "").slice(0, 8))}
+              placeholder="12345678"
+              maxLength={8}
+              aria-invalid={!!kvkError}
+            />
+            <FieldError message={kvkError} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="btw">BTW-nummer</Label>
-            <Input id="btw" value={data.company.btwNumber} onChange={(e) => update("btwNumber", formatBtw(e.target.value))} placeholder="NL000000000B01" maxLength={16} />
+            <Input
+              id="btw"
+              value={data.company.btwNumber}
+              onChange={(e) => update("btwNumber", formatBtw(e.target.value))}
+              placeholder="NL123456789B01"
+              maxLength={14}
+              aria-invalid={!!btwError}
+            />
+            <FieldError message={btwError} />
           </div>
         </div>
 
@@ -98,7 +139,14 @@ export default function StepBedrijfsprofiel({ data, setData }: Props) {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="postal">Postcode</Label>
-            <Input id="postal" value={data.company.addressPostalCode} onChange={(e) => update("addressPostalCode", e.target.value)} placeholder="1234 AB" />
+            <Input
+              id="postal"
+              value={data.company.addressPostalCode}
+              onChange={(e) => update("addressPostalCode", e.target.value.toUpperCase().slice(0, 7))}
+              placeholder="1234 AB"
+              aria-invalid={!!postcodeError}
+            />
+            <FieldError message={postcodeError} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="city">Plaats</Label>
@@ -109,7 +157,15 @@ export default function StepBedrijfsprofiel({ data, setData }: Props) {
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={data.company.email} onChange={(e) => update("email", e.target.value)} placeholder="info@bedrijf.nl" />
+            <Input
+              id="email"
+              type="email"
+              value={data.company.email}
+              onChange={(e) => update("email", e.target.value)}
+              placeholder="info@bedrijf.nl"
+              aria-invalid={!!emailError}
+            />
+            <FieldError message={emailError} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="phone">Telefoon</Label>

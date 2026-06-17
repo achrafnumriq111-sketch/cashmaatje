@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useOrganization } from "@/hooks/useOrganization";
 import { toast } from "sonner";
+import { validateKvK, validateBTW, validatePostcode, validateEmail, validateIBAN, validateBIC } from "@/lib/validators";
 
 import StepBedrijfsprofiel from "@/components/onboarding/StepBedrijfsprofiel";
 import StepBelasting from "@/components/onboarding/StepBelasting";
@@ -36,6 +37,7 @@ export interface OnboardingData {
   pendingBankRows?: any[];
   pendingContacts?: any[];
   logoFile?: File;
+  bankMethod?: "psd2" | "csv" | "manual";
   numbering: {
     prefix: string;
     format: string;
@@ -113,6 +115,7 @@ const defaultData: OnboardingData = {
     expectedRevenue: 0,
   },
   bankAccounts: [],
+  bankMethod: "psd2",
   ai: {
     autoCategorize: true,
     autoApplyThreshold: 80,
@@ -141,25 +144,30 @@ export default function Onboarding() {
   const next = () => setStep((s) => Math.min(s + 1, STEPS.length - 1));
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
-  // Validation for each step
+  // Validation for each step — disables "Volgende" bij ongeldige invoer
   const canProceed = () => {
     switch (step) {
-      case 0: // Bedrijfsprofiel
-        return !!data.company.name?.trim();
+      case 0: { // Bedrijfsprofiel
+        if (!data.company.name?.trim()) return false;
+        if (!validateKvK(data.company.kvkNumber).valid) return false;
+        if (!validateBTW(data.company.btwNumber).valid) return false;
+        if (!validatePostcode(data.company.addressPostalCode).valid) return false;
+        if (!validateEmail(data.company.email).valid) return false;
+        return true;
+      }
       case 1: // Belasting
         return true;
-      case 2: // Bankrekeningen
-        return true; // Optional step
-      case 3: // Import
-        return true; // Optional step
-      case 4: // Documenten
+      case 2: // Huisstijl
         return true;
-      case 5: // AI
+      case 3: { // Bankrekeningen
+        if (data.bankMethod === "manual") return true;
+        // Als er rekeningen zijn toegevoegd, moeten ze geldig zijn
+        for (const a of data.bankAccounts) {
+          if (!validateIBAN(a.iban, true).valid) return false;
+          if (!validateBIC(a.bic).valid) return false;
+        }
         return true;
-      case 6: // Transacties
-        return true;
-      case 7: // Gereedheid
-        return true;
+      }
       default:
         return true;
     }
@@ -210,6 +218,11 @@ export default function Onboarding() {
           invoice_number_format: data.numbering.format,
           invoice_yearly_reset: data.numbering.yearlyReset,
           invoice_next_seq: data.numbering.nextSeq,
+          onboarding: {
+            completed_at: new Date().toISOString(),
+            bank_method: data.bankMethod ?? "psd2",
+            steps_completed: ["company", "tax", "branding", "bank", "import", "documents", "ai"],
+          },
         },
       });
 
@@ -292,8 +305,12 @@ export default function Onboarding() {
       }
 
       toast.success("Organisatie aangemaakt! Welkom bij CashMaatje.");
-      // Force full reload to ensure fresh organization state
-      window.location.href = "/";
+      // Redirect op basis van gekozen bankmethode
+      const dest =
+        data.bankMethod === "csv" ? "/bank/import?onboarding=1"
+        : data.bankMethod === "psd2" ? "/bank/import?onboarding=1&method=psd2"
+        : "/";
+      window.location.href = dest;
     } catch (e: any) {
       toast.error(e.message || "Er ging iets mis");
     } finally {
