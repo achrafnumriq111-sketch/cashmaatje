@@ -144,34 +144,46 @@ export default function Onboarding() {
   const next = () => setStep((s) => Math.min(s + 1, STEPS.length - 1));
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
-  // Validation for each step — disables "Volgende" bij ongeldige invoer
-  const canProceed = () => {
-    switch (step) {
-      case 0: { // Bedrijfsprofiel
-        if (!data.company.name?.trim()) return false;
-        if (!validateKvK(data.company.kvkNumber).valid) return false;
-        if (!validateBTW(data.company.btwNumber).valid) return false;
-        if (!validatePostcode(data.company.addressPostalCode).valid) return false;
-        if (!validateEmail(data.company.email).valid) return false;
-        return true;
+  // Per-step validatie status. Geeft duidelijke reden waarom een stap blockt.
+  const stepValidation = (idx: number): { ok: boolean; reason?: string } => {
+    switch (idx) {
+      case 0: {
+        if (!data.company.name?.trim()) return { ok: false, reason: "Vul een bedrijfsnaam in." };
+        const k = validateKvK(data.company.kvkNumber);
+        if (!k.valid) return { ok: false, reason: k.error };
+        const b = validateBTW(data.company.btwNumber);
+        if (!b.valid) return { ok: false, reason: b.error };
+        const p = validatePostcode(data.company.addressPostalCode);
+        if (!p.valid) return { ok: false, reason: p.error };
+        const e = validateEmail(data.company.email);
+        if (!e.valid) return { ok: false, reason: e.error };
+        return { ok: true };
       }
-      case 1: // Belasting
-        return true;
-      case 2: // Huisstijl
-        return true;
-      case 3: { // Bankrekeningen
-        if (data.bankMethod === "manual") return true;
-        // Als er rekeningen zijn toegevoegd, moeten ze geldig zijn
+      case 3: {
+        if (data.bankMethod === "manual") return { ok: true };
         for (const a of data.bankAccounts) {
-          if (!validateIBAN(a.iban, true).valid) return false;
-          if (!validateBIC(a.bic).valid) return false;
+          const ib = validateIBAN(a.iban, true);
+          if (!ib.valid) return { ok: false, reason: `IBAN "${a.iban || "leeg"}": ${ib.error}` };
+          const bc = validateBIC(a.bic);
+          if (!bc.valid) return { ok: false, reason: bc.error };
         }
-        return true;
+        return { ok: true };
       }
       default:
-        return true;
+        return { ok: true };
     }
   };
+
+  const canProceed = () => stepValidation(step).ok;
+
+  const stepIndicators = STEPS.map((s, i) => {
+    const v = stepValidation(i);
+    let status: "complete" | "blocker" | "pending" | "skippable" = "pending";
+    if (i < step) status = v.ok ? "complete" : "blocker";
+    else if (i === step) status = v.ok ? "complete" : "blocker";
+    else status = s.skippable ? "skippable" : "pending";
+    return { title: s.title, status, reason: v.reason };
+  });
 
   const finish = async () => {
     if (!user) return;
