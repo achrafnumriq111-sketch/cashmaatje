@@ -240,22 +240,43 @@ export default function Onboarding() {
 
       if (setupErr) throw setupErr;
 
-      // Upload logo (if user picked one)
+      // Upload logo (if user picked one) → branding bucket + persist URL in BOTH
+      // organizations.logo_url AND organizations.settings.onboarding.logo_url
+      let uploadedLogoUrl: string | null = null;
       if (data.logoFile) {
         try {
           const ext = data.logoFile.name.split(".").pop()?.toLowerCase() ?? "png";
           const path = `${orgId}/logo-${Date.now()}.${ext}`;
           const { error: upErr } = await supabase.storage
             .from("branding")
-            .upload(path, data.logoFile, { upsert: true });
+            .upload(path, data.logoFile, { upsert: true, cacheControl: "3600" });
           if (!upErr) {
             const { data: pub } = supabase.storage.from("branding").getPublicUrl(path);
-            await supabase.from("organizations").update({ logo_url: pub.publicUrl }).eq("id", orgId);
+            uploadedLogoUrl = pub.publicUrl;
+            // Read current settings, merge logo_url into onboarding object
+            const { data: orgRow } = await supabase
+              .from("organizations")
+              .select("settings")
+              .eq("id", orgId)
+              .single();
+            const mergedSettings = {
+              ...((orgRow?.settings as Record<string, any>) ?? {}),
+              onboarding: {
+                ...(((orgRow?.settings as Record<string, any>)?.onboarding) ?? {}),
+                logo_url: uploadedLogoUrl,
+                logo_uploaded_at: new Date().toISOString(),
+              },
+            };
+            await supabase
+              .from("organizations")
+              .update({ logo_url: uploadedLogoUrl, settings: mergedSettings })
+              .eq("id", orgId);
           }
         } catch (e) {
           console.warn("logo upload failed", e);
         }
       }
+
 
       // Apply industry preset (extra accounts) if industry was chosen
       if (data.company.industry) {
@@ -319,8 +340,8 @@ export default function Onboarding() {
       toast.success("Organisatie aangemaakt! Welkom bij CashMaatje.");
       // Redirect op basis van gekozen bankmethode
       const dest =
-        data.bankMethod === "csv" ? "/bank/import?onboarding=1"
-        : data.bankMethod === "psd2" ? "/bank/import?onboarding=1&method=psd2"
+        data.bankMethod === "psd2" ? "/bank/psd2-test"
+        : data.bankMethod === "csv" ? "/bank/import?onboarding=1"
         : "/";
       window.location.href = dest;
     } catch (e: any) {
