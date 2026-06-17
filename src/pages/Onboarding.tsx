@@ -139,7 +139,7 @@ export default function Onboarding() {
     }
   }, [membership, organizationLoading, navigate]);
 
-  const progress = ((step + 1) / STEPS.length) * 100;
+  
 
   const next = () => setStep((s) => Math.min(s + 1, STEPS.length - 1));
   const back = () => setStep((s) => Math.max(s - 1, 0));
