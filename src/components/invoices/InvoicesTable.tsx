@@ -3,6 +3,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { InvoiceRowActions } from "./InvoiceRowActions";
 
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
   draft: { label: "Concept", cls: "bg-muted text-muted-foreground" },
@@ -28,12 +29,14 @@ interface Invoice {
   id: string;
   invoice_number: string;
   invoice_date: string;
+  contact_id?: string | null;
   contact_name: string | null;
   subtotal: number;
   total_vat: number;
   total_amount: number;
   status: string;
   due_date: string | null;
+  invoice_type?: string;
 }
 
 interface Props {
@@ -95,6 +98,7 @@ export function InvoicesTable({ invoices, isLoading, onSelect, selectedIds, onSe
             <TableHead className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground font-medium text-right">Totaal</TableHead>
             <TableHead className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground font-medium">Status</TableHead>
             <TableHead className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground font-medium">Vervaldatum</TableHead>
+            <TableHead className="w-10"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -147,6 +151,9 @@ export function InvoicesTable({ invoices, isLoading, onSelect, selectedIds, onSe
                       {countdown && <Pill label={countdown.label} className={countdown.cls} />}
                     </div>
                   ) : <span className="text-muted-foreground">—</span>}
+                </TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <InvoiceRowActions invoice={inv} />
                 </TableCell>
               </TableRow>
             );

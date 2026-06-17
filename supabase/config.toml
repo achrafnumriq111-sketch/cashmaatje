@@ -25,3 +25,7 @@ project_id = "mibmftxjhvrxgxypypiy"
     verify_jwt = false
   [functions.handle-email-suppression]
     verify_jwt = false
+  [functions.send-invoice-email]
+    verify_jwt = true
+  [functions.create-invoice-payment-link]
+    verify_jwt = true

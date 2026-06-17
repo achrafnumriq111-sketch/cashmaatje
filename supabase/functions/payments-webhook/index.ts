@@ -257,6 +257,52 @@ async function handleInvoicePaymentFailed(invoice: any, env: StripeEnv) {
   console.log("invoice.payment_failed", invoice.id, invoice.subscription);
 }
 
+async function handleCheckoutSessionCompleted(session: any, env: StripeEnv) {
+  // Sales-invoice betaling: metadata.invoice_id is gezet door create-invoice-payment-link
+  const invoiceId: string | undefined = session.metadata?.invoice_id;
+  if (!invoiceId) return; // andere checkouts: subscription create-event handelt dit zelf af
+
+  const amountPaid = typeof session.amount_total === "number" ? session.amount_total / 100 : null;
+  if (!amountPaid) {
+    console.warn("checkout.session.completed for invoice but no amount_total", session.id);
+    return;
+  }
+
+  // Idempotent: alleen aanmaken als er nog geen allocation is voor deze session
+  const { data: existing } = await supabase
+    .from("payment_allocations")
+    .select("id")
+    .eq("invoice_id", invoiceId)
+    .eq("amount", amountPaid)
+    .limit(1)
+    .maybeSingle();
+  if (existing) return;
+
+  const { data: invoice } = await supabase
+    .from("invoices")
+    .select("organization_id, created_by, payment_link_session_id")
+    .eq("id", invoiceId)
+    .single();
+  if (!invoice) return;
+
+  // Update session_id voor traceability
+  if (invoice.payment_link_session_id !== session.id) {
+    await supabase.from("invoices").update({ payment_link_session_id: session.id }).eq("id", invoiceId);
+  }
+
+  // Maak allocation → trigger update_invoice_paid_amount zet status op paid
+  await supabase.from("payment_allocations").insert({
+    organization_id: invoice.organization_id,
+    invoice_id: invoiceId,
+    bank_transaction_id: null,
+    amount: amountPaid,
+    allocation_date: new Date().toISOString().split("T")[0],
+    created_by: invoice.created_by,
+  });
+
+  console.log(`Invoice ${invoiceId} marked paid via Stripe checkout session ${session.id}`);
+}
+
 async function handleWebhook(req: Request, env: StripeEnv) {
   const event = await verifyWebhook(req, env);
 
@@ -277,7 +323,7 @@ async function handleWebhook(req: Request, env: StripeEnv) {
       await handleInvoicePaymentFailed(event.data.object, env);
       break;
     case "checkout.session.completed":
-      // Subscription create event volgt direct hierna; niets te doen.
+      await handleCheckoutSessionCompleted(event.data.object, env);
       break;
     default:
       console.log("Unhandled event:", event.type);
