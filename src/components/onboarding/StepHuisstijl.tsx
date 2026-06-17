@@ -220,6 +220,21 @@ export default function StepHuisstijl({ data, setData }: Props) {
               Eerste factuur volgend jaar: <code className="font-mono text-foreground">{nextYear}</code>
               {data.numbering.yearlyReset ? " (reset)" : " (doorlopend)"}
             </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                generateSampleInvoicePdf({
+                  companyName: undefined,
+                  logoDataUrl: preview,
+                  numbering: data.numbering,
+                })
+              }
+              className="w-full sm:w-auto"
+            >
+              <FileDown className="h-4 w-4 mr-2" /> Voorbeeld PDF genereren
+            </Button>
           </div>
         </CardContent>
       </Card>
