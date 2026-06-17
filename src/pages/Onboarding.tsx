@@ -86,6 +86,12 @@ export interface OnboardingData {
 }
 
 const defaultData: OnboardingData = {
+  numbering: {
+    prefix: "F",
+    format: "{prefix}{year}-{seq:4}",
+    yearlyReset: true,
+    nextSeq: 1,
+  },
   company: {
     name: "",
     legalForm: "eenmanszaak",
