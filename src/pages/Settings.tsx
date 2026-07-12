@@ -29,6 +29,7 @@ import {
 import { EditOrgDialog } from "@/components/layout/EditOrgDialog";
 import BrandingPanel from "@/components/settings/BrandingPanel";
 import { InvoiceNumberingTab } from "@/components/settings/InvoiceNumberingTab";
+import { BankCsvReminderPanel } from "@/components/settings/BankCsvReminderPanel";
 import type { Database } from "@/integrations/supabase/types";
 
 type UserRole = Database["public"]["Enums"]["user_role"];
