@@ -1,60 +1,60 @@
-## Doel
-Verkoopfacturatie van "interne tool" naar "klant-klaar" brengen. Vijf gaps tegelijk dichten.
+# Maandelijkse bank-CSV upload reminder
 
-## 1. Factuur via e-mail versturen
-- Nieuwe edge function `send-invoice-email` (Lovable Emails queue).
-- React Email template `invoice-sent.tsx`: branded mail met PDF attachment-link (signed URL naar Storage), factuurnummer, totaal, vervaldatum, betaal-knop (links naar betaallink uit punt 3 als die er is).
-- Knop **"Mailen naar klant"** in `InvoicesTable` + factuur detail; vult onderwerp/bericht voor, gebruiker kan aanpassen, klikt verzenden.
-- Status van factuur springt automatisch van `draft` → `sent`, `sent_at` timestamp ingevuld.
-- Log in `invoice_reminders_sent` met type `initial`.
+Doel: elke maand krijgt de klant automatisch een herinnering (in-app + e-mail) om een bankafschrift-CSV te uploaden in CashMaatje, zodat directe PSD2-koppeling niet nodig is.
 
-## 2. UBL 2.1 / Peppol XML export
-- Nieuwe util `src/lib/ublExport.ts`: genereert UBL 2.1 Invoice XML conform NLCIUS profiel (verplicht NL 2026).
-- Velden: supplier (org KvK/BTW), customer, invoice lines met BTW-codes (S=21%, AA=9%, Z=0%, E=vrijgesteld, AE=verlegd), totals, betaalinstructies (IBAN).
-- Knop **"Download UBL"** naast bestaande PDF-knop in InvoicesTable + bulk download als ZIP.
-- Geen Peppol-verzending zelf — alleen XML voor klant/accountant/Peppol-access-point.
+## Wat er komt
 
-## 3. Betaallinks (Stripe)
-- `payments--create_product` + price per factuur is overkill. Gebruik dynamic pricing (`price_data`) per factuur.
-- Nieuwe edge function `create-invoice-payment-link` (`verify_jwt = false`): krijgt `invoice_id`, resolveert factuur server-side, maakt Stripe Checkout Session met `price_data` (totaalbedrag, EUR, omschrijving "Factuur F2025-003"), `metadata.invoice_id`.
-- Webhook handler (uitbreiding bestaande Stripe webhook of nieuwe `stripe-invoice-webhook`): bij `checkout.session.completed` met `metadata.invoice_id` → markeer factuur `paid`, vul `payment_link` op factuur.
-- Knop **"Genereer betaallink"** op factuur; link wordt opgenomen in e-mail template + PDF footer.
-- Vereist Stripe go-live keuze — voor nu Stripe sandbox; user moet `enable_stripe_payments` runnen via Cloud → Payments.
+**1. Instelling per organisatie**
+- Nieuw blok in `Settings → Bank` (en zichtbaar in Onboarding stap "Bankrekeningen") met:
+  - Toggle "Maandelijkse CSV-upload reminder"
+  - Dag van de maand (default: 3e — na afsluiting vorige maand)
+  - Extra ontvangers (optioneel, comma-separated)
+- Opgeslagen in `organizations.settings.bank_csv_reminder = { enabled, day_of_month, extra_recipients[] }`.
+- Default AAN voor nieuwe orgs.
 
-## 4. Instelbare factuurnummering
-- DB migration: voeg op `organizations.settings` JSON velden `invoice_prefix` (bv `F`), `invoice_number_format` (bv `{prefix}{year}-{seq:3}`), `invoice_yearly_reset` (bool), `invoice_next_seq` (int) toe.
-- Nieuwe SQL functie `next_invoice_number(p_org_id)` SECURITY DEFINER met advisory lock — voorkomt duplicate nummers bij concurrent inserts. Bouwt nummer uit format, increment teller, reset bij jaarwissel als enabled.
-- `SalesInvoiceForm` roept deze functie aan bij aanmaken (niet meer client-side timestamp).
-- Settings-pagina sectie **"Factuurnummering"**: prefix, format-preview, jaarreset-toggle, volgende nummer (read-only).
+**2. Reminder-logica**
+- Reminder wordt overgeslagen als de org in de afgelopen 25 dagen ≥1 `bank_transactions` rij heeft geïmporteerd (via CSV of anders) — zo krijgt niemand een reminder als 'ie al up-to-date is.
+- Anders: e-mail + in-app notification met directe link naar `/bank/import`.
 
-## 5. Auto-paid via reconciliatie
-- Bestaande `update_invoice_paid_amount` trigger doet dit al voor `payment_allocations`.
-- Toevoegen: trigger `auto_match_bank_to_invoice` op `bank_transactions` insert. Probeert bedrag + (factuurnummer in description OR counterparty-iban match) te matchen. Bij match → maak `payment_allocations` row → bestaande trigger maakt status `paid`.
-- Match-confidence opslaan; alleen auto-allocate bij ≥0.9, anders suggestion in reconciliatie-UI (bestaat al).
+**3. E-mailtemplate**
+- Nieuwe `bank-csv-reminder` template in `supabase/functions/_shared/transactional-email-templates/`.
+- Onderwerp: "Tijd om je bankafschrift te uploaden — {maand}"
+- CTA "Upload je CSV" → `https://cashmaatje.com/bank/import`
+- Korte uitleg per bank (ING/Rabo/ABN/Knab/bunq) hoe je de CSV downloadt.
 
-## Technische scope
-- 2 edge functions: `send-invoice-email`, `create-invoice-payment-link`.
-- 1 React Email template: `invoice-sent.tsx`.
-- 1 utility: `ublExport.ts`.
-- 1 migration: numbering kolommen + `next_invoice_number()` + `auto_match_bank_to_invoice()` trigger.
-- UI: knoppen in `InvoicesTable`, sectie in `Settings.tsx`.
-- Lovable Emails infra controle: als nog niet geïnstalleerd, `setup_email_infra` draaien (DNS niet vereist voor scaffolding).
+**4. Cron job**
+- Nieuwe edge function `send-bank-csv-reminders` die dagelijks draait.
+- Selecteert orgs waar `settings.bank_csv_reminder.enabled = true` én `day_of_month = vandaag`.
+- Per org: check laatste import, skip indien recent; anders enqueue email naar owner + extra_recipients + maak notification voor alle members.
+- Idempotency key: `bank-csv-reminder-{org_id}-{YYYY-MM}` — nooit dubbel per maand.
+- pg_cron: dagelijks 09:00 Europe/Amsterdam.
 
-## Out of scope nu
-- Echte Peppol-verzending (vereist access point partner zoals Storecove/Tradeshift).
-- Mollie als alternatief (Stripe genoeg voor MVP).
-- Automatische incasso / SEPA direct debit.
-- iDEAL als losse methode (zit al in Stripe).
+**5. In-app notification**
+- Rij in `notifications` tabel met type `bank_csv_reminder`, deep-link naar `/bank/import`.
+- Verschijnt in de bestaande InboxBell/NotificationPanel.
 
-## Volgorde van uitvoering
-1. Migration (nummering + auto-match trigger)
-2. Email infra check + `send-invoice-email` + template
-3. UBL export utility + knoppen
-4. Stripe betaallink edge function + webhook uitbreiding
-5. Settings UI voor nummering
-6. Smoke test elke flow
+**6. Handmatige trigger**
+- Knop "Verstuur nu een test-reminder" in Settings zodat de gebruiker de mail direct kan uitproberen.
 
-## Wat de gebruiker daarna nog moet doen
-- Stripe activeren via Cloud → Payments (sandbox eerst, later go-live).
-- Email-domein DNS verifiëren (al genoemd, gepland voor later).
-- KvK/BTW-nummer invullen in org-instellingen zodat UBL geldig is.
+## Technische details
+
+- **Migratie**: geen nieuwe tabellen. Wel:
+  - `send_bank_csv_reminder(org_id uuid)` SECURITY DEFINER RPC die de skip-check + enqueue doet, aanroepbaar vanuit de edge function met service role.
+  - pg_cron schedule dat `net.http_post` doet naar de edge function.
+- **Edge function** `send-bank-csv-reminders/index.ts`:
+  - Loopt orgs waar reminder vandaag valt, roept `send-transactional-email` aan per ontvanger, insert in `notifications`.
+- **Template registry** update (`registry.ts`) met nieuwe entry.
+- **Settings UI**: nieuw tabblad-blok `BankCsvReminderPanel` in `src/components/settings/`.
+- **Onboarding**: `StepBankrekeningen` krijgt onderaan een compacte toggle met dezelfde default, opgeslagen in dezelfde settings-key bij finish.
+
+## Wat er NIET verandert
+
+- Geen PSD2-koppeling of nieuwe providers.
+- Bestaande CSV-import flow (`/bank/import`) blijft zoals hij is — reminder linkt er alleen naartoe.
+- Geen wijziging aan `payment_reminders` (die zijn voor debiteuren, niet voor jezelf).
+
+## Vragen voordat ik bouw
+
+1. Default dag van de maand: **3e** ok, of liever **1e**?
+2. Reminder naar **alleen owner** of naar **alle admins/accountants** van de org?
+3. Ook een **push/browser-notification** naast e-mail + in-app bel, of voorlopig alleen die twee?

@@ -11,8 +11,10 @@ export interface TemplateEntry {
 
 import { template as testerCredentials } from './tester-credentials.tsx'
 import { template as invoiceSent } from './invoice-sent.tsx'
+import { template as bankCsvReminder } from './bank-csv-reminder.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'tester-credentials': testerCredentials,
   'invoice-sent': invoiceSent,
+  'bank-csv-reminder': bankCsvReminder,
 }

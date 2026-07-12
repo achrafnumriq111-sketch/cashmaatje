@@ -29,6 +29,7 @@ import {
 import { EditOrgDialog } from "@/components/layout/EditOrgDialog";
 import BrandingPanel from "@/components/settings/BrandingPanel";
 import { InvoiceNumberingTab } from "@/components/settings/InvoiceNumberingTab";
+import { BankCsvReminderPanel } from "@/components/settings/BankCsvReminderPanel";
 import type { Database } from "@/integrations/supabase/types";
 
 type UserRole = Database["public"]["Enums"]["user_role"];
@@ -89,7 +90,10 @@ export default function Settings() {
         </TabsList>
 
         <TabsContent value="bedrijf"><CompanyTab /></TabsContent>
-        <TabsContent value="bank"><BankAccountsTab canManage={canManage} /></TabsContent>
+        <TabsContent value="bank" className="space-y-4">
+          <BankAccountsTab canManage={canManage} />
+          <BankCsvReminderPanel canManage={canManage} />
+        </TabsContent>
         <TabsContent value="ai"><AiTab canManage={canManage} /></TabsContent>
         <TabsContent value="documenten"><DocumentsTab canManage={canManage} /></TabsContent>
         <TabsContent value="facturatie"><InvoiceNumberingTab canManage={canManage} /></TabsContent>
