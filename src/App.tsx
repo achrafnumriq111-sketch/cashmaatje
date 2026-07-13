@@ -87,6 +87,10 @@ import UsersAndRoles from "./pages/UsersAndRoles";
 import Security from "./pages/Security";
 import PublicCompliance from "./pages/PublicCompliance";
 import About from "./pages/About";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import { CookieConsent } from "./components/legal/CookieConsent";
+
 
 
 const queryClient = new QueryClient();
@@ -121,7 +125,9 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <CookieConsent />
       <BrowserRouter>
+
         <AuthProvider>
           <OrganizationProvider>
           <Routes>
@@ -130,6 +136,9 @@ const App = () => (
             <Route path="/security" element={<Security />} />
             <Route path="/compliance" element={<PublicCompliance />} />
             <Route path="/about" element={<About />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
