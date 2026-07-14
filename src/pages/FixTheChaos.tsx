@@ -105,7 +105,7 @@ export default function FixTheChaos() {
       {/* Upload */}
       <motion.div variants={fadeInUp}>
         <ChaosUploadZone
-          onFiles={(files) => uploadFiles.mutate(files)}
+          onFiles={(files, mode) => uploadFiles.mutate({ files, mode })}
           isUploading={uploadFiles.isPending}
         />
       </motion.div>

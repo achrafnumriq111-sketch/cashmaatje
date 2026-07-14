@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/hooks/useOrganization";
 import { toast } from "@/hooks/use-toast";
+import { mergeFilesToPdf } from "@/lib/mergePdfs";
+import type { GroupMode } from "@/components/chaos/ChaosGroupingDialog";
 
 export type ChaosPriority = "red" | "orange" | "green";
 export type ChaosStatus = "pending" | "analyzing" | "analyzed" | "failed" | "resolved";
@@ -68,6 +70,9 @@ export interface ChaosItem {
   ai_confidence: number | null;
   ai_reasoning: string | null;
   created_at: string;
+  page_count?: number | null;
+  related_upload_ids?: string[] | null;
+  grouping_reason?: string | null;
 }
 
 export type ActionType =
@@ -247,10 +252,26 @@ export function useChaosData() {
   }, [orgId, queryClient]);
 
   const uploadFiles = useMutation({
-    mutationFn: async (files: File[]) => {
+    mutationFn: async (input: File[] | { files: File[]; mode: GroupMode }) => {
       if (!orgId) throw new Error("Geen organisatie geselecteerd");
+      const files = Array.isArray(input) ? input : input.files;
+      const mode: GroupMode = Array.isArray(input) ? "separate" : input.mode;
+
+      // "merge": voeg alle bestanden client-side samen tot 1 PDF, upload als 1 doc.
+      let toUpload: File[] = files;
+      if (mode === "merge" && files.length > 1) {
+        const merged = await mergeFilesToPdf(
+          files,
+          `brief-${new Date().toISOString().slice(0, 10)}-${files.length}p.pdf`,
+        );
+        toUpload = [merged];
+      }
+      // "smart" en "separate" gedragen zich hetzelfde bij upload — de server-side
+      // laag 3 (auto-dedupe in analyze-chaos-document) groepeert achteraf op
+      // kenmerk + afzender voor de "smart" gevallen.
+
       const created: string[] = [];
-      for (const file of files) {
+      for (const file of toUpload) {
         const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
         const path = `${orgId}/${crypto.randomUUID()}-${cleanName}`;
         const { error: upErr } = await supabase.storage
@@ -278,12 +299,18 @@ export function useChaosData() {
 
         created.push(row.id);
       }
-      return created;
+      return { ids: created, mode, originalCount: files.length };
     },
-    onSuccess: (ids) => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["chaos-uploads", orgId] });
+      const msg =
+        res.mode === "merge"
+          ? `${res.originalCount} pagina's samengevoegd tot 1 brief`
+          : res.mode === "smart"
+            ? `${res.ids.length} document${res.ids.length === 1 ? "" : "en"} geüpload — AI groepeert wat bij elkaar hoort`
+            : `${res.ids.length} document${res.ids.length === 1 ? "" : "en"} geüpload`;
       toast({
-        title: `${ids.length} document${ids.length === 1 ? "" : "en"} geüpload`,
+        title: msg,
         description: "AI analyseert nu — verschijnt automatisch in dashboard.",
       });
     },

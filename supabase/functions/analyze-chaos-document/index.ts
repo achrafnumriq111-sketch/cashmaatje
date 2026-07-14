@@ -16,7 +16,14 @@ Bron: belastingdienst.nl/ondernemers en officiële Nederlandse wet- en regelgevi
 
 Je werkt voor een ondernemer die zijn financiële chaos bij jou dropt. Jouw taak is hem of haar ONMIDDELLIJK rust te geven door glashelder te zijn over wat er moet gebeuren.
 
-Je krijgt 1 document (PDF, foto, scan of screenshot). Bepaal:
+BELANGRIJK — MULTI-PAGE:
+Het document dat je krijgt kan meerdere pagina's bevatten (PDF of samengevoegde scan). Behandel het altijd als ÉÉN geheel:
+- Baseer titel, bedrag, kenmerk, deadline en risk timeline op alle pagina's samen.
+- Herhaal geen items en maak geen aparte samenvattingen per pagina.
+- Vul page_count in met het aantal pagina's dat je hebt gezien.
+- Als het duidelijk twee losstaande brieven zijn die per ongeluk samengevoegd zijn, kies de belangrijkste (hoogste panic score) en noem de andere in de summary.
+
+Bepaal:
 1. Wat is dit voor document?
 2. Wie heeft het gestuurd (Belastingdienst, deurwaarder, leverancier, UWV, gemeente, bank, overig)?
 3. Welk bedrag (indien) en welke deadline (indien)?
@@ -133,6 +140,11 @@ const TOOL = {
         },
         ai_confidence: { type: "number", minimum: 0, maximum: 1 },
         ai_reasoning: { type: "string" },
+        page_count: {
+          type: "integer",
+          minimum: 1,
+          description: "Aantal pagina's dat je in dit document hebt gezien (voor multi-page brieven)",
+        },
       },
       required: [
         "category",
@@ -291,40 +303,122 @@ Deno.serve(async (req) => {
     const panicScore = Math.min(100, Math.max(0, Number(args.panic_score) || 0));
     const panicBand = bandFromPanic(panicScore);
     const confidenceBand = bandFromConfidence(args.ai_confidence);
+    const pageCount = Math.max(1, Number(args.page_count) || 1);
 
-    const { data: inserted, error: insErr } = await admin
-      .from("chaos_items")
-      .insert({
-        organization_id: upload.organization_id,
-        upload_id: upload.id,
-        category: args.category,
-        sender_name: args.sender_name ?? null,
-        document_title: args.document_title,
-        summary: args.summary ?? null,
-        amount_due: args.amount_due ?? null,
-        currency: args.currency ?? "EUR",
-        reference_number: args.reference_number ?? null,
-        payment_deadline: args.payment_deadline ?? null,
-        legal_deadline: args.legal_deadline ?? null,
-        priority: args.priority,
-        panic_score: panicScore,
-        panic_band: panicBand,
-        urgency_lane: args.urgency_lane ?? "later",
-        confidence_band: confidenceBand,
-        risk_timeline: args.risk_timeline ?? null,
-        missing_documents: args.missing_documents ?? null,
-        risk_level: args.risk_level ?? null,
-        risk_if_ignored: args.risk_if_ignored ?? null,
-        recommended_action: args.recommended_action,
-        phone_number: args.phone_number ?? null,
-        phone_script: args.phone_script ?? null,
-        required_documents: args.required_documents ?? null,
-        ai_confidence: args.ai_confidence,
-        ai_reasoning: args.ai_reasoning,
-      })
-      .select("id")
-      .single();
-    if (insErr) throw insErr;
+    // ————————————————————————————————
+    // LAAG 3 — auto-merge: horen deze pagina's bij een bestaande brief?
+    // We kijken naar items in dezelfde org, laatste 10 minuten, matchen op
+    // kenmerk (sterk) of (afzender + deadline + bedrag).
+    // ————————————————————————————————
+    const normRef = (args.reference_number ?? "")
+      .toString()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
+    const normSender = (args.sender_name ?? "")
+      .toString()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
+
+    let mergedIntoId: string | null = null;
+    if (normRef.length >= 4 || normSender.length >= 3) {
+      const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      const { data: recent } = await admin
+        .from("chaos_items")
+        .select(
+          "id, sender_name, reference_number, payment_deadline, amount_due, panic_score, page_count, related_upload_ids, upload_id, summary",
+        )
+        .eq("organization_id", upload.organization_id)
+        .eq("is_resolved", false)
+        .gte("created_at", tenMinAgo);
+
+      const candidate = (recent ?? []).find((r: any) => {
+        const rRef = (r.reference_number ?? "")
+          .toString()
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, "");
+        if (normRef.length >= 4 && rRef === normRef) return true;
+        const rSender = (r.sender_name ?? "")
+          .toString()
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, "");
+        const sameSender = normSender.length >= 3 && rSender === normSender;
+        const sameDeadline =
+          args.payment_deadline &&
+          r.payment_deadline &&
+          args.payment_deadline === r.payment_deadline;
+        const sameAmount =
+          args.amount_due != null &&
+          r.amount_due != null &&
+          Math.abs(Number(args.amount_due) - Number(r.amount_due)) < 0.01;
+        return sameSender && (sameDeadline || sameAmount);
+      });
+
+      if (candidate) {
+        const newPanic = Math.max(candidate.panic_score ?? 0, panicScore);
+        const combinedIds = Array.from(
+          new Set([
+            ...(candidate.related_upload_ids ?? []),
+            candidate.upload_id,
+            upload.id,
+          ]),
+        );
+        await admin
+          .from("chaos_items")
+          .update({
+            page_count: (candidate.page_count ?? 1) + pageCount,
+            related_upload_ids: combinedIds,
+            grouping_reason: "ai_dedupe",
+            panic_score: newPanic,
+            panic_band: bandFromPanic(newPanic),
+            summary:
+              candidate.summary && candidate.summary.length >= (args.summary?.length ?? 0)
+                ? candidate.summary
+                : args.summary ?? candidate.summary,
+          })
+          .eq("id", candidate.id);
+        mergedIntoId = candidate.id;
+      }
+    }
+
+    let insertedId: string | null = null;
+    if (!mergedIntoId) {
+      const { data: inserted, error: insErr } = await admin
+        .from("chaos_items")
+        .insert({
+          organization_id: upload.organization_id,
+          upload_id: upload.id,
+          category: args.category,
+          sender_name: args.sender_name ?? null,
+          document_title: args.document_title,
+          summary: args.summary ?? null,
+          amount_due: args.amount_due ?? null,
+          currency: args.currency ?? "EUR",
+          reference_number: args.reference_number ?? null,
+          payment_deadline: args.payment_deadline ?? null,
+          legal_deadline: args.legal_deadline ?? null,
+          priority: args.priority,
+          panic_score: panicScore,
+          panic_band: panicBand,
+          urgency_lane: args.urgency_lane ?? "later",
+          confidence_band: confidenceBand,
+          risk_timeline: args.risk_timeline ?? null,
+          missing_documents: args.missing_documents ?? null,
+          risk_level: args.risk_level ?? null,
+          risk_if_ignored: args.risk_if_ignored ?? null,
+          recommended_action: args.recommended_action,
+          phone_number: args.phone_number ?? null,
+          phone_script: args.phone_script ?? null,
+          required_documents: args.required_documents ?? null,
+          ai_confidence: args.ai_confidence,
+          ai_reasoning: args.ai_reasoning,
+          page_count: pageCount,
+          grouping_reason: pageCount > 1 ? "pdf" : null,
+        })
+        .select("id")
+        .single();
+      if (insErr) throw insErr;
+      insertedId = inserted?.id ?? null;
+    }
 
     await admin
       .from("chaos_uploads")
@@ -352,7 +446,7 @@ Deno.serve(async (req) => {
         .eq("id", newAnchorId);
     }
 
-    return json({ ok: true, item_id: inserted?.id });
+    return json({ ok: true, item_id: insertedId, merged_into: mergedIntoId });
   } catch (e) {
     console.error(e);
     return json({ error: e instanceof Error ? e.message : "unknown" }, 500);
