@@ -109,6 +109,12 @@ export function ChaosItemCard({ item, onResolve, onReopen, onDelete }: Props) {
               </div>
               <h3 className="font-semibold text-foreground truncate">
                 {item.document_title}
+                {(item.page_count ?? 1) > 1 && (
+                  <span className="ml-2 inline-flex items-center gap-1 align-middle text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">
+                    <FileText className="w-3 h-3" /> {item.page_count} pagina's
+                    {item.grouping_reason === "ai_dedupe" && " · samengevoegd"}
+                  </span>
+                )}
               </h3>
               <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
                 {item.recommended_action}
