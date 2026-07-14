@@ -49,5 +49,5 @@ export async function mergeFilesToPdf(
   }
 
   const out = await merged.save();
-  return new File([out], outName, { type: "application/pdf" });
+  return new File([new Uint8Array(out)], outName, { type: "application/pdf" });
 }
