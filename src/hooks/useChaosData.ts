@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/hooks/useOrganization";
 import { toast } from "@/hooks/use-toast";
+import { mergeFilesToPdf } from "@/lib/mergePdfs";
+import type { GroupMode } from "@/components/chaos/ChaosGroupingDialog";
 
 export type ChaosPriority = "red" | "orange" | "green";
 export type ChaosStatus = "pending" | "analyzing" | "analyzed" | "failed" | "resolved";
@@ -68,6 +70,9 @@ export interface ChaosItem {
   ai_confidence: number | null;
   ai_reasoning: string | null;
   created_at: string;
+  page_count?: number | null;
+  related_upload_ids?: string[] | null;
+  grouping_reason?: string | null;
 }
 
 export type ActionType =
