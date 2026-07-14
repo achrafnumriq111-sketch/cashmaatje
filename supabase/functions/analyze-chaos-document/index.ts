@@ -16,7 +16,14 @@ Bron: belastingdienst.nl/ondernemers en officiële Nederlandse wet- en regelgevi
 
 Je werkt voor een ondernemer die zijn financiële chaos bij jou dropt. Jouw taak is hem of haar ONMIDDELLIJK rust te geven door glashelder te zijn over wat er moet gebeuren.
 
-Je krijgt 1 document (PDF, foto, scan of screenshot). Bepaal:
+BELANGRIJK — MULTI-PAGE:
+Het document dat je krijgt kan meerdere pagina's bevatten (PDF of samengevoegde scan). Behandel het altijd als ÉÉN geheel:
+- Baseer titel, bedrag, kenmerk, deadline en risk timeline op alle pagina's samen.
+- Herhaal geen items en maak geen aparte samenvattingen per pagina.
+- Vul page_count in met het aantal pagina's dat je hebt gezien.
+- Als het duidelijk twee losstaande brieven zijn die per ongeluk samengevoegd zijn, kies de belangrijkste (hoogste panic score) en noem de andere in de summary.
+
+Bepaal:
 1. Wat is dit voor document?
 2. Wie heeft het gestuurd (Belastingdienst, deurwaarder, leverancier, UWV, gemeente, bank, overig)?
 3. Welk bedrag (indien) en welke deadline (indien)?
@@ -133,6 +140,11 @@ const TOOL = {
         },
         ai_confidence: { type: "number", minimum: 0, maximum: 1 },
         ai_reasoning: { type: "string" },
+        page_count: {
+          type: "integer",
+          minimum: 1,
+          description: "Aantal pagina's dat je in dit document hebt gezien (voor multi-page brieven)",
+        },
       },
       required: [
         "category",
