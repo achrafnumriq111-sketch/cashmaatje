@@ -1,96 +1,76 @@
-# Pre-launch checklist Cash Maatje
+## Doel
 
-Overzicht van wat er nog ontbreekt voordat we publiek live kunnen. Gegroepeerd naar prioriteit — P0 = blocker voor launch, P1 = binnen 2 weken na launch, P2 = nice-to-have.
+Voorkomen dat een brief die uit meerdere pagina's bestaat (Belastingdienst, deurwaarder, UWV, gemeente) als losse chaos-items in de lanes verschijnt. Vandaag geldt: 1 upload = 1 `chaos_items`-rij. Iemand die een naheffingsaanslag van 4 pagina's fotografeert krijgt dus 4 losse "acties", allemaal met verschillende panic scores en deadlines. Dat is precies de chaos die we oplossen willen — niet reproduceren.
 
-## P0 — Blockers (moet af vóór eerste betalende klant)
+## Aanpak in 3 lagen
 
-**1. Juridisch & compliance**
+### Laag 1 — Handmatig groeperen bij upload (direct duidelijk)
 
-- Algemene voorwaarden (`/terms`) — nu ontbreekt de pagina helemaal
-- Privacyverklaring (`/privacy`) — verplicht onder AVG, moet DPA-clausule bevatten
-- Cookie/consent banner — nu geen consent flow voor analytics/tracking
-- Verwerkersovereenkomst (DPA) als download voor zakelijke klanten
-- Disclaimer op elke toeslag- en belastingberekening: "indicatief, geen fiscaal advies"
+In `ChaosUploadZone`: als de gebruiker meerdere bestanden tegelijk selecteert of dropt, verschijnt een tussenscherm:
 
-**2. Betalen & abonnement**
+```text
+Je hebt 4 bestanden geselecteerd. Horen ze bij hetzelfde document?
+  (•) Ja, dit is 1 brief van meerdere pagina's
+  ( ) Nee, aparte documenten
+  ( ) Slim splitsen — laat AI het bepalen
+```
 
-- Stripe subscription live zetten voor ZZP (€25,99) en BV (€49) — nu alleen invoice-payment-links
-- Trial-flow (14 dagen?) + automatische conversie naar betaald
-- Failed payment handling + dunning e-mails
-- Customer portal knop in Instellingen (upgrade/downgrade/opzeggen)
-- BTW op abonnement zelf (21%) correct factureren
-- `payments--get_go_live_status` check + Stripe van test → live mode
+Bij "1 brief" worden de bestanden client-side samengevoegd tot 1 multi-page PDF (via `pdf-lib`) en als 1 upload doorgestuurd. Bij "aparte" gedraagt het zich als nu. "Slim splitsen" gebruikt laag 3.
 
-**3. Auth & security hardening**
+### Laag 2 — Multi-page PDF's correct verwerken (server)
 
-- E-mailverificatie verplicht vóór eerste login (nu mogelijk uit)
-- Wachtwoord-reset flow end-to-end getest
-- 2FA enrollment aanmoedigen voor accounts met financiële data
-- Rate-limiting op login + 2FA endpoints
-- RLS-audit: `security--run_security_scan` draaien en alle findings > low fixen
-- Google OAuth redirect URIs voor production domain toevoegen
+`analyze-chaos-document` gaat er impliciet vanuit dat een PDF één document is, maar geeft de AI geen instructie om pagina-continuïteit te herkennen. Aanpassingen:
 
-**4. E-mail deliverability**
+- Systeem-prompt uitbreiden: "Dit document kan meerdere pagina's bevatten. Behandel het als één geheel. Baseer titel, bedrag, deadline en risk timeline op alle pagina's samen; herhaal geen items."
+- Tool krijgt een extra veld `page_count` (integer, informatief) zodat we in de UI kunnen tonen "Brief · 4 pagina's".
+- Als Gemini de PDF niet kan lezen (fallback), splitsen we server-side met `pdf-lib` en sturen we de pagina's als aparte `image_url` entries binnen dezelfde tool-call — nog steeds 1 item.
 
-- `email_domain--check_email_domain_status` — SPF/DKIM/DMARC voor cashmaatje.com verifiëren
-- Alle transactionele templates (invoice-sent, bank-csv-reminder, welcome, password-reset) testen in Gmail/Outlook
-- Unsubscribe-link werkend in marketing-achtige mails
-- Bounce/complaint handling actief
+### Laag 3 — Slim samenvoegen achteraf (AI grouping)
 
-**5. Onboarding productie-ready**
+Voor het geval iemand pagina's afzonderlijk als foto's uploadt zonder ze te groeperen: na analyse van elke upload draait een dedupe-check op recente items van dezelfde organisatie (laatste 10 minuten).
 
-- Welcome-e-mail na registratie
-- Empty states in dashboard als er nog geen data is (nu ziet nieuwe user lege grafieken)
-- Sample-data optie of guided tour voor eerste sessie
-- Foutafhandeling bij KvK-lookup als API down is
+Groeperingssignalen (alle moeten matchen, minimaal 2 sterke):
+- Zelfde `sender_name` (fuzzy, Levenshtein < 3)
+- Zelfde `reference_number` (kenmerk/aanslagnummer) — sterk signaal, alleen dit al is genoeg
+- Zelfde `payment_deadline` én `amount_due`
+- Uploads binnen 5 minuten van elkaar door dezelfde user
+- Bestandsnamen met opeenvolgende nummering (`IMG_2341.jpg`, `IMG_2342.jpg`)
 
-## P1 — Direct na launch
+Bij match: nieuwe item wordt niet apart getoond maar gemerged in het bestaande item als extra pagina (`related_upload_ids` array, `page_count` +1). Panic score en deadline worden herberekend als max van alle pagina's. In de UI verschijnt op de card een chip "3 pagina's · samengevoegd" met een "Splits" actie voor false positives.
 
-**6. Product-flows afmaken**
+## Database
 
-- PSD2 echte bankkoppeling (nu alleen mock via Psd2TestImport) — provider kiezen (Tink/Enable Banking/Ponto)
-- OCR-kwaliteit meten op echte bonnen, fallback naar handmatige invoer
-- UBL-export testen tegen echte accountantssoftware (Twinfield, Exact)
-- BTW-aangifte definitief indienen richting Digipoort — nu alleen berekening
+Migratie (kleine additieve wijziging, geen breaking changes):
 
-**7. Monitoring & support**
+```sql
+alter table public.chaos_items
+  add column if not exists page_count integer not null default 1,
+  add column if not exists related_upload_ids uuid[] not null default '{}',
+  add column if not exists grouping_reason text;  -- 'manual' | 'pdf' | 'ai_dedupe'
+```
 
-- Error tracking (Sentry of vergelijkbaar) op frontend + edge functions
-- Uptime monitoring op kritieke edge functions
-- Support-kanaal: e-mail ([support@cashmaatje.com](mailto:support@cashmaatje.com)) of intercom-achtig widget
-- Status page
-- Admin-dashboard voor jou om nieuwe klanten, MRR, churn te zien
+`chaos_uploads` krijgt geen wijziging — uploads blijven 1-op-1 met bestanden.
 
-**8. SEO & marketing basics**
+## UI
 
-- `robots.txt` + `sitemap.xml` genereren
-- Meta tags per publieke pagina (title, description, og:image) — nu generiek
-- Google Search Console + Analytics (met consent) koppelen
-- Landing-page laadtijd meten (Lighthouse) en optimaliseren
-- Referral-tracking end-to-end getest (link → registratie → korting)
+- `ChaosItemCard`: als `page_count > 1`, toon chip `📄 {n} pagina's` naast de titel en een klein "Splits" menu-item (verwijdert item, herstelt losse chaos_items uit `related_upload_ids`).
+- `ChaosUploadZone`: nieuw tussenscherm bij ≥2 bestanden.
+- `UploadStatusList`: toont "samengevoegd met bestaand item" wanneer laag 3 aanslaat, i.p.v. een nieuwe rij.
 
-**9. Content**
+## Anti-fuzz / debug
 
-- FAQ-sectie op landing (top 10 vragen: veiligheid, opzeggen, accountant-toegang, migratie)
-- Help-center / kennisbank met minimaal 15 artikelen (bank-CSV per bank, factuur maken, BTW-aangifte lezen, etc.)
-- Video/GIF-demo van de belangrijkste flows in de landing
+- Alle groepering krijgt een `grouping_reason` zodat we in `ai_decisions`-log terug kunnen zien waarom pagina's samengevoegd zijn.
+- Feature flag `chaos_smart_grouping` (default aan) om laag 3 uit te kunnen zetten bij problemen.
+- Splits-actie logt naar `audit_log` — leert ons welke matches false positives waren.
 
-## P2 — Post-launch verbeteringen
+## Wat NIET verandert
 
-- Mobile PWA install prompt
-- iOS/Android native app of dedicated mobile receipt-scanner
-- Accountant-portal uitbreiden met bulk-review
-- Meertaligheid volledig (nu NL primair, EN gedeeltelijk)
-- Whitelabel voor accountantskantoren
-- API voor externe integraties
+- Bestaande chaos_items en uploads blijven werken; `page_count=1` en lege `related_upload_ids` zijn de defaults.
+- Panic score-, urgency- en risk-timeline-logica blijft identiek — alleen input verandert (1 document i.p.v. n).
+- Geen wijziging aan `chaos_uploads` schema, storage buckets of RLS.
 
-## Voorstel volgorde
+## Vragen voor ik bouw
 
-Sprint 1 (deze week): P0 punt 1 (juridisch) + 3 (auth hardening) + 4 (e-mail deliverability).
-Sprint 2 (volgende week): P0 punt 2 (Stripe subscription live) + 5 (onboarding).
-Sprint 3: P1 punt 6 en 7.
-Daarna soft-launch naar beta-lijst, feedback verzamelen, dan P1 8 en 9 voor publieke launch.
-
-Wil je dat ik met Sprint 1 begin, of eerst dieper op één specifiek onderdeel inzoomen (bijv. Stripe subscription of juridische pagina's)?  
-  
-ja begin met sprint 1
+1. Wil je bij multi-file drop ook een **preview** (thumbnails) tonen zodat de gebruiker ziet welke pagina's hij samenvoegt, of is een simpele radio-keuze genoeg?
+2. Bij laag 3 (auto-merge): mag ik direct samenvoegen, of eerst een **notification** ("Wij denken dat deze 3 bij elkaar horen — bevestig") sturen voor bevestiging?
+3. Tijdvenster voor auto-merge: **5 min** (strikt, alleen als je snel achter elkaar uploadt) of **1 uur** (soepeler, vangt ook trage uploaders)?
