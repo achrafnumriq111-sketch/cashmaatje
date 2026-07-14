@@ -1367,12 +1367,14 @@ export type Database = {
           currency: string | null
           daily_anchor: boolean
           document_title: string
+          grouping_reason: string | null
           id: string
           is_resolved: boolean
           legal_deadline: string | null
           missing_documents: Json | null
           notes: string | null
           organization_id: string
+          page_count: number
           panic_band: string | null
           panic_score: number | null
           payment_deadline: string | null
@@ -1381,6 +1383,7 @@ export type Database = {
           priority: Database["public"]["Enums"]["chaos_priority"]
           recommended_action: string
           reference_number: string | null
+          related_upload_ids: string[]
           required_documents: string[] | null
           resolved_at: string | null
           resolved_by: string | null
@@ -1404,12 +1407,14 @@ export type Database = {
           currency?: string | null
           daily_anchor?: boolean
           document_title: string
+          grouping_reason?: string | null
           id?: string
           is_resolved?: boolean
           legal_deadline?: string | null
           missing_documents?: Json | null
           notes?: string | null
           organization_id: string
+          page_count?: number
           panic_band?: string | null
           panic_score?: number | null
           payment_deadline?: string | null
@@ -1418,6 +1423,7 @@ export type Database = {
           priority?: Database["public"]["Enums"]["chaos_priority"]
           recommended_action: string
           reference_number?: string | null
+          related_upload_ids?: string[]
           required_documents?: string[] | null
           resolved_at?: string | null
           resolved_by?: string | null
@@ -1441,12 +1447,14 @@ export type Database = {
           currency?: string | null
           daily_anchor?: boolean
           document_title?: string
+          grouping_reason?: string | null
           id?: string
           is_resolved?: boolean
           legal_deadline?: string | null
           missing_documents?: Json | null
           notes?: string | null
           organization_id?: string
+          page_count?: number
           panic_band?: string | null
           panic_score?: number | null
           payment_deadline?: string | null
@@ -1455,6 +1463,7 @@ export type Database = {
           priority?: Database["public"]["Enums"]["chaos_priority"]
           recommended_action?: string
           reference_number?: string | null
+          related_upload_ids?: string[]
           required_documents?: string[] | null
           resolved_at?: string | null
           resolved_by?: string | null
