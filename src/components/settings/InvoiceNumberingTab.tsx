@@ -38,13 +38,14 @@ export function InvoiceNumberingTab({ canManage }: { canManage: boolean }) {
   const { membership } = useOrganization();
   const orgId = membership?.organizationId;
   const [settings, setSettings] = useState<NumberingSettings>(DEFAULTS);
+  const [autoArchive, setAutoArchive] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!orgId) return;
     (async () => {
-      const { data } = await supabase.from("organizations").select("settings").eq("id", orgId).single();
+      const { data } = await supabase.from("organizations").select("settings, auto_archive_months").eq("id", orgId).single();
       const s = (data?.settings as any) || {};
       setSettings({
         invoice_prefix: s.invoice_prefix ?? DEFAULTS.invoice_prefix,
@@ -53,6 +54,7 @@ export function InvoiceNumberingTab({ canManage }: { canManage: boolean }) {
         invoice_next_seq: s.invoice_next_seq ?? DEFAULTS.invoice_next_seq,
         invoice_last_year: s.invoice_last_year ?? null,
       });
+      setAutoArchive((data as any)?.auto_archive_months ?? null);
       setLoading(false);
     })();
   }, [orgId]);
@@ -62,7 +64,10 @@ export function InvoiceNumberingTab({ canManage }: { canManage: boolean }) {
     setSaving(true);
     const { data: existing } = await supabase.from("organizations").select("settings").eq("id", orgId).single();
     const merged = { ...(existing?.settings as any || {}), ...settings };
-    const { error } = await supabase.from("organizations").update({ settings: merged }).eq("id", orgId);
+    const { error } = await supabase
+      .from("organizations")
+      .update({ settings: merged, auto_archive_months: autoArchive } as any)
+      .eq("id", orgId);
     setSaving(false);
     if (error) toast.error("Opslaan mislukt");
     else toast.success("Factuurnummering opgeslagen");
@@ -135,6 +140,34 @@ export function InvoiceNumberingTab({ canManage }: { canManage: boolean }) {
             <div className="h-10 flex items-center px-3 rounded-md border border-border bg-muted/30 font-mono text-sm">
               {previewNumber(settings)}
             </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+          <div>
+            <p className="text-sm font-medium">Automatisch archiveren</p>
+            <p className="text-xs text-muted-foreground">Betaalde facturen ouder dan gekozen periode verhuizen naar het archief. Ze blijven vindbaar onder tabblad Archief.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { v: null as number | null, label: "Uit" },
+              { v: 6, label: "Na 6 maanden" },
+              { v: 12, label: "Na 1 jaar" },
+              { v: 24, label: "Na 2 jaar" },
+            ].map((opt) => (
+              <button
+                key={String(opt.v)}
+                disabled={!canManage}
+                onClick={() => setAutoArchive(opt.v)}
+                className={`px-3 py-1.5 rounded-lg text-xs border transition-colors ${
+                  autoArchive === opt.v
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-background hover:bg-muted"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
         </div>
 
