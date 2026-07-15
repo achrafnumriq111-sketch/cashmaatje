@@ -1,76 +1,105 @@
-## Doel
+# Invoice Cashflow Pack + Mobile App Voorbereiding
 
-Voorkomen dat een brief die uit meerdere pagina's bestaat (Belastingdienst, deurwaarder, UWV, gemeente) als losse chaos-items in de lanes verschijnt. Vandaag geldt: 1 upload = 1 `chaos_items`-rij. Iemand die een naheffingsaanslag van 4 pagina's fotografeert krijgt dus 4 losse "acties", allemaal met verschillende panic scores en deadlines. Dat is precies de chaos die we oplossen willen — niet reproduceren.
+## Deel 1 — Invoice Cashflow Pack (5 features)
 
-## Aanpak in 3 lagen
+### 1. Aging Report
+Nieuwe pagina `/facturen/aging` onder Facturen in de sidebar.
+- Buckets: Niet vervallen, 0–30, 31–60, 61–90, 90+ dagen
+- Groepering per klant met totalen per bucket
+- Kleurcodering: geel (31–60), oranje (61–90), rood (90+)
+- Klik op klant → uitklap met losse facturen + "Herinnering sturen" / "Bel nu" knop
+- Totaalregel onderaan met openstaand bedrag per bucket
+- Export naar CSV en PDF (via bestaande `pdfExport` en `csvImport` utilities)
 
-### Laag 1 — Handmatig groeperen bij upload (direct duidelijk)
+### 2. Client Statement PDF
+Knop op `ContactDetail` → "Download klantstatement"
+- Genereert PDF met álle facturen van die klant (betaald + open) over een gekozen periode
+- Kolommen: Factuurnr, Datum, Vervaldatum, Bedrag, Betaald, Openstaand, Running balance
+- Header met eigen huisstijl (logo, kleuren uit `BrandingPanel`)
+- Footer met totaal openstaand + IBAN voor betaling
+- Ook e-mail-versturen knop (via bestaande `send-invoice-email` edge function, aangepast)
 
-In `ChaosUploadZone`: als de gebruiker meerdere bestanden tegelijk selecteert of dropt, verschijnt een tussenscherm:
+### 3. Bulk-acties uitgebreid op facturenlijst
+Uitbreiding van `InvoiceBulkActions`:
+- Bulk "Markeer als betaald" (met datum-picker, maakt betaal-journaalpost per factuur)
+- Bulk "Archiveer" (nieuw `archived` veld op invoices)
+- Bulk "Verstuur herinnering" (voor overdue facturen)
+- Bevestigings-dialog met samenvatting vóór uitvoeren
 
-```text
-Je hebt 4 bestanden geselecteerd. Horen ze bij hetzelfde document?
-  (•) Ja, dit is 1 brief van meerdere pagina's
-  ( ) Nee, aparte documenten
-  ( ) Slim splitsen — laat AI het bepalen
-```
+### 4. Archief-tab + auto-archive
+- Nieuw `archived` (bool) + `archived_at` (timestamp) veld op `invoices`
+- Extra tab "Archief" op SalesInvoices en PurchaseInvoices (standaard verborgen)
+- Setting in `Settings → Facturatie`: "Auto-archiveer betaalde facturen na X maanden" (default: uit, opties 6/12/24 maanden)
+- Dagelijkse cron edge function `auto-archive-invoices` die dit uitvoert per org
+- Gearchiveerde facturen tellen NIET mee in aging report of dashboard-openstaand
 
-Bij "1 brief" worden de bestanden client-side samengevoegd tot 1 multi-page PDF (via `pdf-lib`) en als 1 upload doorgestuurd. Bij "aparte" gedraagt het zich als nu. "Slim splitsen" gebruikt laag 3.
+### 5. Multi-currency dashboard widget
+Nieuwe widget op `Dashboard`: "Openstaand per valuta"
+- Groepeert open invoices op `currency` veld
+- Toont per valuta: aantal facturen + totaal openstaand
+- Alleen zichtbaar als er >1 valuta in gebruik is (anders geen ruis)
+- Klik op valuta → filtert facturenlijst op die valuta
 
-### Laag 2 — Multi-page PDF's correct verwerken (server)
+## Deel 2 — Mobiele app (na oplevering Deel 1)
 
-`analyze-chaos-document` gaat er impliciet vanuit dat een PDF één document is, maar geeft de AI geen instructie om pagina-continuïteit te herkennen. Aanpassingen:
+Voor "iOS/Android app" zijn er 2 paden. Ik stel voor **Capacitor (native)** omdat je expliciet iOS/Android app zegt:
 
-- Systeem-prompt uitbreiden: "Dit document kan meerdere pagina's bevatten. Behandel het als één geheel. Baseer titel, bedrag, deadline en risk timeline op alle pagina's samen; herhaal geen items."
-- Tool krijgt een extra veld `page_count` (integer, informatief) zodat we in de UI kunnen tonen "Brief · 4 pagina's".
-- Als Gemini de PDF niet kan lezen (fallback), splitsen we server-side met `pdf-lib` en sturen we de pagina's als aparte `image_url` entries binnen dezelfde tool-call — nog steeds 1 item.
+**Capacitor (aanbevolen voor jouw vraag):**
+- Echte native app, publiceerbaar in App Store en Google Play
+- Toegang tot camera (bon scannen), push notifications, biometric login (Face ID voor 2FA)
+- Zelfde React codebase, wordt in native shell verpakt
+- Vereist Mac + Xcode voor iOS build, Android Studio voor Android build
+- Export naar GitHub nodig — bouwen kan niet in Lovable sandbox
 
-### Laag 3 — Slim samenvoegen achteraf (AI grouping)
+**PWA alternatief (sneller, minder krachtig):**
+- Werkt vandaag, geen app stores nodig
+- Gebruikers "Voeg toe aan beginscherm" vanuit Safari/Chrome
+- Beperkte camera/notification support op iOS
+- Geen App Store distributie
 
-Voor het geval iemand pagina's afzonderlijk als foto's uploadt zonder ze te groeperen: na analyse van elke upload draait een dedupe-check op recente items van dezelfde organisatie (laatste 10 minuten).
+Ik doe in deze sprint alleen **Capacitor setup**: config file, dependencies, hot-reload naar sandbox preview, en de instructies voor jou om lokaal te draaien. De 5 features werken automatisch mee omdat de codebase gedeeld is.
 
-Groeperingssignalen (alle moeten matchen, minimaal 2 sterke):
-- Zelfde `sender_name` (fuzzy, Levenshtein < 3)
-- Zelfde `reference_number` (kenmerk/aanslagnummer) — sterk signaal, alleen dit al is genoeg
-- Zelfde `payment_deadline` én `amount_due`
-- Uploads binnen 5 minuten van elkaar door dezelfde user
-- Bestandsnamen met opeenvolgende nummering (`IMG_2341.jpg`, `IMG_2342.jpg`)
+## Technische details
 
-Bij match: nieuwe item wordt niet apart getoond maar gemerged in het bestaande item als extra pagina (`related_upload_ids` array, `page_count` +1). Panic score en deadline worden herberekend als max van alle pagina's. In de UI verschijnt op de card een chip "3 pagina's · samengevoegd" met een "Splits" actie voor false positives.
-
-## Database
-
-Migratie (kleine additieve wijziging, geen breaking changes):
-
+### Database migraties
 ```sql
-alter table public.chaos_items
-  add column if not exists page_count integer not null default 1,
-  add column if not exists related_upload_ids uuid[] not null default '{}',
-  add column if not exists grouping_reason text;  -- 'manual' | 'pdf' | 'ai_dedupe'
+ALTER TABLE invoices 
+  ADD COLUMN archived boolean NOT NULL DEFAULT false,
+  ADD COLUMN archived_at timestamptz;
+
+CREATE INDEX idx_invoices_archived ON invoices(organization_id, archived);
+
+ALTER TABLE organizations
+  ADD COLUMN auto_archive_months integer;  -- null = uit
 ```
 
-`chaos_uploads` krijgt geen wijziging — uploads blijven 1-op-1 met bestanden.
+### Nieuwe files
+- `src/pages/InvoiceAging.tsx` — aging report pagina
+- `src/hooks/useInvoiceAging.ts` — bucket-berekening
+- `src/lib/clientStatementPdf.ts` — PDF generator voor klantstatement
+- `src/components/contacts/ClientStatementDialog.tsx` — dialog met periode-picker
+- `src/components/dashboard/MultiCurrencyWidget.tsx`
+- `supabase/functions/auto-archive-invoices/index.ts` — dagelijkse cron
+- `capacitor.config.ts` — Capacitor config met hot-reload naar sandbox
 
-## UI
+### Uitgebreide files
+- `src/components/invoices/InvoiceBulkActions.tsx` — nieuwe bulk-acties
+- `src/pages/SalesInvoices.tsx` en `PurchaseInvoices.tsx` — Archief-tab
+- `src/pages/Settings.tsx` — auto-archive setting
+- `src/pages/Dashboard.tsx` — multi-currency widget
+- `src/components/contacts/ContactDetail.tsx` — statement knop
+- `src/components/layout/AppSidebar.tsx` — "Aging" link onder Facturen
 
-- `ChaosItemCard`: als `page_count > 1`, toon chip `📄 {n} pagina's` naast de titel en een klein "Splits" menu-item (verwijdert item, herstelt losse chaos_items uit `related_upload_ids`).
-- `ChaosUploadZone`: nieuw tussenscherm bij ≥2 bestanden.
-- `UploadStatusList`: toont "samengevoegd met bestaand item" wanneer laag 3 aanslaat, i.p.v. een nieuwe rij.
+### Cron
+`pg_cron` job om 03:00 UTC → `auto-archive-invoices` edge function per org.
 
-## Anti-fuzz / debug
+## Uitvoervolgorde
+1. DB migratie (archived, auto_archive_months)
+2. Aging report (pagina + hook + sidebar link)
+3. Client statement PDF (dialog + generator + PDF export)
+4. Bulk-acties uitbreiden
+5. Archief-tab + settings + cron
+6. Multi-currency widget op dashboard
+7. Capacitor setup + config + instructies
 
-- Alle groepering krijgt een `grouping_reason` zodat we in `ai_decisions`-log terug kunnen zien waarom pagina's samengevoegd zijn.
-- Feature flag `chaos_smart_grouping` (default aan) om laag 3 uit te kunnen zetten bij problemen.
-- Splits-actie logt naar `audit_log` — leert ons welke matches false positives waren.
-
-## Wat NIET verandert
-
-- Bestaande chaos_items en uploads blijven werken; `page_count=1` en lege `related_upload_ids` zijn de defaults.
-- Panic score-, urgency- en risk-timeline-logica blijft identiek — alleen input verandert (1 document i.p.v. n).
-- Geen wijziging aan `chaos_uploads` schema, storage buckets of RLS.
-
-## Vragen voor ik bouw
-
-1. Wil je bij multi-file drop ook een **preview** (thumbnails) tonen zodat de gebruiker ziet welke pagina's hij samenvoegt, of is een simpele radio-keuze genoeg?
-2. Bij laag 3 (auto-merge): mag ik direct samenvoegen, of eerst een **notification** ("Wij denken dat deze 3 bij elkaar horen — bevestig") sturen voor bevestiging?
-3. Tijdvenster voor auto-merge: **5 min** (strikt, alleen als je snel achter elkaar uploadt) of **1 uur** (soepeler, vangt ook trage uploaders)?
+Aan het eind: samenvatting + stappen die JIJ lokaal moet doen voor de iOS/Android build.
