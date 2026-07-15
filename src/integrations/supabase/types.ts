@@ -2940,6 +2940,8 @@ export type Database = {
           ai_reasoning: string | null
           amount_due: number | null
           amount_paid: number | null
+          archived: boolean
+          archived_at: string | null
           contact_id: string | null
           contact_name: string | null
           created_at: string | null
@@ -2979,6 +2981,8 @@ export type Database = {
           ai_reasoning?: string | null
           amount_due?: number | null
           amount_paid?: number | null
+          archived?: boolean
+          archived_at?: string | null
           contact_id?: string | null
           contact_name?: string | null
           created_at?: string | null
@@ -3018,6 +3022,8 @@ export type Database = {
           ai_reasoning?: string | null
           amount_due?: number | null
           amount_paid?: number | null
+          archived?: boolean
+          archived_at?: string | null
           contact_id?: string | null
           contact_name?: string | null
           created_at?: string | null
@@ -3850,6 +3856,7 @@ export type Database = {
           address_country: string | null
           address_postal_code: string | null
           address_street: string | null
+          auto_archive_months: number | null
           btw_number: string | null
           created_at: string | null
           default_currency: string | null
@@ -3883,6 +3890,7 @@ export type Database = {
           address_country?: string | null
           address_postal_code?: string | null
           address_street?: string | null
+          auto_archive_months?: number | null
           btw_number?: string | null
           created_at?: string | null
           default_currency?: string | null
@@ -3916,6 +3924,7 @@ export type Database = {
           address_country?: string | null
           address_postal_code?: string | null
           address_street?: string | null
+          auto_archive_months?: number | null
           btw_number?: string | null
           created_at?: string | null
           default_currency?: string | null

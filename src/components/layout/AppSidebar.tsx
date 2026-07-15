@@ -57,6 +57,7 @@ const navSections: NavSection[] = [
         children: [
           { id: "verkoop", labelKey: "nav.invoices.sales", path: "/facturen/verkoop" },
           { id: "inkoop", labelKey: "nav.invoices.purchase", path: "/facturen/inkoop" },
+          { id: "aging", labelKey: "Aging report", path: "/facturen/aging" },
           { id: "terugkerend", labelKey: "Terugkerend", path: "/facturen/terugkerend" },
           { id: "herinneringen", labelKey: "nav.invoices.reminders", path: "/facturen/herinneringen" },
           { id: "offerte-studio", labelKey: "nav.quotes", path: "/offerte-studio" },

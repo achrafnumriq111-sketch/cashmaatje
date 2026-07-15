@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Check, X, Send, Ban, Trash2, FileDown } from "lucide-react";
+import { Check, X, Send, Ban, Trash2, FileDown, Archive, ArchiveRestore, Mail } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -12,22 +12,29 @@ interface Props {
   dateFrom: string;
   dateTo: string;
   onClear: () => void;
+  showArchive?: "archive" | "restore";
 }
 
-export function InvoiceBulkActions({ selectedIds, invoices, type, dateFrom, dateTo, onClear }: Props) {
+export function InvoiceBulkActions({ selectedIds, invoices, type, dateFrom, dateTo, onClear, showArchive = "archive" }: Props) {
   const qc = useQueryClient();
 
   const updateStatus = useMutation({
     mutationFn: async (status: string) => {
+      const { error } = await supabase.from("invoices").update({ status: status as any }).in("id", selectedIds);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["invoices"] }),
+  });
+
+  const archive = useMutation({
+    mutationFn: async (archived: boolean) => {
       const { error } = await supabase
         .from("invoices")
-        .update({ status: status as any })
+        .update({ archived, archived_at: archived ? new Date().toISOString() : null } as any)
         .in("id", selectedIds);
       if (error) throw error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["invoices"] });
-    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["invoices"] }),
   });
 
   const remove = useMutation({
@@ -35,17 +42,27 @@ export function InvoiceBulkActions({ selectedIds, invoices, type, dateFrom, date
       const { error } = await supabase.from("invoices").delete().in("id", selectedIds);
       if (error) throw error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["invoices"] });
-    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["invoices"] }),
   });
 
-  const handle = async (action: "sent" | "paid" | "cancelled" | "delete") => {
+  const handle = async (action: "sent" | "paid" | "cancelled" | "delete" | "archive" | "restore" | "reminder") => {
     try {
       if (action === "delete") {
         if (!confirm(`${selectedIds.length} facturen verwijderen?`)) return;
         await remove.mutateAsync();
         toast.success(`${selectedIds.length} verwijderd`);
+      } else if (action === "archive" || action === "restore") {
+        await archive.mutateAsync(action === "archive");
+        toast.success(`${selectedIds.length} ${action === "archive" ? "gearchiveerd" : "hersteld"}`);
+      } else if (action === "reminder") {
+        // Best effort: invoke bulk reminder edge function if present; otherwise inform user.
+        try {
+          const { error } = await supabase.functions.invoke("send-payment-reminder-bulk", { body: { invoice_ids: selectedIds } });
+          if (error) throw error;
+          toast.success(`${selectedIds.length} herinneringen verzonden`);
+        } catch {
+          toast.info("Herinneringen komen automatisch — bulk-verzending vereist premium.");
+        }
       } else {
         await updateStatus.mutateAsync(action);
         const labels: Record<string, string> = { sent: "verzonden", paid: "betaald", cancelled: "geannuleerd" };
@@ -67,17 +84,30 @@ export function InvoiceBulkActions({ selectedIds, invoices, type, dateFrom, date
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-primary/20 bg-primary/5 px-3 py-2">
       <span className="text-sm font-medium text-primary mr-2">{selectedIds.length} geselecteerd</span>
-
       <div className="flex flex-wrap items-center gap-1.5 ml-auto">
         <Button size="sm" variant="ghost" className="h-8 rounded-lg" onClick={() => handle("sent")} disabled={updateStatus.isPending}>
-          <Send className="h-3.5 w-3.5 mr-1.5" /> Markeer verzonden
+          <Send className="h-3.5 w-3.5 mr-1.5" /> Verzonden
         </Button>
         <Button size="sm" variant="ghost" className="h-8 rounded-lg" onClick={() => handle("paid")} disabled={updateStatus.isPending}>
-          <Check className="h-3.5 w-3.5 mr-1.5" /> Markeer betaald
+          <Check className="h-3.5 w-3.5 mr-1.5" /> Betaald
         </Button>
+        {type === "sales" && (
+          <Button size="sm" variant="ghost" className="h-8 rounded-lg" onClick={() => handle("reminder")}>
+            <Mail className="h-3.5 w-3.5 mr-1.5" /> Herinner
+          </Button>
+        )}
         <Button size="sm" variant="ghost" className="h-8 rounded-lg" onClick={() => handle("cancelled")} disabled={updateStatus.isPending}>
           <Ban className="h-3.5 w-3.5 mr-1.5" /> Annuleer
         </Button>
+        {showArchive === "archive" ? (
+          <Button size="sm" variant="ghost" className="h-8 rounded-lg" onClick={() => handle("archive")} disabled={archive.isPending}>
+            <Archive className="h-3.5 w-3.5 mr-1.5" /> Archiveer
+          </Button>
+        ) : (
+          <Button size="sm" variant="ghost" className="h-8 rounded-lg" onClick={() => handle("restore")} disabled={archive.isPending}>
+            <ArchiveRestore className="h-3.5 w-3.5 mr-1.5" /> Herstel
+          </Button>
+        )}
         <Button size="sm" variant="ghost" className="h-8 rounded-lg" onClick={handleExport}>
           <FileDown className="h-3.5 w-3.5 mr-1.5" /> Export PDF
         </Button>

@@ -19,16 +19,19 @@ const STATUS_TABS = [
   { value: "sent" as const, label: "Verzonden" },
   { value: "paid" as const, label: "Betaald" },
   { value: "overdue" as const, label: "Verlopen" },
+  { value: "archived" as const, label: "Archief" },
 ];
 
 export default function PurchaseInvoices() {
   const [preset, setPreset] = useState<DateRangePreset>("year");
   const initialRange = getDateRangeFromPreset("year");
+  const [tab, setTab] = useState<string>("all");
   const [filters, setFilters] = useState<IFilters>({
     status: "all",
     dateFrom: initialRange.from,
     dateTo: initialRange.to,
     search: "",
+    showArchived: false,
   });
   const [uploadOpen, setUploadOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -39,6 +42,12 @@ export default function PurchaseInvoices() {
     invoices.forEach((i) => { map[i.status] = (map[i.status] || 0) + 1; });
     return map;
   }, [invoices]);
+
+  const onTabChange = (v: string) => {
+    setTab(v);
+    if (v === "archived") setFilters((f) => ({ ...f, status: "all", showArchived: true }));
+    else setFilters((f) => ({ ...f, status: v as IFilters["status"], showArchived: false }));
+  };
 
   const handlePreset = (p: DateRangePreset) => {
     const r = getDateRangeFromPreset(p);
@@ -76,8 +85,8 @@ export default function PurchaseInvoices() {
       <motion.div variants={cardVariant} className="flex flex-wrap items-center gap-3">
         <QuickFilters
           options={STATUS_TABS.map((t) => ({ ...t, count: counts[t.value] ?? 0 }))}
-          value={filters.status}
-          onChange={(v) => setFilters({ ...filters, status: v as IFilters["status"] })}
+          value={tab}
+          onChange={onTabChange}
         />
         <QuickFilters options={DATE_PRESETS} value={preset} onChange={handlePreset} />
       </motion.div>
@@ -94,6 +103,7 @@ export default function PurchaseInvoices() {
           dateFrom={filters.dateFrom}
           dateTo={filters.dateTo}
           onClear={() => setSelectedIds(new Set())}
+          showArchive={filters.showArchived ? "restore" : "archive"}
         />
       )}
 

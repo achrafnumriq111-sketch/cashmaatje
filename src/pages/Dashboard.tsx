@@ -12,6 +12,7 @@ import { TaxReserveCard } from "@/components/dashboard/TaxReserveCard";
 import { LiveHealthCard } from "@/components/dashboard/LiveHealthCard";
 import { RecentDocuments } from "@/components/dashboard/RecentDocuments";
 import { IntelligenceWidgets } from "@/components/dashboard/IntelligenceWidgets";
+import { MultiCurrencyWidget } from "@/components/dashboard/MultiCurrencyWidget";
 import { FixTheChaosCta } from "@/components/chaos/FixTheChaosCta";
 import { PeriodSelector, getDefaultPeriod, type DateRange } from "@/components/dashboard/PeriodSelector";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
@@ -74,6 +75,7 @@ export default function Dashboard() {
           isLoading={data.openInvoices.isLoading}
         />
       </div>
+      <MultiCurrencyWidget />
       <div>
         <ActionItems
           unreconciledCount={data.unreconciledCount.data ?? 0}
