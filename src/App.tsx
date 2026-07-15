@@ -90,6 +90,7 @@ import About from "./pages/About";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import { CookieConsent } from "./components/legal/CookieConsent";
+import InvoiceAging from "./pages/InvoiceAging";
 
 
 
@@ -158,6 +159,7 @@ const App = () => (
               <Route path="facturen/verkoop" element={<SalesInvoices />} />
               <Route path="facturen/inkoop" element={<PurchaseInvoices />} />
               <Route path="facturen/herinneringen" element={<PaymentReminders />} />
+              <Route path="facturen/aging" element={<InvoiceAging />} />
               <Route path="reconciliatie" element={<Reconciliation />} />
               <Route path="bonnen" element={<Receipts />} />
               <Route path="documenten" element={<Documents />} />

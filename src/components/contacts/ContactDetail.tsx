@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useContactStats } from "@/hooks/useContacts";
-import { Building2, User, Globe, Mail, Phone, CreditCard, FileText, ArrowLeftRight, TrendingUp, Calendar } from "lucide-react";
+import { Building2, User, Globe, Mail, Phone, CreditCard, FileText, ArrowLeftRight, TrendingUp, Calendar, Download } from "lucide-react";
 import { ContactActivityLog } from "./ContactActivityLog";
 import { EntityRolesEditor } from "./EntityRolesEditor";
+import { ClientStatementDialog } from "./ClientStatementDialog";
 
 function fmtAmount(n: number) {
   return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(n);
@@ -21,6 +24,8 @@ interface Props {
 
 export function ContactDetail({ contact, open, onClose }: Props) {
   const { data: stats, isLoading } = useContactStats(contact?.id ?? null);
+  const [statementOpen, setStatementOpen] = useState(false);
+
 
   const country = contact?.address_country ?? "NL";
   const isDomestic = country === "NL";
@@ -115,7 +120,14 @@ export function ContactDetail({ contact, open, onClose }: Props) {
 
               {/* Stats */}
               <div>
-                <h3 className="text-sm font-medium mb-3">Inzichten</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium">Inzichten</h3>
+                  {contact.is_customer && (
+                    <Button size="sm" variant="outline" onClick={() => setStatementOpen(true)} className="h-7 rounded-lg text-xs">
+                      <Download className="h-3 w-3 mr-1.5" /> Klantstatement
+                    </Button>
+                  )}
+                </div>
                 {isLoading ? (
                   <div className="space-y-2">
                     {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-8 w-full" />)}
@@ -168,6 +180,11 @@ export function ContactDetail({ contact, open, onClose }: Props) {
           </>
         )}
       </SheetContent>
+      <ClientStatementDialog
+        open={statementOpen}
+        onClose={() => setStatementOpen(false)}
+        contact={contact ? { id: contact.id, name: contact.name, email: contact.email } : null}
+      />
     </Sheet>
   );
 }
