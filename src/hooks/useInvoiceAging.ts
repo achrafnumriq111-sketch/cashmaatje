@@ -61,7 +61,7 @@ export function useInvoiceAging(type: "sales" | "purchase" = "sales") {
         .eq("organization_id", orgId!)
         .eq("invoice_type", type)
         .eq("archived", false)
-        .in("status", ["sent", "partial", "overdue", "received"])
+        .in("status", ["sent", "partial", "overdue"])
         .order("due_date", { ascending: true });
 
       if (error) throw error;
