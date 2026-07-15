@@ -85,10 +85,6 @@ export default function PurchaseInvoices() {
       <motion.div variants={cardVariant} className="flex flex-wrap items-center gap-3">
         <QuickFilters
           options={STATUS_TABS.map((t) => ({ ...t, count: counts[t.value] ?? 0 }))}
-          value={filters.status}
-      <motion.div variants={cardVariant} className="flex flex-wrap items-center gap-3">
-        <QuickFilters
-          options={STATUS_TABS.map((t) => ({ ...t, count: counts[t.value] ?? 0 }))}
           value={tab}
           onChange={onTabChange}
         />
