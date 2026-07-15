@@ -12,6 +12,7 @@ export interface InvoiceFilters {
   dateFrom: string;
   dateTo: string;
   search: string;
+  showArchived?: boolean;
 }
 
 export interface InvoiceLineInput {
@@ -84,6 +85,9 @@ export function useInvoices(type: InvoiceType, filters: InvoiceFilters) {
         .gte("invoice_date", filters.dateFrom)
         .lte("invoice_date", filters.dateTo)
         .order("invoice_date", { ascending: false });
+
+      // Archived filter: default hides archived; showArchived=true shows only archived
+      query = query.eq("archived", filters.showArchived === true);
 
       if (filters.status !== "all") {
         query = query.eq("status", filters.status);
